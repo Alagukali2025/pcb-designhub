@@ -22,8 +22,8 @@
         </div>
         <nav class="flex-1 py-6">
             <ul class="space-y-2 px-3 text-sm font-medium text-zinc-600" id="sidebar-menu">
-                <li data-page="home" class="nav-item px-3 py-2.5 rounded-md cursor-pointer transition-colors flex items-center bg-blue-50 text-blue-600">
-                    <i class="fa-solid fa-house w-6 text-center"></i> Home / Dashboard
+                <li data-page="dashboard" class="nav-item px-3 py-2.5 rounded-md cursor-pointer transition-colors flex items-center hover:bg-zinc-100">
+                    <i class="fa-solid fa-chart-simple w-6 text-center"></i> Dashboard
                 </li>
                 <li data-page="footprint" class="nav-item px-3 py-2.5 rounded-md cursor-pointer hover:bg-zinc-100 transition-colors flex items-center">
                     <i class="fa-solid fa-microchip w-6 text-center"></i> Footprint Creation
@@ -50,15 +50,29 @@
     <script>
         // 1. Our JSON Content Database
         const db = {
-            home: {
+            // NEW: Clean Landing Page (Loaded initially)
+            welcome: {
                 title: "Welcome to PCB Masterclass",
-                intro: "Your industrial guide to mastering Printed Circuit Board design. This platform bridges the gap between basic theory and real-world manufacturing standards. Select a module from the sidebar to begin.",
+                intro: "Your industrial guide to mastering Printed Circuit Board design. This platform bridges the gap between basic theory and real-world manufacturing standards.\n\n👈 Click 'Dashboard' in the sidebar to view all available learning modules."
+            },
+            
+            // NEW: Dashboard Grid View
+            dashboard: {
+                title: "Learning Dashboard",
+                intro: "Select a topic below to begin your engineering journey.",
                 modules: [
-                    { icon: "fa-microchip", title: "Footprint Creation", desc: "Master IPC-7351 standards, land patterns, and courtyard clearances." },
-                    { icon: "fa-bolt", title: "High-Speed Routing", desc: "Learn impedance control, length matching, and differential pairs." },
-                    { icon: "fa-layer-group", title: "Stackup Design", desc: "Understand fiberglass weaves, prepreg, cores, and signal integrity." }
+                    { id: "footprint", icon: "fa-microchip", title: "Footprint Creation", desc: "Master IPC-7351 standards and land patterns." },
+                    { id: "stackup", icon: "fa-layer-group", title: "Stackup Design", desc: "Understand materials, prepreg, and cores." },
+                    { id: "diff_pair", icon: "fa-code-merge", title: "Differential Pair Routing", desc: "Learn phase matching and coupling." },
+                    { id: "high_speed", icon: "fa-bolt", title: "High-Speed Routing", desc: "Impedance control and length matching." },
+                    { id: "ddr", icon: "fa-memory", title: "DDR Routing", desc: "Fly-by topology and byte lane routing." },
+                    { id: "emi_emc", icon: "fa-shield-halved", title: "EMI / EMC", desc: "Mitigate radiation and ensure compliance." },
+                    { id: "dfm_dft", icon: "fa-industry", title: "DFM / DFT", desc: "Design for manufacturing and testing." },
+                    { id: "si_pi", icon: "fa-wave-square", title: "SI/PI Calculation", desc: "Signal and power integrity basics." }
                 ]
             },
+
+            // EXISTING: Unchanged Footprint Data
             footprint: {
                 title: "Footprint Creation (IPC-7351)",
                 intro: "A footprint (or land pattern) is the physical arrangement of copper pads on a PCB. Designing it incorrectly leads to tombstoning, solder bridges, and manufacturing failures.",
@@ -102,30 +116,36 @@
         // 2. Function to Render Content dynamically
         function loadPage(pageId) {
             const contentDiv = document.getElementById('app-content');
-            const data = db[pageId];
+            
+            // UPDATED: Safety fallback if the page JSON isn't written yet
+            const data = db[pageId] || { 
+                title: "Module Coming Soon", 
+                intro: "This engineering module is currently under development. Please check back later!" 
+            };
             
             // Re-trigger animation
             contentDiv.classList.remove('fade-in');
             void contentDiv.offsetWidth; // trigger reflow
             contentDiv.classList.add('fade-in');
 
+            // Render Header
             let html = `
                 <div class="mb-8 border-b border-zinc-200 pb-6">
                     <h1 class="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight">${data.title}</h1>
-                    <p class="text-zinc-600 mt-3 text-lg leading-relaxed">${data.intro}</p>
+                    <p class="text-zinc-600 mt-3 text-lg leading-relaxed whitespace-pre-line">${data.intro}</p>
                 </div>
             `;
 
-            // If it's the Home Page, render the module grid
-            if (pageId === 'home') {
-                html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">`;
+            // UPDATED: Render Dashboard Grid ONLY if page is 'dashboard'
+            if (pageId === 'dashboard' && data.modules) {
+                html += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">`;
                 data.modules.forEach(mod => {
                     html += `
-                        <div class="bg-white border border-zinc-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4 text-xl">
+                        <div onclick="loadPage('${mod.id}')" class="bg-white border border-zinc-200 p-6 rounded-xl shadow-sm hover:shadow-lg hover:border-blue-400 transform hover:-translate-y-1 transition-all cursor-pointer group">
+                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4 text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                 <i class="fa-solid ${mod.icon}"></i>
                             </div>
-                            <h3 class="font-bold text-zinc-900 mb-2">${mod.title}</h3>
+                            <h3 class="font-bold text-zinc-900 mb-2 group-hover:text-blue-600 transition-colors">${mod.title}</h3>
                             <p class="text-sm text-zinc-500">${mod.desc}</p>
                         </div>
                     `;
@@ -133,40 +153,27 @@
                 html += `</div>`;
             }
 
-            // If it's a content page (Footprint), render sections and checklist
+            // EXISTING: Render sections and checklist
             if (data.sections) {
                 html += `<div class="space-y-10">`;
                 data.sections.forEach(sec => {
                     html += `<section>
                                 <h2 class="text-xl font-bold text-zinc-900 mb-3 flex items-center"><i class="fa-solid fa-caret-right text-blue-500 mr-2 text-sm"></i> ${sec.heading}</h2>`;
                     
-                    if (sec.content) {
-                        html += `<p class="text-zinc-700 leading-relaxed mb-4">${sec.content}</p>`;
-                    }
+                    if (sec.content) html += `<p class="text-zinc-700 leading-relaxed mb-4">${sec.content}</p>`;
 
-                    // Render sub-cards if they exist
                     if (sec.cards) {
                         html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">`;
                         sec.cards.forEach(card => {
-                            html += `
-                                <div class="bg-white border border-zinc-200 p-5 rounded-lg shadow-sm border-t-4 border-t-blue-500">
-                                    <h4 class="font-bold text-zinc-900 mb-2">${card.title}</h4>
-                                    <p class="text-sm text-zinc-600">${card.text}</p>
-                                </div>
-                            `;
+                            html += `<div class="bg-white border border-zinc-200 p-5 rounded-lg shadow-sm border-t-4 border-t-blue-500"><h4 class="font-bold text-zinc-900 mb-2">${card.title}</h4><p class="text-sm text-zinc-600">${card.text}</p></div>`;
                         });
                         html += `</div>`;
                     }
 
-                    // Render bullet lists (Mistakes)
                     if (sec.list) {
                         html += `<ul class="space-y-3 mt-4">`;
                         sec.list.forEach(item => {
-                            html += `
-                                <li class="flex items-start bg-red-50 text-red-900 p-3 rounded-md border border-red-100">
-                                    <i class="fa-solid fa-triangle-exclamation text-red-500 mr-3 mt-0.5"></i> ${item}
-                                </li>
-                            `;
+                            html += `<li class="flex items-start bg-red-50 text-red-900 p-3 rounded-md border border-red-100"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-3 mt-0.5"></i> ${item}</li>`;
                         });
                         html += `</ul>`;
                     }
@@ -175,7 +182,6 @@
                 html += `</div>`;
             }
 
-            // Render Checklist at the BOTTOM
             if (data.checklist) {
                 html += `
                     <div class="mt-12 bg-white border border-zinc-200 rounded-xl shadow-sm p-6 md:p-8">
@@ -195,6 +201,17 @@
             }
 
             contentDiv.innerHTML = html;
+
+            // UPDATED: Sync Sidebar Highlight
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(nav => {
+                nav.classList.remove('bg-blue-50', 'text-blue-600');
+                nav.classList.add('hover:bg-zinc-100');
+                if (nav.getAttribute('data-page') === pageId) {
+                    nav.classList.remove('hover:bg-zinc-100');
+                    nav.classList.add('bg-blue-50', 'text-blue-600');
+                }
+            });
         }
 
         // 3. Simple function to toggle checklist boxes
@@ -213,24 +230,13 @@
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             item.addEventListener('click', () => {
-                // Remove active styles from all
-                navItems.forEach(nav => {
-                    nav.classList.remove('bg-blue-50', 'text-blue-600');
-                    nav.classList.add('hover:bg-zinc-100');
-                });
-                
-                // Add active style to clicked item
-                item.classList.remove('hover:bg-zinc-100');
-                item.classList.add('bg-blue-50', 'text-blue-600');
-
-                // Load the corresponding page data
                 const pageId = item.getAttribute('data-page');
                 loadPage(pageId);
             });
         });
 
-        // 5. Initialize Landing Page on Load
-        window.onload = () => loadPage('home');
+        // 5. Initialize Landing Page on Load (Starts clean)
+        window.onload = () => loadPage('welcome');
 
     </script>
 </body>
