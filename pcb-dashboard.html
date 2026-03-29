@@ -17,14 +17,11 @@
 <body class="bg-slate-50 text-zinc-900 h-screen flex overflow-hidden">
     
     <aside class="hidden md:flex flex-col w-64 border-r border-zinc-200 bg-white z-20">
-        <div class="h-16 flex items-center px-6 border-b border-zinc-200 font-bold text-lg text-zinc-800">
+        <div id="logo-btn" class="h-16 flex items-center px-6 border-b border-zinc-200 font-bold text-lg text-zinc-800 cursor-pointer hover:bg-zinc-50 transition-colors">
             <i class="fa-solid fa-layer-group text-blue-600 mr-2"></i> PCB Masterclass
         </div>
         <nav class="flex-1 py-6">
             <ul class="space-y-2 px-3 text-sm font-medium text-zinc-600" id="sidebar-menu">
-                <li data-page="dashboard" class="nav-item px-3 py-2.5 rounded-md cursor-pointer transition-colors flex items-center hover:bg-zinc-100">
-                    <i class="fa-solid fa-chart-simple w-6 text-center"></i> Dashboard
-                </li>
                 <li data-page="footprint" class="nav-item px-3 py-2.5 rounded-md cursor-pointer hover:bg-zinc-100 transition-colors flex items-center">
                     <i class="fa-solid fa-microchip w-6 text-center"></i> Footprint Creation
                 </li>
@@ -50,13 +47,8 @@
     <script>
         // 1. Our JSON Content Database
         const db = {
-            // NEW: Clean Landing Page (Loaded initially)
-            welcome: {
-                title: "Welcome to PCB Masterclass",
-                intro: "Your industrial guide to mastering Printed Circuit Board design. This platform bridges the gap between basic theory and real-world manufacturing standards.\n\n👈 Click 'Dashboard' in the sidebar to view all available learning modules."
-            },
+            // UPDATED: 'welcome' state removed. Dashboard is the new default.
             
-            // NEW: Dashboard Grid View
             dashboard: {
                 title: "Learning Dashboard",
                 intro: "Select a topic below to begin your engineering journey.",
@@ -117,7 +109,6 @@
         function loadPage(pageId) {
             const contentDiv = document.getElementById('app-content');
             
-            // UPDATED: Safety fallback if the page JSON isn't written yet
             const data = db[pageId] || { 
                 title: "Module Coming Soon", 
                 intro: "This engineering module is currently under development. Please check back later!" 
@@ -136,7 +127,7 @@
                 </div>
             `;
 
-            // UPDATED: Render Dashboard Grid ONLY if page is 'dashboard'
+            // Render Dashboard Grid ONLY if page is 'dashboard'
             if (pageId === 'dashboard' && data.modules) {
                 html += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">`;
                 data.modules.forEach(mod => {
@@ -153,7 +144,7 @@
                 html += `</div>`;
             }
 
-            // EXISTING: Render sections and checklist
+            // Render sections and checklist
             if (data.sections) {
                 html += `<div class="space-y-10">`;
                 data.sections.forEach(sec => {
@@ -202,7 +193,7 @@
 
             contentDiv.innerHTML = html;
 
-            // UPDATED: Sync Sidebar Highlight
+            // Sync Sidebar Highlight
             const navItems = document.querySelectorAll('.nav-item');
             navItems.forEach(nav => {
                 nav.classList.remove('bg-blue-50', 'text-blue-600');
@@ -235,8 +226,13 @@
             });
         });
 
-        // 5. Initialize Landing Page on Load (Starts clean)
-        window.onload = () => loadPage('welcome');
+        // 5. UPDATED: Top-Left Logo Click Logic (Returns to Dashboard)
+        document.getElementById('logo-btn').addEventListener('click', () => {
+            loadPage('dashboard');
+        });
+
+        // 6. UPDATED: Initialize Landing Page on Load (Defaults to Dashboard Grid)
+        window.onload = () => loadPage('dashboard');
 
     </script>
 </body>
