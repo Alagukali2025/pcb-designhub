@@ -19,7 +19,7 @@ export default function ContentViewer() {
       // Let's attach this to the closest scrolling parent or window.
       const scrollContainer = document.querySelector('.page-content');
       if (!scrollContainer) return;
-      
+
       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
       const totalScroll = scrollHeight - clientHeight;
       const currentProgress = totalScroll > 0 ? (scrollTop / totalScroll) * 100 : 0;
@@ -80,7 +80,6 @@ export default function ContentViewer() {
 
   const { content } = moduleData;
   const HeroIcon = moduleData.icon || Zap;
-  const estimatedReadTime = Math.max(3, Math.ceil(JSON.stringify(content).length / 1500));
 
   const toggleChecklist = (index) => {
     setCheckedItems(prev => ({
@@ -98,7 +97,7 @@ export default function ContentViewer() {
   const renderAlert = (alert, idx) => {
     const isWarning = alert.type === 'warning';
     const isDanger = alert.type === 'danger';
-    
+
     return (
       <div key={idx} className={`alert alert-${alert.type}`}>
         <div className="alert-icon">
@@ -124,34 +123,32 @@ export default function ContentViewer() {
             <ArrowLeft size={16} /> Dashboard
           </Link>
         </div>
-        
+
         {/* Left Column - Main Content */}
         <div className="reading-column">
           <header className="content-hero">
             <HeroIcon className="hero-icon-layer" />
-            <div className="content-hero-badge">
-              <Clock size={14} /> {estimatedReadTime} min read
-            </div>
+
             <h1 className="content-title">{moduleData.title}</h1>
             <p className="content-intro">{content.intro}</p>
           </header>
-          
+
           <div className="content-sections">
             {content.sections && content.sections.map((sec, i) => (
-              <section 
-                key={i} 
-                className="content-section" 
+              <section
+                key={i}
+                className="content-section"
                 id={`section-${i}`}
                 data-index={i}
                 ref={el => sectionRefs.current[i] = el}
               >
                 <h2 className="section-heading">
-                  <span className="section-number">{i + 1}</span> 
+                  <span className="section-number">{i + 1}</span>
                   {sec.heading}
                 </h2>
-                
+
                 {sec.content && <p className="section-text">{sec.content}</p>}
-                
+
                 {sec.cards && (
                   <div className="section-cards-grid">
                     {sec.cards.map((card, j) => (
@@ -171,25 +168,25 @@ export default function ContentViewer() {
               </section>
             ))}
           </div>
-          
+
           {content.checklist && (
             <div className="task-board slide-up">
               <div className="task-board-header">
                 <div className="task-board-title">
-                  <Check size={28} className="text-success" /> 
+                  <Check size={28} className="text-success" />
                   Milestone Checklist
                 </div>
                 <div className="task-progress-badge">
                   {Object.values(checkedItems).filter(Boolean).length} / {content.checklist.length} Completed
                 </div>
               </div>
-              
+
               <div className="task-items">
                 {content.checklist.map((item, i) => {
                   const isChecked = checkedItems[i] || false;
                   return (
-                    <div 
-                      key={i} 
+                    <div
+                      key={i}
                       className={`task-item ${isChecked ? 'completed' : ''}`}
                       onClick={() => toggleChecklist(i)}
                     >
@@ -214,8 +211,8 @@ export default function ContentViewer() {
             <ul className="toc-list">
               {content.sections.map((sec, i) => (
                 <li key={i} className={`toc-item ${activeSection === i ? 'active' : ''}`}>
-                  <button 
-                    className="toc-link" 
+                  <button
+                    className="toc-link"
                     onClick={() => scrollToSection(i)}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%' }}
                   >
