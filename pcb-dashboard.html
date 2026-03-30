@@ -19,19 +19,10 @@
         <div id="logo-btn" class="h-16 flex items-center px-6 border-b border-zinc-200 font-bold text-lg text-zinc-800 cursor-pointer hover:bg-zinc-50 transition-colors">
             <i class="fa-solid fa-layer-group text-blue-600 mr-2"></i> PCB Masterclass
         </div>
-        <nav class="flex-1 py-6 overflow-y-auto">
+        <nav class="flex-1 py-6">
             <ul class="space-y-2 px-3 text-sm font-medium text-zinc-600" id="sidebar-menu">
-                <li data-page="dashboard" class="nav-item px-3 py-2.5 rounded-md cursor-pointer hover:bg-zinc-100 transition-colors flex items-center">
-                    <i class="fa-solid fa-house w-6 text-center mr-2"></i> Dashboard
-                </li>
                 <li data-page="footprint" class="nav-item px-3 py-2.5 rounded-md cursor-pointer hover:bg-zinc-100 transition-colors flex items-center">
-                    <i class="fa-solid fa-microchip w-6 text-center mr-2"></i> Footprint Creation
-                </li>
-                <li data-page="stackup" class="nav-item px-3 py-2.5 rounded-md cursor-pointer hover:bg-zinc-100 transition-colors flex items-center">
-                    <i class="fa-solid fa-layer-group w-6 text-center mr-2"></i> Stackup Design
-                </li>
-                <li data-page="diff_pair" class="nav-item px-3 py-2.5 rounded-md cursor-pointer hover:bg-zinc-100 transition-colors flex items-center">
-                    <i class="fa-solid fa-arrows-left-right w-6 text-center mr-2"></i> Differential Pairs
+                    <i class="fa-solid fa-microchip w-6 text-center"></i> Footprint Creation
                 </li>
             </ul>
         </nav>
@@ -39,12 +30,11 @@
 
     <main class="flex-1 flex flex-col overflow-hidden relative">
         <header class="h-16 flex items-center justify-between px-6 border-b border-zinc-200 bg-white/80 backdrop-blur-md sticky top-0 z-10">
-            <div class="font-bold md:hidden">PCB Masterclass</div>
-            <div class="hidden md:flex items-center bg-zinc-100 rounded-md px-3 py-2 w-96 border border-zinc-200">
+            <div class="flex items-center bg-zinc-100 rounded-md px-3 py-2 w-64 md:w-96 border border-zinc-200 focus-within:border-blue-500 transition-colors">
                 <i class="fa-solid fa-search text-zinc-400"></i>
-                <input type="text" placeholder="Search IPC standards..." class="bg-transparent border-none outline-none ml-2 text-sm w-full">
+                <input type="text" placeholder="Search rules, standards..." class="bg-transparent border-none outline-none ml-2 text-sm w-full">
             </div>
-            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm">AK</div>
+            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm">JD</div>
         </header>
 
         <div class="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50">
@@ -55,176 +45,157 @@
     <script>
         const db = {
             dashboard: {
-                title: "Engineering Dashboard",
-                intro: "Welcome, Alagukali. Access professional PCB design modules compliant with IPC standards.",
+                title: "Learning Dashboard",
+                intro: "Select a topic below to begin your engineering journey.",
                 modules: [
-                    { id: "footprint", icon: "fa-microchip", title: "Footprint Creation", desc: "IPC-7351B land patterns and padstack design." },
-                    { id: "stackup", icon: "fa-layer-group", title: "Stackup Design", desc: "IPC-2221B layer arrangement and material selection." },
-                    { id: "diff_pair", icon: "fa-arrows-left-right", title: "Differential Pairs", desc: "USB, HDMI, and Ethernet impedance control." }
+                    { id: "footprint", icon: "fa-microchip", title: "Footprint Creation", desc: "Master IPC-7351 standards and land patterns." },
+                    { id: "stackup", icon: "fa-layer-group", title: "Stackup Design", desc: "Understand materials, prepreg, and cores." },
+                    { id: "diff_pair", icon: "fa-code-merge", title: "Differential Pair Routing", desc: "Learn phase matching and coupling." },
+                    { id: "high_speed", icon: "fa-bolt", title: "High-Speed Routing", desc: "Impedance control and length matching." },
+                    { id: "ddr", icon: "fa-memory", title: "DDR Routing", desc: "Fly-by topology and byte lane routing." },
+                    { id: "emi_emc", icon: "fa-shield-halved", title: "EMI / EMC", desc: "Mitigate radiation and ensure compliance." },
+                    { id: "dfm_dft", icon: "fa-industry", title: "DFM / DFT", desc: "Design for manufacturing and testing." },
+                    { id: "si_pi", icon: "fa-wave-square", title: "SI/PI Calculation", desc: "Signal and power integrity basics." }
                 ]
             },
-
             footprint: {
-                title: "Footprint Creation (IPC-7351B)",
-                intro: "A footprint is the physical land pattern. Accuracy is critical for DFM (Design for Manufacturability).",
+                title: "Footprint Creation (IPC-7351)",
+                intro: "A footprint (or land pattern) is the physical arrangement of copper pads on a PCB. Designing it incorrectly leads to tombstoning, solder bridges, and manufacturing failures.",
                 sections: [
                     {
-                        heading: "Land Pattern Fundamentals",
-                        content: "Proper pad sizing prevents assembly defects like tombstoning or cold solder joints.",
+                        heading: "The IPC-7351 Standard",
+                        content: "IPC-7351 is the global standard for surface mount design. It relies on mathematical models to calculate the exact pad size based on the component's leads and required solder fillets (Toe, Heel, and Side)."
+                    },
+                    {
+                        heading: "The 3 Density Levels",
+                        content: "Not all boards are the same. IPC defines three density levels to determine how much extra pad area you need:",
                         cards: [
-                            { title: "Toe Fillet", text: "Outer edge solder joint for mechanical strength." },
-                            { title: "Heel Fillet", text: "Inner edge solder joint essential for connectivity." },
-                            { title: "Side Fillet", text: "Lateral solder joint for component stability." }
+                            { title: "Level A (Maximum)", text: "For low-density boards or extreme environments. Largest solder joints for maximum physical strength." },
+                            { title: "Level B (Nominal)", text: "The standard for most desktop and consumer electronics. A perfect balance between size and reliability." },
+                            { title: "Level C (Least)", text: "For high-density mobile devices. Minimal solder joints to save maximum board space." }
                         ]
                     },
                     {
-                        heading: "Standard Density Levels",
-                        content: "IPC-7351 defines three density levels for land patterns:",
+                        heading: "Design Guidelines & Courtyard",
+                        content: "The <strong>Courtyard</strong> is the absolute minimum area required around a component. It includes the component body, the pads, and an extra 'excess' boundary to prevent pick-and-place machines from crashing components into each other."
+                    },
+                    {
+                        heading: "Common Mistakes to Avoid",
                         list: [
-                            "Level A (Most): Maximum land protrusion for high productivity (Easy soldering).",
-                            "Level B (Nominal): General purpose industrial applications.",
-                            "Level C (Least): Minimum land protrusion for high-density (HDI) designs."
+                            "Placing silkscreen over exposed copper pads (prevents solder from sticking).",
+                            "Forgetting to mark Pin 1 on both the Assembly and Silkscreen layers.",
+                            "Ignoring manufacturing tolerances and making the courtyard too tight."
                         ]
-                    }
-                ]
-            },
-
-            stackup: {
-                title: "PCB Stackup Design",
-                intro: "The foundation for signal integrity and EMC compliance, governed by IPC-2221B and IPC-4101C.",
-                sections: [
-                    {
-                        heading: "Material Terminology",
-                        content: "Selection of core and prepreg determines the board's electrical properties.",
-                        cards: [
-                            { title: "Core", text: "Fully cured (C-stage) dielectric with copper foil on both sides." },
-                            { title: "Prepreg", text: "Partially cured (B-stage) sheet that bonds during lamination." },
-                            { title: "Dk (Er)", text: "Relative dielectric constant. FR4 is typically 4.0 - 4.8." }
-                        ]
-                    },
-                    {
-                        heading: "IPC Symmetry Rule",
-                        content: "Stackups must be mirror-symmetric about the center plane to prevent reflow warpage (IPC-2221B §9.1.3)."
-                    }
-                ]
-            },
-
-            diff_pair: {
-                title: "Differential Pair Routing",
-                intro: "High-speed protocols (USB, HDMI, PCIe) require precise differential impedance (Zdiff) control per IPC-2141A.",
-                sections: [
-                    {
-                        heading: "Impedance Targets",
-                        content: "Standardized targets for common communication protocols:",
-                        table: [
-                            ["Protocol", "Target Z_diff", "Typical Use Case"],
-                            ["USB 2.0/3.x", "90Ω", "Data transmission"],
-                            ["HDMI / Ethernet", "100Ω", "Video & Networking"],
-                            ["RS485", "120Ω", "Long-line industrial comms"]
-                        ]
-                    },
-                    {
-                        heading: "Coupling Principle",
-                        content: "Bringing traces closer reduces Zdiff. Edge-to-edge spacing (S) and dielectric height (h) are the primary variables."
                     }
                 ],
                 checklist: [
-                    "Match trace lengths (±5 mil for USB, ±1 mil for PCIe Gen4).",
-                    "Do not route signals across reference plane splits or voids.",
-                    "Place GND return vias within 250 mil of every layer transition.",
-                    "Maintain the 3W rule to minimize crosstalk."
+                    "Verify datasheet dimensions and tolerances.",
+                    "Calculate Toe, Heel, and Side fillets for Density Level B.",
+                    "Ensure Silkscreen clearance is at least 0.1mm from pads.",
+                    "Add Courtyard polygon on the correct mechanical layer.",
+                    "Verify 3D STEP model aligns perfectly with pads."
                 ]
             }
         };
 
         function loadPage(pageId) {
             const contentDiv = document.getElementById('app-content');
-            const data = db[pageId] || db.dashboard;
+            const data = db[pageId] || { title: "Module Coming Soon", intro: "This engineering module is currently under development." };
             
-            contentDiv.innerHTML = '';
+            contentDiv.classList.remove('fade-in');
+            void contentDiv.offsetWidth; 
+            contentDiv.classList.add('fade-in');
+
             let html = `
                 <div class="mb-8 border-b border-zinc-200 pb-6">
-                    <h1 class="text-3xl font-bold text-zinc-900">${data.title}</h1>
-                    <p class="text-zinc-600 mt-3 text-lg">${data.intro}</p>
+                    <h1 class="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight">${data.title}</h1>
+                    <p class="text-zinc-600 mt-3 text-lg leading-relaxed whitespace-pre-line">${data.intro}</p>
                 </div>
             `;
 
-            if (pageId === 'dashboard') {
-                html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">`;
+            if (pageId === 'dashboard' && data.modules) {
+                html += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">`;
                 data.modules.forEach(mod => {
                     html += `
-                        <div onclick="loadPage('${mod.id}')" class="bg-white border border-zinc-200 p-6 rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all">
-                            <i class="fa-solid ${mod.icon} text-blue-600 text-2xl mb-4"></i>
-                            <h3 class="font-bold text-zinc-900">${mod.title}</h3>
-                            <p class="text-sm text-zinc-500 mt-2">${mod.desc}</p>
-                        </div>`;
+                        <div onclick="loadPage('${mod.id}')" class="bg-white border border-zinc-200 p-6 rounded-xl shadow-sm hover:shadow-lg hover:border-blue-400 transform hover:-translate-y-1 transition-all cursor-pointer group">
+                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4 text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                <i class="fa-solid ${mod.icon}"></i>
+                            </div>
+                            <h3 class="font-bold text-zinc-900 mb-2 group-hover:text-blue-600 transition-colors">${mod.title}</h3>
+                            <p class="text-sm text-zinc-500">${mod.desc}</p>
+                        </div>
+                    `;
                 });
                 html += `</div>`;
             }
 
             if (data.sections) {
+                html += `<div class="space-y-10">`;
                 data.sections.forEach(sec => {
-                    html += `<section class="mb-10">
-                                <h2 class="text-xl font-bold text-zinc-900 mb-3">${sec.heading}</h2>
-                                <p class="text-zinc-700 mb-4">${sec.content}</p>`;
-                    
+                    html += `<section><h2 class="text-xl font-bold text-zinc-900 mb-3 flex items-center"><i class="fa-solid fa-caret-right text-blue-500 mr-2 text-sm"></i> ${sec.heading}</h2>`;
+                    if (sec.content) html += `<p class="text-zinc-700 leading-relaxed mb-4">${sec.content}</p>`;
                     if (sec.cards) {
-                        html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-4">`;
+                        html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">`;
                         sec.cards.forEach(card => {
-                            html += `<div class="bg-white border border-zinc-200 p-4 rounded-lg shadow-sm">
-                                        <h4 class="font-bold text-sm text-blue-600 mb-1">${card.title}</h4>
-                                        <p class="text-xs text-zinc-600">${card.text}</p>
-                                    </div>`;
+                            html += `<div class="bg-white border border-zinc-200 p-5 rounded-lg shadow-sm border-t-4 border-t-blue-500"><h4 class="font-bold text-zinc-900 mb-2">${card.title}</h4><p class="text-sm text-zinc-600">${card.text}</p></div>`;
                         });
                         html += `</div>`;
                     }
-
-                    if (sec.table) {
-                        html += `<div class="overflow-x-auto mt-4"><table class="w-full text-left border-collapse text-sm">
-                                    <thead><tr class="bg-zinc-100 border-b border-zinc-200">
-                                        <th class="p-3">Protocol</th><th class="p-3">Target</th><th class="p-3">Application</th>
-                                    </tr></thead><tbody>`;
-                        sec.table.forEach(row => {
-                            html += `<tr class="border-b border-zinc-100">
-                                        <td class="p-3 font-medium">${row[0]}</td><td class="p-3">${row[1]}</td><td class="p-3">${row[2]}</td>
-                                    </tr>`;
-                        });
-                        html += `</tbody></table></div>`;
-                    }
-
                     if (sec.list) {
-                        html += `<ul class="space-y-2 mt-4">`;
+                        html += `<ul class="space-y-3 mt-4">`;
                         sec.list.forEach(item => {
-                            html += `<li class="flex items-start text-sm bg-zinc-50 p-3 rounded-md border border-zinc-100">
-                                        <i class="fa-solid fa-circle-check text-emerald-500 mr-3 mt-1"></i> ${item}
-                                    </li>`;
+                            html += `<li class="flex items-start bg-red-50 text-red-900 p-3 rounded-md border border-red-100"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-3 mt-0.5"></i> ${item}</li>`;
                         });
                         html += `</ul>`;
                     }
                     html += `</section>`;
                 });
+                html += `</div>`;
             }
 
             if (data.checklist) {
-                html += `<div class="mt-12 bg-blue-50 border border-blue-100 rounded-xl p-6">
-                            <h3 class="text-xl font-bold text-blue-900 mb-4">Design Checklist</h3>
-                            <ul class="space-y-2">`;
+                html += `
+                    <div class="mt-12 bg-white border border-zinc-200 rounded-xl shadow-sm p-6 md:p-8">
+                        <h3 class="text-xl font-bold text-zinc-900 mb-4 flex items-center"><i class="fa-solid fa-list-check text-emerald-600 mr-3"></i> Final DFM Checklist</h3>
+                        <ul class="space-y-3">
+                `;
                 data.checklist.forEach(item => {
-                    html += `<li class="text-sm text-blue-800 flex items-center">
-                                <i class="fa-regular fa-square mr-3"></i> ${item}
-                            </li>`;
+                    html += `<li class="flex items-center text-zinc-700 bg-zinc-50 p-3 rounded-md border border-zinc-100 hover:bg-zinc-100 transition-colors cursor-pointer" onclick="toggleCheck(this)"><i class="fa-regular fa-square text-zinc-400 mr-3 text-lg"></i> ${item}</li>`;
                 });
                 html += `</ul></div>`;
             }
 
             contentDiv.innerHTML = html;
-            document.querySelectorAll('.nav-item').forEach(nav => {
-                nav.classList.toggle('bg-blue-50', nav.getAttribute('data-page') === pageId);
-                nav.classList.toggle('text-blue-600', nav.getAttribute('data-page') === pageId);
+
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(nav => {
+                nav.classList.remove('bg-blue-50', 'text-blue-600');
+                nav.classList.add('hover:bg-zinc-100');
+                if (nav.getAttribute('data-page') === pageId) {
+                    nav.classList.remove('hover:bg-zinc-100');
+                    nav.classList.add('bg-blue-50', 'text-blue-600');
+                }
             });
         }
 
-        document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', () => loadPage(item.getAttribute('data-page'))));
+        function toggleCheck(element) {
+            const icon = element.querySelector('i');
+            if (icon.classList.contains('fa-square')) {
+                icon.className = 'fa-solid fa-square-check text-emerald-500 mr-3 text-lg';
+                element.classList.add('text-zinc-400', 'line-through');
+            } else {
+                icon.className = 'fa-regular fa-square text-zinc-400 mr-3 text-lg';
+                element.classList.remove('text-zinc-400', 'line-through');
+            }
+        }
+
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                loadPage(item.getAttribute('data-page'));
+            });
+        });
+
         document.getElementById('logo-btn').addEventListener('click', () => loadPage('dashboard'));
         window.onload = () => loadPage('dashboard');
     </script>
