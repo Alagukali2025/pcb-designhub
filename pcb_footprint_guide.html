@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCB Footprint Creation — SSOT Methodology Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --surface: #111720;
+    --surface2: #161e2a;
+    --border: #1e2d3d;
+    --border-bright: #2a3f55;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #7fff6b;
+    --accent4: #ffcc00;
+    --text: #c8d8e8;
+    --text-dim: #6a8090;
+    --text-bright: #e8f4ff;
+    --heading: #ffffff;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --serif: 'IBM Plex Serif', serif;
+    --grid: repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,212,255,0.04) 39px, rgba(0,212,255,0.04) 40px),
+            repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,212,255,0.04) 39px, rgba(0,212,255,0.04) 40px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    background-image: var(--grid);
+  }
+
+  /* HEADER */
+  .site-header {
+    background: linear-gradient(180deg, #060a10 0%, var(--bg) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 0 50px;
+    position: relative;
+    overflow: hidden;
+  }
+  .site-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(0,212,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 40px; position: relative; }
+  .doc-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .doc-label::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(22px, 3.5vw, 42px);
+    font-weight: 700;
+    color: var(--heading);
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+  h1 span { color: var(--accent); }
+  .header-meta {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .header-meta span { display: flex; align-items: center; gap: 6px; }
+  .header-meta span::before { content: '//'; color: var(--accent); }
+  .header-subtitle {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text-dim);
+    max-width: 680px;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* LAYOUT */
+  .layout { display: flex; max-width: 1100px; margin: 0 auto; padding: 0 40px; gap: 50px; }
+  
+  /* NAV */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 30px;
+    align-self: flex-start;
+    padding: 30px 0;
+  }
+  .nav-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-left: 12px;
+    border-left: 2px solid var(--border);
+  }
+  .nav-list { list-style: none; }
+  .nav-list li { margin-bottom: 2px; }
+  .nav-list a {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-decoration: none;
+    display: block;
+    padding: 5px 12px;
+    border-left: 2px solid var(--border);
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  .nav-list a:hover {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(0,212,255,0.04);
+  }
+  .nav-num {
+    color: var(--accent);
+    margin-right: 5px;
+    font-weight: 600;
+  }
+
+  /* CONTENT */
+  .content { flex: 1; min-width: 0; padding: 40px 0; }
+
+  /* SECTIONS */
+  .section {
+    margin-bottom: 72px;
+    padding-bottom: 72px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section:last-child { border-bottom: none; }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.2);
+    padding: 4px 10px;
+    border-radius: 3px;
+    white-space: nowrap;
+    margin-top: 4px;
+  }
+  h2 {
+    font-family: var(--mono);
+    font-size: clamp(16px, 2vw, 22px);
+    font-weight: 700;
+    color: var(--heading);
+    letter-spacing: -0.3px;
+    line-height: 1.3;
+  }
+  h3 {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 32px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h3::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  h4 {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin: 20px 0 8px;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); }
+
+  /* CALLOUTS */
+  .callout {
+    border-left: 3px solid;
+    padding: 14px 18px;
+    margin: 20px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 14px;
+  }
+  .callout-std {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.05);
+  }
+  .callout-std .callout-label { color: var(--accent); }
+  .callout-warn {
+    border-color: var(--accent4);
+    background: rgba(255,204,0,0.05);
+  }
+  .callout-warn .callout-label { color: var(--accent4); }
+  .callout-critical {
+    border-color: var(--accent2);
+    background: rgba(255,107,53,0.05);
+  }
+  .callout-critical .callout-label { color: var(--accent2); }
+  .callout-ok {
+    border-color: var(--accent3);
+    background: rgba(127,255,107,0.05);
+  }
+  .callout-ok .callout-label { color: var(--accent3); }
+  .callout-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  /* CODE */
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: rgba(0,212,255,0.08);
+    color: var(--accent);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    overflow-x: auto;
+    margin: 18px 0;
+    line-height: 1.8;
+  }
+  pre .kw { color: var(--accent); font-weight: 600; }
+  pre .val { color: var(--accent3); }
+  pre .cmt { color: var(--text-dim); font-style: italic; }
+  pre .warn { color: var(--accent2); }
+  pre .key { color: var(--accent4); }
+
+  /* TABLES */
+  .table-wrap { overflow-x: auto; margin: 18px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-family: var(--sans);
+    min-width: 500px;
+  }
+  thead tr {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border-bright);
+  }
+  thead th {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody td {
+    padding: 10px 16px;
+    color: var(--text);
+    vertical-align: top;
+  }
+  tbody td:first-child {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-bright);
+    white-space: nowrap;
+  }
+  .tag-ds {
+    background: rgba(0,212,255,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.25);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .tag-ipc {
+    background: rgba(127,255,107,0.1);
+    color: var(--accent3);
+    border: 1px solid rgba(127,255,107,0.25);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .tag-dfm {
+    background: rgba(255,107,53,0.1);
+    color: var(--accent2);
+    border: 1px solid rgba(255,107,53,0.25);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .tag-warn {
+    background: rgba(255,204,0,0.1);
+    color: var(--accent4);
+    border: 1px solid rgba(255,204,0,0.25);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; margin: 16px 0; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 14px;
+    margin-bottom: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13.5px;
+  }
+  .checklist li::before {
+    content: '☐';
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 15px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .checklist .cat {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-left: auto;
+    white-space: nowrap;
+    padding-top: 3px;
+  }
+
+  /* FLOW */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+  .flow-step {
+    flex: 1;
+    min-width: 130px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px 14px;
+    position: relative;
+    text-align: center;
+  }
+  .flow-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 16px;
+    z-index: 1;
+    background: var(--bg);
+    padding: 2px;
+  }
+  .flow-step:first-child { border-radius: 4px 0 0 4px; }
+  .flow-step:last-child { border-radius: 0 4px 4px 0; }
+  .flow-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .flow-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+  }
+  .flow-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  /* FILLET DIAGRAM */
+  .fillet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .fillet-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .fillet-card-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .fillet-card-head h4 { margin: 0; font-size: 13px; }
+  .fillet-card-body { padding: 14px 16px; font-size: 13px; line-height: 1.6; }
+
+  /* STEPS */
+  .steps { margin: 20px 0; }
+  .step {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 28px;
+    height: 28px;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-content { flex: 1; }
+  .step-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+  }
+  .step-body { font-size: 13.5px; color: var(--text); }
+
+  /* TOOL COMPARE */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 20px 0;
+  }
+  .tool-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .tool-card-head {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .tool-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+  .tool-badge-altium {
+    background: rgba(0,212,255,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.3);
+  }
+  .tool-badge-cadence {
+    background: rgba(127,255,107,0.12);
+    color: var(--accent3);
+    border: 1px solid rgba(127,255,107,0.3);
+  }
+  .tool-card-body { padding: 16px 18px; font-size: 13.5px; }
+  .tool-card-body ul { padding-left: 18px; }
+  .tool-card-body li { margin-bottom: 8px; color: var(--text); }
+
+  /* FORMULA */
+  .formula-box {
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin: 16px 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 2;
+  }
+  .formula-box .formula-title {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  .formula { color: var(--accent4); font-size: 14px; font-weight: 600; }
+  .formula-var { color: var(--text-bright); }
+  .formula-val { color: var(--accent3); }
+
+  /* FOOTER */
+  .site-footer {
+    margin-top: 60px;
+    padding: 30px 40px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  ul.body-list { padding-left: 20px; margin: 12px 0; }
+  ul.body-list li { margin-bottom: 8px; }
+
+  .highlight-row td { background: rgba(0,212,255,0.04); }
+  .conflict-row td { background: rgba(255,107,53,0.04); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; padding: 0 20px; }
+    .sidebar { display: none; }
+    .tool-grid { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; }
+    .flow-step:not(:last-child)::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -14px; transform: translateX(-50%); }
+    .site-header { padding: 40px 0; }
+    .header-inner { padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="doc-label">Engineering Reference Document</div>
+    <h1>PCB Footprint Creation<br><span>Single Source of Truth Methodology</span></h1>
+    <p class="header-subtitle">A standards-driven, evidence-based professional guide for PCB library engineers. All values and methodologies sourced strictly from component datasheets and IPC-7351 standards.</p>
+    <div class="header-meta">
+      <span>IPC-7351B / IPC-7351C Compliant</span>
+      <span>Altium Designer · Cadence OrCAD/Allegro</span>
+      <span>Revision 2.0</span>
+      <span>Senior PCB Engineering Reference</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR NAV -->
+  <nav class="sidebar">
+    <div class="nav-label">Contents</div>
+    <ul class="nav-list">
+      <li><a href="#s1"><span class="nav-num">01</span> Footprint Design Guidelines</a></li>
+      <li><a href="#s2"><span class="nav-num">02</span> Datasheet Usage (SSOT)</a></li>
+      <li><a href="#s3"><span class="nav-num">03</span> IPC Standards Application</a></li>
+      <li><a href="#s4"><span class="nav-num">04</span> Solder Joint Terminology</a></li>
+      <li><a href="#s5"><span class="nav-num">05</span> SSOT Architecture</a></li>
+      <li><a href="#s6"><span class="nav-num">06</span> DFM Guidelines</a></li>
+      <li><a href="#s7"><span class="nav-num">07</span> Tool-Specific Practices</a></li>
+      <li><a href="#s8"><span class="nav-num">08</span> Step-by-Step Workflow</a></li>
+      <li><a href="#s9"><span class="nav-num">09</span> Release Checklist</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="content">
+
+    <!-- SECTION 1 -->
+    <section class="section" id="s1">
+      <div class="section-header">
+        <span class="section-num">§ 01</span>
+        <h2>Footprint Design Guidelines</h2>
+      </div>
+
+      <h3>IPC-7351 Land Pattern Calculation Methodology</h3>
+      <p>IPC-7351B/C defines a mathematical framework for calculating copper land patterns based on component body dimensions, lead dimensions, and assembly class. The standard introduces three density levels (environment conditions) that govern the amount of copper extension beyond the lead:</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Density Level</th>
+              <th>IPC-7351 Designation</th>
+              <th>Assembly Environment</th>
+              <th>Typical Application</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>A — Most Material</td>
+              <td>IPC-SM-782 Class A</td>
+              <td>Low-density, large-board</td>
+              <td>Prototype, hand assembly, rework-heavy boards</td>
+            </tr>
+            <tr class="highlight-row">
+              <td>B — Nominal</td>
+              <td>IPC-SM-782 Class B</td>
+              <td>Medium-density</td>
+              <td>General commercial PCBs — <strong>most common default</strong></td>
+            </tr>
+            <tr>
+              <td>C — Least Material</td>
+              <td>IPC-SM-782 Class C</td>
+              <td>High-density (HDI)</td>
+              <td>Mobile, wearable, space-constrained designs</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-std">
+        <div class="callout-label">IPC Standard</div>
+        IPC-7351B Section 3.1 mandates that the nominal (B) environment be the default land pattern used unless explicitly specified by the customer or design constraint. All pad extensions in this guide assume Density Level B unless stated otherwise.
+      </div>
+
+      <h3>Land Pattern Calculation — Core Equations</h3>
+      <p>IPC-7351B defines land dimensions through three dimensional extensions applied to component lead geometry. All variables carry tolerance bands from the component datasheet.</p>
+
+      <div class="formula-box">
+        <div class="formula-title">IPC-7351B Land Calculation Variables</div>
+        <div><span class="formula">Z</span> = <span class="formula-var">Lmax</span> + <span class="formula-val">2·Jt</span> + <span class="formula-var">√(CL² + CS² + CP²)</span> &nbsp;&nbsp;&nbsp;<span class="cmt">// Outer courtyard span</span></div>
+        <div><span class="formula">G</span> = <span class="formula-var">Tmin</span> − <span class="formula-val">2·Jh</span> − <span class="formula-var">√(CL² + CS² + CP²)</span> &nbsp;&nbsp;&nbsp;<span class="cmt">// Inner gap between pads</span></div>
+        <div><span class="formula">X</span> = <span class="formula-var">Wmax</span> + <span class="formula-val">2·Js</span> + <span class="formula-var">√(CL² + CS² + CP²)</span> &nbsp;&nbsp;&nbsp;<span class="cmt">// Pad width</span></div>
+        <br>
+        <div><span class="formula-var">Lmax</span> = Component lead length max &nbsp;&nbsp;&nbsp;<span class="tag-ds">DATASHEET</span></div>
+        <div><span class="formula-var">Tmin</span> = Component overall length min &nbsp;&nbsp;<span class="tag-ds">DATASHEET</span></div>
+        <div><span class="formula-var">Wmax</span> = Lead width max &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag-ds">DATASHEET</span></div>
+        <div><span class="formula-val">Jt</span> = Toe fillet goal &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag-ipc">IPC-7351</span></div>
+        <div><span class="formula-val">Jh</span> = Heel fillet goal &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag-ipc">IPC-7351</span></div>
+        <div><span class="formula-val">Js</span> = Side fillet goal &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag-ipc">IPC-7351</span></div>
+        <div><span class="formula-var">CL, CS, CP</span> = Fabrication, placement, stencil tolerances &nbsp;&nbsp;<span class="tag-ipc">IPC-7351</span></div>
+      </div>
+
+      <h3>Solder Joint Reliability Principles</h3>
+      <p>Solder joint reliability is directly governed by three parameters derivable from footprint geometry:</p>
+      <ul class="body-list">
+        <li><strong>Pad-to-lead ratio:</strong> The copper pad must extend sufficiently beyond the lead at toe, heel, and sides to form a well-defined meniscus during reflow. Insufficient extension reduces the fillet height and increases the probability of cold joints.</li>
+        <li><strong>Thermal mass balance:</strong> Asymmetric pad sizes on two-pad passives (resistors, capacitors) cause tombstoning during reflow if one pad wets before the other. IPC-7351B mandates equal pad sizes for symmetric components.</li>
+        <li><strong>Pad spacing:</strong> The gap between pads must be designed so that bridging probability remains below acceptable limits per IPC-A-610 Class 2 or Class 3 criteria.</li>
+      </ul>
+
+      <h3>DFM Considerations</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>DFM Rule</th>
+              <th>Basis</th>
+              <th>Footprint Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Minimum pad-to-pad clearance</td>
+              <td>IPC-7351B / CM capability</td>
+              <td>Prevents solder bridging on fine-pitch components</td>
+            </tr>
+            <tr>
+              <td>Courtyard clearance ≥ 0.25 mm (Density B)</td>
+              <td>IPC-7351B §4.1</td>
+              <td>Ensures pick-and-place nozzle clearance</td>
+            </tr>
+            <tr>
+              <td>Pad surface finish compatibility</td>
+              <td>IPC-4552 / ENIG, HASL, OSP</td>
+              <td>Pad size may need adjustment for HASL vs. ENIG</td>
+            </tr>
+            <tr>
+              <td>Via-in-pad restrictions</td>
+              <td>IPC-7095C §8</td>
+              <td>Via-in-pad requires plugging/capping — must be flagged in footprint notes</td>
+            </tr>
+            <tr>
+              <td>Stencil aperture ratio ≥ 0.66</td>
+              <td>IPC-7525B</td>
+              <td>Minimum pad size constrains stencil aperture design</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>DFA Considerations</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>DFA Rule</th>
+              <th>Basis</th>
+              <th>Footprint Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pin-1 chamfer or dot marking</td>
+              <td>IPC-7351B §3.5</td>
+              <td>Mandatory on all polarized/IC components in silkscreen layer</td>
+            </tr>
+            <tr>
+              <td>Component orientation uniformity</td>
+              <td>IPC-2221 §9.1</td>
+              <td>Standardize footprint origin + rotation to reduce assembly errors</td>
+            </tr>
+            <tr>
+              <td>Fiducial clearance</td>
+              <td>IPC-2221 §9.5</td>
+              <td>Courtyard must not overlap board-level fiducials</td>
+            </tr>
+            <tr>
+              <td>Hand-solder access</td>
+              <td>IPC-7711/7721</td>
+              <td>Wave-solder and hand-rework require additional toe extension</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Spacing and Clearance Rules</h3>
+      <p>All clearances are derived from both IPC-2221A (generic PCB design) and IPC-7351B (land pattern). The following values are baseline minimums for Density Level B:</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Clearance Type</th>
+              <th>Minimum (Density B)</th>
+              <th>Standard Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Pad to pad (same net)</td><td>0.10 mm</td><td>IPC-2221A Table 6-1</td></tr>
+            <tr><td>Pad to pad (different net)</td><td>0.20 mm</td><td>IPC-2221A Table 6-1</td></tr>
+            <tr><td>Silkscreen to pad edge</td><td>0.10 mm</td><td>IPC-7351B §3.6</td></tr>
+            <tr><td>Courtyard to component body</td><td>0.25 mm</td><td>IPC-7351B §4.1</td></tr>
+            <tr><td>Assembly outline to component body</td><td>0.10 mm</td><td>IPC-7351B §3.7</td></tr>
+            <tr><td>Copper to board edge</td><td>0.30 mm minimum</td><td>IPC-2221A §9.1</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Thermal Considerations</h3>
+      <p>Exposed pads (EP) and thermal pads on QFN, DFN, and BGA packages require a defined thermal land pattern distinct from signal pads. IPC-7093 governs bottom-termination components (BTCs):</p>
+      <ul class="body-list">
+        <li><strong>Exposed pad size:</strong> Must match datasheet specification exactly — typically 80–100% of component EP dimensions. Reduction to 80% is common to manage solder voiding.</li>
+        <li><strong>Via array in thermal pad:</strong> IPC-7093A §4.2 specifies via size (0.30 mm finished drill, 0.20 mm annular ring minimum) and pitch (typically 1.0–1.2 mm) for thermal vias. Must be tented or plugged per IPC-7095C.</li>
+        <li><strong>Solder paste coverage:</strong> IPC-7093A recommends 50–80% paste coverage on the exposed pad to balance thermal conductivity with void control.</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section class="section" id="s2">
+      <div class="section-header">
+        <span class="section-num">§ 02</span>
+        <h2>Datasheet Usage — SSOT Principle</h2>
+      </div>
+
+      <h3>Why the Datasheet is the Primary Authority</h3>
+      <p>The component datasheet is the legal and technical specification document published by the manufacturer. It defines the actual physical geometry of the component as it will be delivered to the assembly line. IPC standards provide a calculation methodology, but that methodology is entirely dependent on dimensional inputs that can only come from the datasheet. Using any other source — prior art footprints, generic library entries, or assumptions — breaks the SSOT chain and introduces unverifiable risk.</p>
+
+      <div class="callout callout-critical">
+        <div class="callout-label">Critical Rule</div>
+        Never derive pad dimensions from a reference footprint in a generic library without cross-referencing the original datasheet. Generic library footprints may be based on incorrect, outdated, or different-density interpretations of the specification.
+      </div>
+
+      <h3>Critical Datasheet Sections</h3>
+
+      <h4>1. Package Outline Drawing</h4>
+      <p>The package outline drawing is the dimensioned mechanical drawing of the component body and lead geometry. It contains every physical dimension required for IPC-7351 calculation. This section must be used to extract:</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Symbol</th>
+              <th>Usage in Footprint</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Component body length</td><td>L, D</td><td>Lmin/Lmax for G/Z calculation</td><td><span class="tag-ds">DATASHEET</span></td></tr>
+            <tr><td>Component body width</td><td>E, W</td><td>Tmin/Tmax reference</td><td><span class="tag-ds">DATASHEET</span></td></tr>
+            <tr><td>Lead length</td><td>L1, b</td><td>Toe extension basis</td><td><span class="tag-ds">DATASHEET</span></td></tr>
+            <tr><td>Lead width</td><td>b, c</td><td>Pad width (X) basis</td><td><span class="tag-ds">DATASHEET</span></td></tr>
+            <tr><td>Lead pitch</td><td>e</td><td>Pad center-to-center spacing</td><td><span class="tag-ds">DATASHEET</span></td></tr>
+            <tr><td>Lead coplanarity</td><td>δ</td><td>Solder joint quality parameter — not pad geometry</td><td><span class="tag-ds">DATASHEET</span></td></tr>
+            <tr><td>Standoff height</td><td>A1</td><td>3D model alignment, paste volume</td><td><span class="tag-ds">DATASHEET</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>2. Recommended Land Pattern</h4>
+      <p>Many datasheets include a manufacturer-recommended land pattern section. This section provides the footprint dimensions as calculated by the component manufacturer, typically using a specific IPC density level. When this section exists:</p>
+      <ul class="body-list">
+        <li>Record the manufacturer's recommended pad dimensions as a reference value.</li>
+        <li>Identify which IPC density level the manufacturer used (often not stated — must be inferred by back-calculating against the IPC formula).</li>
+        <li>If your design requires a different density level, calculate from the package outline drawing using the appropriate IPC fillet goals — do not use the manufacturer recommendation directly.</li>
+        <li>If your design uses the same density level, the manufacturer recommendation can be used as a verification check against your independently calculated value.</li>
+      </ul>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Warning</div>
+        Manufacturer recommended land patterns may target Density Level A (most material) by default to maximize solder joint reliability across all assembly environments. Always verify density level alignment with your project's assembly class requirements before adopting the manufacturer's recommendation directly.
+      </div>
+
+      <h4>3. Dimension Tables with Tolerances</h4>
+      <p>The dimension table provides minimum, nominal, and maximum values for every controlled dimension on the package. IPC-7351B calculations require the use of <strong>min/max values only</strong> — nominal values are used exclusively for reference and 3D modeling purposes.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>IPC-7351 Variable</th>
+              <th>Required Datasheet Value</th>
+              <th>Why Min/Max, Not Nominal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Lmax (toe calculation)</td>
+              <td>Lead length maximum</td>
+              <td>Worst-case toe extension — prevents under-pad at maximum lead length</td>
+            </tr>
+            <tr>
+              <td>Tmin (heel calculation)</td>
+              <td>Component body length minimum</td>
+              <td>Worst-case gap — ensures heel fillet at minimum body size</td>
+            </tr>
+            <tr>
+              <td>Wmax (side calculation)</td>
+              <td>Lead width maximum</td>
+              <td>Worst-case side extension — prevents overhang at maximum lead width</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Datasheet Version Control</h3>
+      <p>Datasheets are living documents. Manufacturers issue revisions (typically denoted by a letter suffix: Rev A, Rev B, etc.) that may change physical dimensions, especially when packaging processes are updated. The following must be tracked in the footprint library:</p>
+      <ul class="body-list">
+        <li>Datasheet revision number and date</li>
+        <li>Manufacturer part number the footprint was validated against</li>
+        <li>URL or archived PDF reference of the source document</li>
+        <li>Any dimension changes between revisions that impacted the footprint</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section class="section" id="s3">
+      <div class="section-header">
+        <span class="section-num">§ 03</span>
+        <h2>IPC Standards Application</h2>
+      </div>
+
+      <h3>Where IPC Standards Are Applied</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Footprint Element</th>
+              <th>Governing IPC Standard</th>
+              <th>Application Point</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Pad length / width calculation</td><td>IPC-7351B §3</td><td>Applied after extracting lead dimensions from datasheet</td></tr>
+            <tr><td>Fillet goals (Jt, Jh, Js)</td><td>IPC-7351B Table 3-1</td><td>Selected based on density level (A/B/C)</td></tr>
+            <tr><td>Assembly tolerances (CL, CS, CP)</td><td>IPC-7351B §3.1</td><td>Statistical RSS combination of fabrication/placement/paste errors</td></tr>
+            <tr><td>Courtyard boundary</td><td>IPC-7351B §4.1</td><td>Defined at 0.25 mm (B) beyond maximum component/pad outline</td></tr>
+            <tr><td>Silkscreen clearance</td><td>IPC-7351B §3.6</td><td>Minimum 0.10 mm clearance from pad copper edge</td></tr>
+            <tr><td>Via-in-pad requirements</td><td>IPC-7095C §8</td><td>Mandatory plugging and capping rules for via-in-pad designs</td></tr>
+            <tr><td>BGA land diameter</td><td>IPC-7351B §5</td><td>Non-solder mask defined (NSMD) or solder mask defined (SMD) pad choice</td></tr>
+            <tr><td>Through-hole annular ring</td><td>IPC-2221A Table 9-2</td><td>Minimum annular ring based on class (Class 2: 0.05 mm; Class 3: 0.10 mm)</td></tr>
+            <tr><td>Thermal via size/pitch</td><td>IPC-7093A §4.2</td><td>Applied to exposed pad via array design</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>When IPC Complements vs. Overrides Datasheet</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Action</th>
+              <th>Rationale</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Datasheet provides recommended land pattern</td>
+              <td>IPC <strong>complements</strong> — use as verification</td>
+              <td>Manufacturer recommendation takes precedence; IPC confirms it</td>
+            </tr>
+            <tr>
+              <td>Datasheet has no land pattern recommendation</td>
+              <td>IPC <strong>drives</strong> calculation exclusively</td>
+              <td>Only method available; apply full IPC-7351B formula</td>
+            </tr>
+            <tr>
+              <td>Manufacturer recommendation differs significantly from IPC calculation</td>
+              <td>Document the conflict; apply IPC unless manufacturer provides engineering justification</td>
+              <td>IPC ensures process compatibility; manufacturer recommendation may be optimized for specific conditions</td>
+            </tr>
+            <tr class="conflict-row">
+              <td>Manufacturer recommendation produces insufficient heel fillet per IPC-A-610</td>
+              <td>IPC <strong>overrides</strong> — increase pad to meet inspection criteria</td>
+              <td>IPC-A-610 Class 2/3 acceptance criteria are non-negotiable for production</td>
+            </tr>
+            <tr>
+              <td>Design requires higher density than manufacturer recommendation</td>
+              <td>Recalculate using IPC Density Level C fillet goals</td>
+              <td>Project density requirement supersedes generic manufacturer recommendation</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Resolving Conflicts Between Datasheet and IPC</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Document both values explicitly</div>
+            <div class="step-body">Record the datasheet-recommended pad dimension and the IPC-calculated pad dimension side by side with full traceability. Never silently choose one over the other.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Identify the density level discrepancy</div>
+            <div class="step-body">Back-calculate which density level the manufacturer used by substituting their pad dimensions into the IPC formula. This reveals whether they used Density A (conservative) versus Density B (nominal).</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Apply project density requirement</div>
+            <div class="step-body">Use the IPC-7351B calculation with the density level mandated by the project's assembly process capability and board space requirements.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Flag and escalate significant deviations</div>
+            <div class="step-body">If IPC-calculated pad dimensions deviate more than 15% from the manufacturer recommendation, escalate for engineering review before library release. Include deviation notes in the footprint documentation field.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section class="section" id="s4">
+      <div class="section-header">
+        <span class="section-num">§ 04</span>
+        <h2>Solder Joint Terminology</h2>
+      </div>
+
+      <p>The three solder fillet locations — toe, heel, and side — are defined in IPC-7351B and IPC-A-610 and represent the three principal inspection points for SMD solder joint quality. Each fillet has distinct geometry, functional purpose, and failure modes.</p>
+
+      <div class="fillet-grid">
+        <div class="fillet-card">
+          <div class="fillet-card-head">
+            <h4 style="color: var(--accent);">① Toe Fillet</h4>
+          </div>
+          <div class="fillet-card-body">
+            <p><strong>Location:</strong> The outermost edge of the solder joint, at the tip of the component lead — the end furthest from the component body.</p>
+            <p><strong>Definition (IPC-7351B):</strong> The fillet formed between the end of the lead and the copper pad extension beyond the lead tip.</p>
+            <p><strong>Functional Purpose:</strong> The toe fillet provides the primary mechanical anchor for the solder joint. It bears the majority of tensile stress during thermal cycling and mechanical loading. A well-formed toe fillet distributes stress across a larger copper-solder interface.</p>
+            <p><strong>Reliability Impact:</strong> Insufficient toe extension results in a thin or absent toe fillet, significantly reducing joint fatigue life under thermal cycling per IPC-SM-785. IPC-A-610 Class 2 requires minimum 25% lead width toe fillet height; Class 3 requires 50%.</p>
+            <p><strong>IPC Fillet Goal (Jt):</strong> Density B = 0.35 mm for SOIC/QFP; 0.55 mm for chip components.</p>
+          </div>
+        </div>
+
+        <div class="fillet-card">
+          <div class="fillet-card-head">
+            <h4 style="color: var(--accent4);">② Heel Fillet</h4>
+          </div>
+          <div class="fillet-card-body">
+            <p><strong>Location:</strong> The innermost edge of the solder joint, between the component lead bend and the pad copper, closest to the component body.</p>
+            <p><strong>Definition (IPC-7351B):</strong> The fillet formed at the junction of the lead heel and the inward edge of the copper pad.</p>
+            <p><strong>Functional Purpose:</strong> The heel fillet provides shear resistance. It prevents lead liftoff from the pad under flexural bending. The heel fillet is the primary inspection point for insufficient solder coverage beneath the lead.</p>
+            <p><strong>Reliability Impact:</strong> A narrow or missing heel fillet is a direct indicator of insufficient solder volume or pad gap that is too large for proper wetting. IPC-A-610 Class 2 mandates minimum 25% lead thickness as heel fillet height.</p>
+            <p><strong>IPC Fillet Goal (Jh):</strong> Density B = 0.25 mm; this is a negative value in the IPC formula, meaning the pad extends inward beneath the lead.</p>
+          </div>
+        </div>
+
+        <div class="fillet-card">
+          <div class="fillet-card-head">
+            <h4 style="color: var(--accent3);">③ Side Fillet</h4>
+          </div>
+          <div class="fillet-card-body">
+            <p><strong>Location:</strong> Along the lateral edges of the component lead, extending the solder beyond the sides of the lead width.</p>
+            <p><strong>Definition (IPC-7351B):</strong> The fillet formed on both lateral sides of the solder joint between the lead width and the pad width extension.</p>
+            <p><strong>Functional Purpose:</strong> The side fillet contributes to lateral mechanical stability and increases the total solder contact area, improving current-carrying capacity and reducing electromigration risk in high-current applications.</p>
+            <p><strong>Reliability Impact:</strong> Absent side fillets indicate the pad width is equal to or narrower than the lead width, providing no lateral solder meniscus. This reduces overall joint strength. IPC-A-610 Class 2 requires side fillet presence; Class 3 requires minimum 25% of lead width.</p>
+            <p><strong>IPC Fillet Goal (Js):</strong> Density B = 0.03–0.05 mm for gull-wing leads; chip components = 0.10 mm minimum.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fillet</th>
+              <th>Primary Stress Mode</th>
+              <th>IPC-A-610 Class 2 Min</th>
+              <th>IPC-A-610 Class 3 Min</th>
+              <th>Consequence of Failure</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Toe</td>
+              <td>Tensile / thermal fatigue</td>
+              <td>25% lead width height</td>
+              <td>50% lead width height</td>
+              <td>Crack initiation under thermal cycling → open circuit</td>
+            </tr>
+            <tr>
+              <td>Heel</td>
+              <td>Shear / flexural bending</td>
+              <td>25% lead thickness height</td>
+              <td>25% lead thickness height</td>
+              <td>Lead liftoff → intermittent connection</td>
+            </tr>
+            <tr>
+              <td>Side</td>
+              <td>Lateral shear</td>
+              <td>Presence required</td>
+              <td>25% lead width</td>
+              <td>Reduced joint cross-section → fatigue failure under vibration</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section class="section" id="s5">
+      <div class="section-header">
+        <span class="section-num">§ 05</span>
+        <h2>SSOT Architecture for Footprint Creation</h2>
+      </div>
+
+      <h3>Data Flow: Datasheet → Footprint → PCB Layout</h3>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num">01</div>
+          <div class="flow-title">Source</div>
+          <div class="flow-desc">Component datasheet (archived PDF, revision locked)</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">02</div>
+          <div class="flow-title">Extract</div>
+          <div class="flow-desc">Lead/body dims from package outline drawing</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">03</div>
+          <div class="flow-title">Calculate</div>
+          <div class="flow-desc">Apply IPC-7351B formula for target density level</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">04</div>
+          <div class="flow-title">Model</div>
+          <div class="flow-desc">Create footprint in EDA tool (Altium / Cadence)</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">05</div>
+          <div class="flow-title">Validate</div>
+          <div class="flow-desc">DRC, peer review, IPC compliance check</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">06</div>
+          <div class="flow-title">Release</div>
+          <div class="flow-desc">Approved footprint published to controlled library</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">07</div>
+          <div class="flow-title">Consume</div>
+          <div class="flow-desc">PCB designers place from approved library only</div>
+        </div>
+      </div>
+
+      <h3>Version Control Strategy</h3>
+      <p>Every footprint in a production library must carry version metadata that enables full traceability from the production PCB back to the originating datasheet. The following metadata schema is required:</p>
+
+      <pre><span class="cmt">// Footprint Metadata Schema (embed in EDA tool parameter fields)</span>
+<span class="kw">FOOTPRINT_NAME</span>:      <span class="val">SOT-23-3_IPC-7351B_Density-B</span>
+<span class="kw">CREATION_DATE</span>:       <span class="val">YYYY-MM-DD</span>
+<span class="kw">CREATED_BY</span>:          <span class="val">Engineer Name / ID</span>
+<span class="kw">DATASHEET_REF</span>:       <span class="val">Manufacturer_PN_DatasheetRevX.pdf</span>
+<span class="kw">DATASHEET_DATE</span>:      <span class="val">YYYY-MM-DD</span>
+<span class="kw">IPC_STANDARD</span>:        <span class="val">IPC-7351B, Density Level B</span>
+<span class="kw">FOOTPRINT_VERSION</span>:   <span class="val">1.0.0</span>
+<span class="kw">LAST_MODIFIED</span>:       <span class="val">YYYY-MM-DD</span>
+<span class="kw">MODIFIED_BY</span>:         <span class="val">Engineer Name / ID</span>
+<span class="kw">CHANGE_DESCRIPTION</span>:  <span class="val">"Initial release / Change description"</span>
+<span class="kw">REVIEW_STATUS</span>:       <span class="val">APPROVED / PENDING / REJECTED</span>
+<span class="kw">REVIEWER</span>:            <span class="val">Reviewer Name / ID</span></pre>
+
+      <h3>Library Validation and Approval Workflow</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Stage</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Gate Criteria</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1. Footprint Creation</td>
+              <td>Library Engineer</td>
+              <td>Create footprint, attach datasheet, complete metadata</td>
+              <td>All required fields populated; DRC clean</td>
+            </tr>
+            <tr>
+              <td>2. Self-Review</td>
+              <td>Library Engineer</td>
+              <td>Compare pad dimensions against IPC calculation worksheet</td>
+              <td>Tolerance within ±0.01 mm of calculated values</td>
+            </tr>
+            <tr>
+              <td>3. Peer Review</td>
+              <td>Second Library Engineer</td>
+              <td>Independent verification against datasheet and IPC</td>
+              <td>Peer sign-off; all checklist items confirmed</td>
+            </tr>
+            <tr>
+              <td>4. Engineering Approval</td>
+              <td>Lead PCB Engineer</td>
+              <td>Final review; DFM/DFA compliance check</td>
+              <td>Engineering approval signature / digital record</td>
+            </tr>
+            <tr>
+              <td>5. Library Release</td>
+              <td>Library Administrator</td>
+              <td>Publish to production library; lock footprint</td>
+              <td>Status set to APPROVED; version incremented</td>
+            </tr>
+            <tr>
+              <td>6. Change Control</td>
+              <td>Library Engineer + Approver</td>
+              <td>Any modification triggers new version + full review cycle</td>
+              <td>Change record with justification mandatory</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Traceability and Audit Readiness</h3>
+      <p>For IPC Class 3 designs (aerospace, medical, military), the footprint library must support full forward and backward traceability. Every footprint must be linkable from:</p>
+      <ul class="body-list">
+        <li><strong>Forward:</strong> Footprint → BOM Part Number → PCB Assembly Drawing → Manufactured Board</li>
+        <li><strong>Backward:</strong> Manufactured Board → PCB Assembly Drawing → BOM Part Number → Footprint → IPC Calculation Record → Datasheet (archived, revision-specific)</li>
+      </ul>
+      <p>This chain must be maintained without breaks. Any footprint that cannot be traced back to a specific, archived datasheet revision is non-conformant for Class 3 production purposes.</p>
+    </section>
+
+    <!-- SECTION 6 -->
+    <section class="section" id="s6">
+      <div class="section-header">
+        <span class="section-num">§ 06</span>
+        <h2>DFM Guidelines for Footprint Creation</h2>
+      </div>
+
+      <h3>Manufacturability Constraints</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Constraint</th>
+              <th>Minimum Value</th>
+              <th>Standard</th>
+              <th>Non-Compliance Risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Minimum pad width (SMD)</td><td>0.20 mm</td><td>CM capability</td><td>Trace definition failure in photolithography</td></tr>
+            <tr><td>Minimum pad-to-pad gap</td><td>0.15 mm (0.10 mm HDI)</td><td>IPC-2221A / CM spec</td><td>Solder bridging between adjacent pads</td></tr>
+            <tr><td>Minimum through-hole drill</td><td>0.20 mm finished (0.80 mm preferred)</td><td>IPC-2221A §9.3</td><td>Drill breakage, plating adhesion failure</td></tr>
+            <tr><td>Minimum annular ring (Class 2)</td><td>0.05 mm</td><td>IPC-2221A Table 9-2</td><td>Annular ring breakout → open circuit</td></tr>
+            <tr><td>Stencil aperture area ratio</td><td>≥ 0.66</td><td>IPC-7525B §3</td><td>Incomplete paste release → solder insufficiency</td></tr>
+            <tr><td>Stencil aperture aspect ratio</td><td>≥ 1.5</td><td>IPC-7525B §3</td><td>Aperture clogging for fine-pitch components</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Solderability Considerations</h3>
+      <ul class="body-list">
+        <li><strong>Surface finish compatibility:</strong> HASL (Hot Air Solder Leveling) produces pad height variation of ±0.025 mm. ENIG (Electroless Nickel Immersion Gold) is flat to ±0.005 mm. Fine-pitch components ≤0.5 mm pitch require ENIG or equivalent flat finish — footprint notes must specify if HASL is prohibited.</li>
+        <li><strong>Solder mask opening:</strong> Non-solder mask defined (NSMD) pads have the solder mask opening larger than the copper pad. NSMD is required for pads ≤0.5 mm pitch to prevent solder mask misregistration causing bridging. SMD (solder mask defined) is used for BGA where the solder mask controls ball diameter.</li>
+        <li><strong>Paste reduction for large pads:</strong> For pads larger than 4 mm², stencil apertures must be broken into a grid to limit paste volume and control solder voiding. IPC-7525B §6 provides aperture reduction guidelines.</li>
+      </ul>
+
+      <h3>Assembly Tolerances</h3>
+      <p>The IPC-7351B statistical tolerance stack-up uses three independent error sources combined using root-sum-square (RSS) methodology:</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tolerance Source</th>
+              <th>Symbol</th>
+              <th>Density B Value</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>PCB fabrication tolerance</td><td>CL</td><td>±0.10 mm</td><td>Copper feature dimensional accuracy from fabrication</td></tr>
+            <tr><td>Component placement tolerance</td><td>CS</td><td>±0.05 mm</td><td>Pick-and-place machine placement accuracy</td></tr>
+            <tr><td>Solder paste printing tolerance</td><td>CP</td><td>±0.025 mm</td><td>Stencil printing registration accuracy</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="formula-box">
+        <div class="formula-title">RSS Combined Tolerance</div>
+        <div><span class="formula">RMS</span> = <span class="formula-val">√(CL² + CS² + CP²)</span> = <span class="formula-val">√(0.10² + 0.05² + 0.025²)</span> = <span class="formula-val">≈ 0.114 mm</span></div>
+      </div>
+
+      <h3>Common Manufacturing Defects — Footprint Prevention</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Defect</th>
+              <th>Root Cause (Footprint)</th>
+              <th>Prevention</th>
+              <th>Standard</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tombstoning</td>
+              <td>Asymmetric pad sizes or thermal mass imbalance on 0402/0201 passives</td>
+              <td>Equal pad sizes; verify thermal copper pour is symmetric</td>
+              <td>IPC-7351B §3.4</td>
+            </tr>
+            <tr>
+              <td>Solder bridging</td>
+              <td>Insufficient pad-to-pad gap; pad width exceeding lead width excessively</td>
+              <td>Enforce minimum 0.15 mm gap; limit side extension to Js value</td>
+              <td>IPC-7351B §3.1</td>
+            </tr>
+            <tr>
+              <td>Solder insufficiency</td>
+              <td>Stencil aperture area ratio below 0.66 due to pad size too small</td>
+              <td>Calculate aperture ratio at design stage; adjust pad size if required</td>
+              <td>IPC-7525B §3</td>
+            </tr>
+            <tr>
+              <td>Pad cratering (BGA)</td>
+              <td>SMD pad definition causing stress concentration at mask edge</td>
+              <td>Use NSMD for board-level BGA pads; verify mask registration tolerance</td>
+              <td>IPC/JEDEC-9703</td>
+            </tr>
+            <tr>
+              <td>Cold joint / non-wetting</td>
+              <td>Insufficient toe extension; pad too short for lead length</td>
+              <td>Use Lmax in IPC formula; verify toe fillet goal ≥ Jt minimum</td>
+              <td>IPC-7351B §3.2</td>
+            </tr>
+            <tr>
+              <td>Excessive voids (thermal pad)</td>
+              <td>Full-coverage paste on large exposed pad — gas has no escape path</td>
+              <td>Grid pattern stencil aperture at 50–80% coverage per IPC-7093A</td>
+              <td>IPC-7093A §4.2</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 7 -->
+    <section class="section" id="s7">
+      <div class="section-header">
+        <span class="section-num">§ 07</span>
+        <h2>Tool-Specific Best Practices</h2>
+      </div>
+
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-card-head">
+            <span class="tool-badge tool-badge-altium">ALTIUM DESIGNER</span>
+          </div>
+          <div class="tool-card-body">
+            <h4>Library Creation Workflow</h4>
+            <ul>
+              <li>Use the <strong>Integrated Library (.IntLib)</strong> format for production — bundles schematic symbol, footprint, simulation model, and 3D model in a single managed unit.</li>
+              <li>The <strong>PCB Library Editor (.PcbLib)</strong> is the footprint authoring environment. Each footprint exists as a named component with full parameter support.</li>
+              <li>Use <strong>Component Templates</strong> (.PCBComponent) to standardize courtyard, assembly, and silkscreen layer rules across component families.</li>
+              <li>The <strong>IPC Compliant Footprint Wizard</strong> (Tools → IPC Compliant Footprint Wizard) provides a guided interface for common package types. It implements IPC-7351B formulas directly — density level selection is available. However, all wizard outputs must be verified against manual calculations.</li>
+            </ul>
+
+            <h4>Padstack Handling</h4>
+            <ul>
+              <li>SMD pads in Altium are defined at the component footprint level — pad shape (rectangular, rounded, chamfered), size, and layer assignment are set per pad.</li>
+              <li>Through-hole pads use the <strong>Pad Properties</strong> dialog — drill size, pad shape (circular, oval), anti-pad size (power planes), and thermal relief settings are configured here.</li>
+              <li>Altium does not use a separate padstack library — this simplifies setup but requires discipline to avoid pad dimension inconsistencies across footprints for similar package types.</li>
+            </ul>
+
+            <h4>Rule Management</h4>
+            <ul>
+              <li>Footprint-level DRC is performed in the <strong>PCB Library Editor</strong> using Reports → Component Rule Check.</li>
+              <li>Board-level clearance rules in <strong>PCB Rules and Constraints Editor (PCB → Rules)</strong> take precedence over footprint-embedded settings at layout time.</li>
+              <li>Use <strong>Design Rule Checks (DRC)</strong> at footprint level to catch courtyard overlaps, silk-to-pad violations, and missing layer content before library release.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-card-head">
+            <span class="tool-badge tool-badge-cadence">CADENCE ORCAD / ALLEGRO</span>
+          </div>
+          <div class="tool-card-body">
+            <h4>Library Creation Workflow</h4>
+            <ul>
+              <li>Cadence separates schematic symbols (OrCAD Capture, .olb) from PCB footprints (Allegro PCB Editor, .dra/.psm). These are linked at the schematic component level via the <strong>PCB Footprint</strong> property.</li>
+              <li>Footprints are created in <strong>Allegro PCB Symbol Editor</strong> (standalone or via Package Designer). The symbol type is <strong>Package Symbol (.psm)</strong>.</li>
+              <li>The <strong>Padstack Editor</strong> (standalone application: <code>padstack_editor</code>) is a separate tool that creates reusable padstack definitions (.pad files). This is a critical distinction from Altium.</li>
+              <li>Cadence supports a <strong>Symbol Library (.dra)</strong> system where footprints are stored as individual files and managed through the Allegro library path configuration.</li>
+            </ul>
+
+            <h4>Padstack Handling</h4>
+            <ul>
+              <li>Padstacks are defined in the <strong>Padstack Editor</strong> as standalone .pad files, reusable across multiple footprints. This enforces standardization — the same padstack can be used in all SOT-23 footprints, for example.</li>
+              <li>Padstack layers: Begin Layer (copper), End Layer (copper), Default (inner layers), Soldermask Top/Bottom, Pastemask Top/Bottom, Filmmask — each configured independently.</li>
+              <li>Anti-pad and thermal relief shapes for power plane connectivity are defined within the padstack, not at the footprint or board level.</li>
+            </ul>
+
+            <h4>Rule Management</h4>
+            <ul>
+              <li>Constraint management is handled through the <strong>Constraint Manager</strong> (Allegro), which supports hierarchical rule sets from board-level to net-level to region-level.</li>
+              <li>DRC at footprint level is performed through <strong>Check → Check Symbol</strong> in the Symbol Editor.</li>
+              <li>Cadence supports <strong>Design Rule Check (DRC)</strong> output reports with IPC-class constraint sets, enabling automated compliance checking against IPC-2221/IPC-7351 rules when properly configured.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <h3>Key Architectural Differences</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Altium Designer</th>
+              <th>Cadence OrCAD / Allegro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Padstack management</td><td>Inline — defined per footprint pad</td><td>External .pad file — reusable library</td></tr>
+            <tr><td>Library format</td><td>Integrated .IntLib (single file)</td><td>Separate .olb (symbol) + .psm (footprint)</td></tr>
+            <tr><td>IPC Wizard</td><td>Built-in IPC-7351 Compliant Wizard</td><td>Manual entry; third-party scripts available</td></tr>
+            <tr><td>3D model integration</td><td>STEP import, native in footprint</td><td>STEP import via Allegro 3D Viewer</td></tr>
+            <tr><td>Constraint system</td><td>PCB Rules and Constraints Editor</td><td>Constraint Manager (more hierarchical)</td></tr>
+            <tr><td>Layer naming (courtyard)</td><td>Courtyard Layer (User-defined)</td><td>Package_Keepout (or user-defined class)</td></tr>
+            <tr><td>Layer naming (assembly)</td><td>Assembly Drawing Top/Bottom</td><td>Assembly_Top / Assembly_Bottom</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 8 -->
+    <section class="section" id="s8">
+      <div class="section-header">
+        <span class="section-num">§ 08</span>
+        <h2>Step-by-Step Footprint Creation Process</h2>
+      </div>
+
+      <h3>Altium Designer — SMD Component (Example: SOT-23-3)</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Open PCB Library Editor → New Footprint</div>
+            <div class="step-body">File → New → PCB Library, or open existing .PcbLib. In Component pane, right-click → Add Component. Name the footprint per naming convention: <code>SOT-23-3_IPC-7351B_B</code>. Enter all metadata in component parameters.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Place SMD Pads (Signal Pads)</div>
+            <div class="step-body">Place → Pad. Set pad properties: Layer = Top, Shape = Rectangular (for standard SMD), Size from IPC calculation. For SOT-23-3: Pad size = 1.00 mm × 0.70 mm (Density B, example values — always derive from actual datasheet). Set pad number starting at Pin 1. Place all pads at exact coordinates derived from datasheet lead pitch.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Define Silkscreen Layer</div>
+            <div class="step-body">Switch to Top Overlay (Silkscreen) layer. Draw component body outline using lines. Minimum line width: 0.12 mm. Ensure all silkscreen geometry maintains ≥0.10 mm clearance from all pad copper edges per IPC-7351B. Place Pin 1 indicator: a dot or triangle adjacent to Pad 1, within silkscreen layer, clearly visible.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Define Assembly Layer</div>
+            <div class="step-body">Switch to Top Assembly (Mechanical 13 in older Altium; Assembly Drawing Top in newer). Draw component body outline at exact datasheet body dimensions — this is used for assembly drawings and pick-and-place programming, not for solder mask or copper. Include Pin 1 indicator on assembly layer.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">Define Courtyard Layer</div>
+            <div class="step-body">Switch to Courtyard (Mechanical 15 or dedicated Courtyard layer). Draw a rectangle encompassing the component body maximum extents plus all pads plus 0.25 mm clearance on all sides (Density B per IPC-7351B §4.1). The courtyard defines the exclusion zone for adjacent components.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <div class="step-title">Set Component Origin</div>
+            <div class="step-body">The component origin (reference point) must be placed at the centroid of the component as specified by the IPC-7351B land pattern centroid. For symmetric components, this is the geometric center of all pads. For asymmetric packages (SOT-23-3), the centroid is at the geometric center of the pad group.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">7</div>
+          <div class="step-content">
+            <div class="step-title">Align 3D Model</div>
+            <div class="step-body">Tools → Manage 3D Bodies. Import STEP file from manufacturer (preferred) or IPC Compliant 3D model source. Align 3D body to component body outline exactly. Pin 1 on 3D model must coincide with Pin 1 on footprint. Verify height accuracy against datasheet overall height dimension.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">8</div>
+          <div class="step-content">
+            <div class="step-title">Run DRC and Save</div>
+            <div class="step-body">Reports → Component Rule Check. Verify zero violations. Save .PcbLib. Commit to version control with metadata and datasheet reference attached.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Cadence Allegro — SMD Component (Example: SOT-23-3)</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Create Padstack (.pad) Files First</div>
+            <div class="step-body">Launch Padstack Editor (standalone). New padstack: Type = SMD Regular. Layer BEGIN_LAYER: Shape = Rectangle, Width = 1.00 mm, Height = 0.70 mm. Layer SOLDERMASK_TOP: Shape = Rectangle, Width = pad + 2×0.05 mm solder mask expansion. Layer PASTEMASK_TOP: Shape = Rectangle, Width = pad − 0 mm (no reduction for standard pads). Save as <code>SMD_1000x700.pad</code>.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Open Allegro Package Designer — New Symbol</div>
+            <div class="step-body">File → New → Package Symbol. Set symbol name and units (mm). Configure drawing extents. Symbol Type = Package Symbol.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Place Pads Using Padstack</div>
+            <div class="step-body">Layout → Pins. Select padstack created in Step 1. Place pads at exact coordinates derived from IPC calculation (lead pitch, pad center positions). Assign pin numbers: Pin 1 at standard location per datasheet. Use Add → Pin command for each pad.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Draw Silkscreen (Package_Geometry/Silkscreen_Top)</div>
+            <div class="step-body">Add → Line on class Package_Geometry, subclass Silkscreen_Top. Draw component body outline with 0.12 mm line width. Enforce ≥0.10 mm clearance from pad copper. Add Pin 1 indicator (dot or chamfer mark) adjacent to Pin 1 location.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">Draw Assembly Outline (Package_Geometry/Assembly_Top)</div>
+            <div class="step-body">Add → Line on class Package_Geometry, subclass Assembly_Top. Draw exact body outline per datasheet body dimensions. Include Pin 1 indicator matching silkscreen. This layer feeds assembly documentation and X-ray reference.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <div class="step-title">Draw Courtyard (Package_Keepout/All or Package_Geometry/Place_Bound_Top)</div>
+            <div class="step-body">Add → Rectangle or Line on the appropriate keepout class. Define boundary at component body + pad extents + 0.25 mm on all sides. In Allegro, the placement boundary (Place_Bound_Top) is used by the DRC engine to prevent component overlap during placement.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">7</div>
+          <div class="step-content">
+            <div class="step-title">Set Component Origin and Reference Designator</div>
+            <div class="step-body">Setup → Change Drawing Origin to centroid location. Add Reference Designator text on Package_Geometry/Silkscreen_Top — minimum 0.8 mm height, positioned within courtyard but outside pad area. Add package value text on Assembly_Top layer.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">8</div>
+          <div class="step-content">
+            <div class="step-title">Check Symbol and Export</div>
+            <div class="step-body">Check → Check Symbol. Resolve all DRC violations. File → Create Symbol (.psm). Add to library path. Update DeviceFile (.dra) if full device is being created. Record metadata in symbol properties and commit to version control.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Through-Hole Padstack Creation — Both Tools</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Formula / Rule</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Drill diameter</td><td>Lead diameter max + 0.25 mm (Class B)</td><td><span class="tag-ds">DATASHEET</span> + <span class="tag-ipc">IPC-2222A §9.1</span></td></tr>
+            <tr><td>Pad diameter (finished)</td><td>Drill diameter + 2 × 0.25 mm (Class 2 annular ring)</td><td><span class="tag-ipc">IPC-2221A Table 9-2</span></td></tr>
+            <tr><td>Solder mask opening</td><td>Pad diameter + 2 × 0.05 mm expansion</td><td><span class="tag-ipc">IPC-7351B §3.6</span></td></tr>
+            <tr><td>Anti-pad (plane clearance)</td><td>Pad diameter + 2 × 0.50 mm minimum</td><td><span class="tag-ipc">IPC-2221A §6.4</span></td></tr>
+            <tr><td>Thermal relief spoke width</td><td>0.25 mm minimum (Class 2)</td><td><span class="tag-ipc">IPC-2221A §6.4</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 9 -->
+    <section class="section" id="s9">
+      <div class="section-header">
+        <span class="section-num">§ 09</span>
+        <h2>Import / Release Checklist</h2>
+      </div>
+
+      <p>This checklist must be completed in full and signed off by both the creating engineer and a designated reviewer before any footprint is released to the production library. No footprint may be used in a production PCB design without a completed checklist on record.</p>
+
+      <h3>Category 1 — Datasheet Validation</h3>
+      <ul class="checklist">
+        <li>Original manufacturer datasheet identified, downloaded, and archived (PDF). Revision number recorded. <span class="cat">SSOT</span></li>
+        <li>Package outline drawing reviewed and all critical dimensions (L, T, W, lead pitch, standoff) extracted and recorded in IPC calculation worksheet. <span class="cat">DATASHEET</span></li>
+        <li>Dimension table reviewed — min/max values used for IPC calculation (not nominal). <span class="cat">DATASHEET</span></li>
+        <li>Manufacturer recommended land pattern (if present) reviewed and density level identified. <span class="cat">DATASHEET</span></li>
+        <li>Part number variant confirmed — if datasheet covers multiple variants, correct variant dimensions used. <span class="cat">DATASHEET</span></li>
+      </ul>
+
+      <h3>Category 2 — Pad Dimensions</h3>
+      <ul class="checklist">
+        <li>IPC-7351B calculation worksheet completed with all variables (Jt, Jh, Js, CL, CS, CP) documented. <span class="cat">IPC-7351B</span></li>
+        <li>Pad length (Z and G basis), pad width (X basis), and pad-to-pad gap verified against IPC calculation output. <span class="tag-ipc" style="font-size:11px;margin-left:4px;">±0.01mm tolerance</span> <span class="cat">IPC-7351B</span></li>
+        <li>Pad dimensions entered in EDA tool match calculated values within ±0.01 mm. <span class="cat">TOOL</span></li>
+        <li>For exposed pads (QFN/DFN/BTC): EP size per datasheet; thermal via array per IPC-7093A. <span class="cat">IPC-7093A</span></li>
+        <li>Solder mask opening verified: NSMD or SMD confirmed per design requirements; expansion value per IPC-7351B §3.6. <span class="cat">IPC-7351B</span></li>
+        <li>Paste mask aperture verified: Area ratio ≥ 0.66; aspect ratio ≥ 1.5 per IPC-7525B. <span class="cat">IPC-7525B</span></li>
+      </ul>
+
+      <h3>Category 3 — IPC Compliance</h3>
+      <ul class="checklist">
+        <li>Density level (A/B/C) confirmed and matches project assembly environment specification. <span class="cat">IPC-7351B</span></li>
+        <li>Courtyard boundary drawn at correct clearance (0.50 mm/A, 0.25 mm/B, 0.10 mm/C) per IPC-7351B §4.1. <span class="cat">IPC-7351B</span></li>
+        <li>Pad-to-pad clearance meets IPC-2221A minimums for project class. <span class="cat">IPC-2221A</span></li>
+        <li>For through-hole: annular ring meets IPC-2221A Table 9-2 for Class 2 or Class 3 as applicable. <span class="cat">IPC-2221A</span></li>
+        <li>Any deviation from IPC-7351B documented with engineering justification. <span class="cat">DEVIATION</span></li>
+      </ul>
+
+      <h3>Category 4 — Layer Content Verification</h3>
+      <ul class="checklist">
+        <li>Silkscreen layer: Component body outline present; clearance ≥ 0.10 mm from all pad copper edges; line width ≥ 0.12 mm. <span class="cat">IPC-7351B</span></li>
+        <li>Assembly layer: Exact component body outline at datasheet dimensions; Pin 1 indicator present. <span class="cat">IPC-7351B</span></li>
+        <li>Courtyard layer: Closed rectangle/polygon encompassing all pads and body + required clearance. <span class="cat">IPC-7351B</span></li>
+        <li>Reference Designator (RefDes) present on silkscreen; height ≥ 0.8 mm; positioned inside courtyard, outside pads. <span class="cat">IPC-7351B</span></li>
+        <li>No copper, silkscreen, or paste geometry exists on incorrect layers. <span class="cat">TOOL</span></li>
+      </ul>
+
+      <h3>Category 5 — Pin-1 and Polarity</h3>
+      <ul class="checklist">
+        <li>Pin 1 identified on silkscreen layer with dot, chamfer, or triangle marker per IPC-7351B §3.5. <span class="cat">IPC-7351B</span></li>
+        <li>Pin 1 marker position matches datasheet package orientation exactly. <span class="cat">DATASHEET</span></li>
+        <li>Polarity marking present for diodes, electrolytic capacitors, and other polarized components. <span class="cat">IPC-7351B</span></li>
+        <li>Pin numbering in EDA tool matches datasheet pin numbering — verified pad-by-pad. <span class="cat">DATASHEET</span></li>
+      </ul>
+
+      <h3>Category 6 — 3D Model</h3>
+      <ul class="checklist">
+        <li>3D model (STEP) sourced from manufacturer website or IPC Compliant 3D model library. <span class="cat">3D</span></li>
+        <li>3D model body aligned to assembly outline exactly — no offset or rotation error. <span class="cat">3D</span></li>
+        <li>3D model Pin 1 coincides with footprint Pin 1 pad location. <span class="cat">3D</span></li>
+        <li>3D model overall height verified against datasheet maximum height dimension. <span class="cat">DATASHEET</span></li>
+      </ul>
+
+      <h3>Category 7 — DRC / ERC</h3>
+      <ul class="checklist">
+        <li>Footprint-level DRC run in EDA tool — zero violations. <span class="cat">TOOL</span></li>
+        <li>Courtyard overlap check: footprint courtyard does not self-intersect. <span class="cat">TOOL</span></li>
+        <li>Silkscreen-to-pad clearance DRC passed. <span class="cat">TOOL</span></li>
+        <li>Pad numbering continuity verified (no gaps, no duplicates). <span class="cat">TOOL</span></li>
+      </ul>
+
+      <h3>Category 8 — Naming and Documentation</h3>
+      <ul class="checklist">
+        <li>Footprint name follows project naming convention: <code>[PACKAGE]_[STANDARD]_[DENSITY]</code> (e.g., SOT-23-3_IPC-7351B_B). <span class="cat">NAMING</span></li>
+        <li>All metadata fields populated: datasheet reference, IPC standard, density level, version, creator, reviewer. <span class="cat">SSOT</span></li>
+        <li>Footprint version incremented if modifying existing released footprint. <span class="cat">VERSION</span></li>
+        <li>IPC calculation worksheet archived and linked to footprint in library system. <span class="cat">SSOT</span></li>
+        <li>Reviewer sign-off recorded (name, date, tool). <span class="cat">APPROVAL</span></li>
+        <li>Engineering approval recorded before library release. <span class="cat">APPROVAL</span></li>
+      </ul>
+
+      <div class="callout callout-ok">
+        <div class="callout-label">Release Gate</div>
+        A footprint is eligible for library release only when all checklist items are marked complete, the peer reviewer has signed off, and engineering approval has been recorded. Partial completion is not acceptable for production use — no exceptions.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div style="margin-bottom:8px; color: var(--text-bright); font-weight:600;">PCB Footprint Creation — SSOT Methodology Reference Guide</div>
+  IPC-7351B · IPC-7351C · IPC-2221A · IPC-7525B · IPC-7093A · IPC-A-610 · IPC-4552 · IPC-7095C<br>
+  All values evidence-based and standards-derived. No assumptions. Prepared for professional PCB library engineering use.
+</footer>
+
+</body>
+</html>
