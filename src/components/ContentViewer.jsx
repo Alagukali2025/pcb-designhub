@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { modulesData } from '../data/modules';
-import { ArrowLeft, Check, AlertTriangle, Info, List, Clock, Zap } from 'lucide-react';
+import { ArrowLeft, Check, AlertTriangle, Info, List, Clock, Zap, Calculator } from 'lucide-react';
+import IPCCalculator from './IPCCalculator';
 
 export default function ContentViewer() {
   const { id } = useParams();
@@ -149,6 +150,166 @@ export default function ContentViewer() {
 
                 {sec.content && <p className="section-text">{sec.content}</p>}
 
+                {sec.list && (
+                  <ul className="body-list slide-up">
+                    {sec.list.map((item, li) => (
+                      <li key={li} className="list-item">
+                        {typeof item === 'string' ? item : (
+                          <>
+                            <strong className="list-label">{item.label}:</strong> {item.text}
+                          </>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {sec.table && (
+                  <div className="table-wrapper slide-up">
+                    <table className="content-table">
+                      <thead>
+                        <tr>
+                          {sec.table.headers.map((h, hi) => <th key={hi}>{h}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sec.table.rows.map((row, ri) => {
+                          const isSpecial = !!row.data;
+                          const cells = isSpecial ? row.data : row;
+                          const rowClass = row.type ? `${row.type}-row` : '';
+                          
+                          return (
+                            <tr key={ri} className={rowClass}>
+                              {cells.map((cell, ci) => (
+                                <td key={ci}>
+                                  {typeof cell === 'string' ? cell : (
+                                    <span className={`tag-${cell.tag.toLowerCase()}`}>{cell.text}</span>
+                                  )}
+                                </td>
+                              ))}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {sec.formula && (
+                  <div className="formula-container slide-up">
+                    <div className="formula-header">{sec.formula.title}</div>
+                    <div className="formula-box">
+                      {sec.formula.equations.map((eq, ei) => (
+                        <div key={ei} className="formula-line">
+                          <code>{eq}</code>
+                        </div>
+                      ))}
+                    </div>
+                    {sec.formula.variables && (
+                      <div className="formula-variables">
+                        {sec.formula.variables.map((v, vi) => (
+                          <div key={vi} className="formula-var">
+                            <span className="var-name">{v.name}</span>
+                            <span className="var-desc">{v.desc}</span>
+                            {v.tag && <span className={`var-tag tag-${v.tag.toLowerCase()}`}>{v.tag}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {sec.flow && (
+                  <div className="flow-container slide-up">
+                    {sec.flow.map((f, fi) => (
+                      <div key={fi} className="flow-step">
+                        <div className="flow-num">{f.step}</div>
+                        <div className="flow-title">{f.title}</div>
+                        <div className="flow-desc">{f.desc}</div>
+                        {fi < sec.flow.length - 1 && <div className="flow-arrow">→</div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {sec.codeBlock && (
+                  <div className="code-block-container slide-up">
+                    <pre className="code-pre">
+                      <code>{sec.codeBlock}</code>
+                    </pre>
+                  </div>
+                )}
+
+                {sec.twoColumnGrid && (
+                  <div className="two-column-grid slide-up">
+                    {sec.twoColumnGrid.map((col, ci) => (
+                      <div key={ci} className="grid-column">
+                        <div className="column-header">
+                          <span className={`tool-badge ${col.badgeClass}`}>{col.badge}</span>
+                        </div>
+                        <div className="column-body">
+                          <h4>{col.title}</h4>
+                          <ul className="column-list">
+                            {col.items.map((item, ii) => <li key={ii}>{item}</li>)}
+                          </ul>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {sec.type === 'calculator' && (
+                  <IPCCalculator />
+                )}
+
+                {sec.filletGrid && (
+                  <div className="fillet-grid slide-up">
+                    {sec.filletGrid.map((fg, fgi) => (
+                      <div key={fgi} className={`fillet-card border-${fg.color}`}>
+                        <h4 className={`text-${fg.color}`}>{fg.title}</h4>
+                        {fg.list ? (
+                          <div className="fillet-details">
+                            {fg.list.map((item, li) => (
+                              <p key={li}><strong>{item.label}:</strong> {item.text}</p>
+                            ))}
+                          </div>
+                        ) : <p>{fg.body}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {sec.steps && (
+                  <div className="steps-container slide-up">
+                    {sec.steps.map((step, si) => (
+                      <div key={si} className="step-item">
+                        <div className="step-number">{si + 1}</div>
+                        <div className="step-content">
+                          <h4>{step.title}</h4>
+                          <p>{step.body}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {sec.tabs && (
+                  <div className="tabs-container slide-up">
+                    <div className="tabs-content">
+                      {sec.tabs.map((tab, ti) => (
+                        <div key={ti} className="tab-panel">
+                          <div className="tab-header">
+                            <span className="tool-tag">{tab.title}</span>
+                          </div>
+                          <ul className="tab-list">
+                            {tab.content.map((item, ii) => <li key={ii}>{item}</li>)}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {sec.cards && (
                   <div className="section-cards-grid">
                     {sec.cards.map((card, j) => (
@@ -169,7 +330,40 @@ export default function ContentViewer() {
             ))}
           </div>
 
-          {content.checklist && (
+          {content.checklists ? (
+            <div className="task-board slide-up">
+              <div className="task-board-header">
+                <div className="task-board-title">
+                  <Check size={28} className="text-success" />
+                  Release Readiness Checklist
+                </div>
+              </div>
+
+              {content.checklists.map((cat, ci) => (
+                <div key={ci} className="checklist-category">
+                  <h3 className="category-title">{cat.category}</h3>
+                  <div className="task-items">
+                    {cat.items.map((item, i) => {
+                      const itemKey = `${ci}-${i}`;
+                      const isChecked = checkedItems[itemKey] || false;
+                      return (
+                        <div
+                          key={i}
+                          className={`task-item ${isChecked ? 'completed' : ''}`}
+                          onClick={() => toggleChecklist(itemKey)}
+                        >
+                          <div className="task-checkbox">
+                            {isChecked && <Check size={16} />}
+                          </div>
+                          <span className="task-label">{item}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : content.checklist && (
             <div className="task-board slide-up">
               <div className="task-board-header">
                 <div className="task-board-title">

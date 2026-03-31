@@ -1,6 +1,6 @@
-import { Search, User } from 'lucide-react';
+import { Search, User, Sun, Moon } from 'lucide-react';
 
-export default function Header() {
+export default function Header({ theme, toggleTheme }) {
   return (
     <header className="app-header fade-in">
       <div className="search-bar">
@@ -9,6 +9,14 @@ export default function Header() {
       </div>
       
       <div className="header-actions">
+        <button 
+          className="icon-btn" 
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+
         <div className="user-avatar">
           <User size={20} />
         </div>
