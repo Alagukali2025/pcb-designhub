@@ -67,15 +67,17 @@ const CalculatorDiagram = ({ type, activeField }) => {
 
 const IPCCalculator = () => {
   const [inputs, setInputs] = useState({
-    lMax: 1.05,
-    wMax: 0.55,
-    tMin: 0.15,
+    lMax: 1.6,
+    wMax: 0.8,
+    tMin: 0.4,
+    height: 0.45,
     pitch: 0.50
   });
   const [packageType, setPackageType] = useState('CHIP');
   const [densityLevel, setDensityLevel] = useState('B');
   const [activeField, setActiveField] = useState(null);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const results = useMemo(() => {
     const { lMax, wMax, tMin } = inputs;
@@ -96,10 +98,17 @@ const IPCCalculator = () => {
     const padLength = (Z - G) / 2;
     const centerToCenter = G + padLength;
 
+    // IPC-7351B Naming Logic (Simplified for Chip components)
+    // Format: [PTYP][LENGTH][WIDTH]X[HEIGHT][DENSITY]
+    const formatDim = (d) => Math.round(parseFloat(d) * 100).toString().padStart(4, '0');
+    const pType = packageType === 'CHIP' ? 'RESC' : 'SOP';
+    const name = `${pType}${formatDim(lMax)}${formatDim(wMax)}X${formatDim(inputs.height)}${densityLevel}`;
+
     return {
       z: Z.toFixed(3),
       g: G.toFixed(3),
       x: X.toFixed(3),
+      ipcName: name,
       padLength: padLength.toFixed(3),
       centerToCenter: centerToCenter.toFixed(3),
       rms: rms.toFixed(3),
@@ -109,6 +118,12 @@ const IPCCalculator = () => {
 
   const handleInputChange = (key, value) => {
     setInputs(prev => ({ ...prev, [key]: value }));
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(results.ipcName);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -193,7 +208,7 @@ const IPCCalculator = () => {
             <h4 className="panel-title">2. Engineering Inputs (mm)</h4>
             <div className="input-group-grid">
               <div className="input-item">
-                <label>L (Overall Length) / IPC L<sub>max</sub></label>
+                <label>L (Length) / IPC L<sub>max</sub></label>
                 <div className="input-with-desc">
                   <input 
                     type="number" 
@@ -203,25 +218,10 @@ const IPCCalculator = () => {
                     onBlur={() => setActiveField(null)}
                     onChange={(e) => handleInputChange('lMax', e.target.value)}
                   />
-                  <small className="help-text">Overall component span</small>
                 </div>
               </div>
               <div className="input-item">
-                <label>S (Separation) / IPC T<sub>min</sub></label>
-                <div className="input-with-desc">
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    value={inputs.tMin} 
-                    onFocus={() => setActiveField('tMin')}
-                    onBlur={() => setActiveField(null)}
-                    onChange={(e) => handleInputChange('tMin', e.target.value)}
-                  />
-                  <small className="help-text">Internal terminal gap</small>
-                </div>
-              </div>
-              <div className="input-item">
-                <label>W (Lead Width) / IPC W<sub>max</sub></label>
+                <label>W (Width) / IPC W<sub>max</sub></label>
                 <div className="input-with-desc">
                   <input 
                     type="number" 
@@ -231,7 +231,32 @@ const IPCCalculator = () => {
                     onBlur={() => setActiveField(null)}
                     onChange={(e) => handleInputChange('wMax', e.target.value)}
                   />
-                  <small className="help-text">Width of the lead edge</small>
+                </div>
+              </div>
+              <div className="input-item">
+                <label>H (Height) / IPC H<sub>max</sub></label>
+                <div className="input-with-desc">
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={inputs.height} 
+                    onFocus={() => setActiveField('height')}
+                    onBlur={() => setActiveField(null)}
+                    onChange={(e) => handleInputChange('height', e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="input-item">
+                <label>S (Gap) / IPC T<sub>min</sub></label>
+                <div className="input-with-desc">
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={inputs.tMin} 
+                    onFocus={() => setActiveField('tMin')}
+                    onBlur={() => setActiveField(null)}
+                    onChange={(e) => handleInputChange('tMin', e.target.value)}
+                  />
                 </div>
               </div>
               {packageType === 'GULL_WING' && (
@@ -268,6 +293,20 @@ const IPCCalculator = () => {
                 <span className="res-label">PAD WIDTH (X)</span>
                 <span className="res-value">{results.x} <small>mm</small></span>
               </div>
+            </div>
+
+            <div className="ipc-name-display mt-4 p-3 bg-white/5 rounded-lg border border-white/10 flex items-center justify-between">
+              <div>
+                <span className="block text-[10px] text-text-dim uppercase tracking-wider mb-1">IPC-7351B Standard Name</span>
+                <code className="text-accent-primary font-mono text-sm">{results.ipcName}</code>
+              </div>
+              <button 
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${copied ? 'bg-secondary-status text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                onClick={copyToClipboard}
+              >
+                {copied ? <CheckCircle2 size={12} /> : null}
+                {copied ? 'Copied!' : 'Copy Name'}
+              </button>
             </div>
 
             <div className="result-details">

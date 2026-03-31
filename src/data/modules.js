@@ -245,6 +245,22 @@ export const modulesData = [
             "7. Setup → Change Drawing Origin to centroid.",
             "8. Check → Check Symbol to verify zero DRC violations."
           ]
+        },
+        {
+          heading: "IPC-A-610 Solder Joint Inspection",
+          content: "Acceptability of solder joints for surface mount components depends on the Class of the product (1, 2, or 3). Higher classes require greater wetting and fillet height.",
+          table: {
+            headers: ["Feature", "Class 1 (General)", "Class 2 (Dedicated)", "Class 3 (High Performance)"],
+            rows: [
+              ["Min Toe Fillet Height", "Lead thickness + wetting", "Lead thickness + wetting", "Lead thickness + 25% Lead Thickness"],
+              ["Min Side Fillet Width", "Not specified", "50% Lead Width", "75% Lead Width"],
+              ["Max Lead Overhang", "50% Lead Width", "50% Lead Width", "25% Lead Width (max 0.5mm)"],
+              ["Wetting Angle", "≤ 90° (Target)", "≤ 90° (Required)", "≤ 90° (Critical)"]
+            ]
+          },
+          alerts: [
+             { type: 'info', text: "Class 3 is mandatory for aerospace, life support, and extreme environment electronics." }
+          ]
         }
       ],
       checklists: [
