@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, User, Sun, Moon, Menu, X } from 'lucide-react';
+import { Search, User, Sun, Moon, Menu, X, Layers } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpen }) {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -14,6 +15,11 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
         >
           {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
+        
+        <Link to="/" className="header-logo">
+          <Layers className="logo-icon" />
+          <span className="logo-text">PCB Masterclass</span>
+        </Link>
         
         <div className={`search-bar ${isSearchExpanded ? 'expanded' : ''}`}>
           <Search size={18} className="search-icon" />
@@ -37,7 +43,7 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
       
       <div className="header-actions">
         <button 
-          className="icon-btn" 
+          className="icon-btn theme-toggle" 
           onClick={toggleTheme}
           title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >

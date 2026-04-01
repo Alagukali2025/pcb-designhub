@@ -6,16 +6,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   const location = useLocation();
 
   return (
-    <aside className={`sidebar ${isOpen ? 'open' : 'closed'} slide-up`}>
-      <div className="sidebar-header">
-        <Link to="/" className="sidebar-logo">
-          <Layers className="logo-icon" />
-          <h2>PCB Masterclass</h2>
-        </Link>
-        <button className="icon-btn mobile-close" onClick={toggleSidebar}>
-          <X size={20} />
-        </button>
-      </div>
+    <aside className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       
       <nav className="sidebar-nav">
         <ul>
