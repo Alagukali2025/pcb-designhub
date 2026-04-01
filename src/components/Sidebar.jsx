@@ -1,16 +1,21 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Layers, Home } from 'lucide-react';
+import { Layers, Home, X } from 'lucide-react';
 import { modulesData } from '../data/modules';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, toggleSidebar }) {
   const location = useLocation();
 
   return (
-    <aside className="sidebar slide-up">
-      <Link to="/" className="sidebar-logo">
-        <Layers className="logo-icon" />
-        <h2>PCB Masterclass</h2>
-      </Link>
+    <aside className={`sidebar ${isOpen ? 'open' : 'closed'} slide-up`}>
+      <div className="sidebar-header">
+        <Link to="/" className="sidebar-logo">
+          <Layers className="logo-icon" />
+          <h2>PCB Masterclass</h2>
+        </Link>
+        <button className="icon-btn mobile-close" onClick={toggleSidebar}>
+          <X size={20} />
+        </button>
+      </div>
       
       <nav className="sidebar-nav">
         <ul>
