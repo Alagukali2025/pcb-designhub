@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Layers, Home, X } from 'lucide-react';
 import { modulesData } from '../data/modules';
 
-export default function Sidebar({ isOpen, toggleSidebar }) {
+export default function Sidebar({ isOpen }) {
   const location = useLocation();
 
   return (

@@ -350,33 +350,241 @@ export const modulesData = [
     title: "Stackup Design",            
     desc: "Understand materials, prepreg, and cores.",
     content: {
-      intro: "A PCB stackup is the ordered arrangement of copper layers, prepreg (B-stage resin), and core (C-stage) materials that form the final laminated board. The stackup is not a post-design consideration — it is the foundation upon which signal integrity, power delivery, EMC compliance, and manufacturability are built.",
+      intro: "A PCB stackup is the foundation of high-speed digital design, acting as the 'floors' in a high-performance building. Following the Single Source of Truth (SSOT) methodology ensures parity between simulation, layout, and fabrication, preventing costly impedance mismatches and fabrication failures through centralized material definitions.",
       sections: [
         {
-          heading: "Key Materials Terminology",
-          cards: [
-            { title: "Core", text: "Fully cured (C-stage) dielectric with copper foil laminated on both sides. Provides dimensional stability." },
-            { title: "Prepreg", text: "Partially cured (B-stage) glass/resin sheet. Flows and bonds during lamination. Controls dielectric height (h)." },
-            { title: "Dk (Dielectric Constant)", text: "Relative permittivity of insulating material. Determines signal propagation speed. FR4 is typically 4.2." }
+          heading: "SSOT Stackup Workflow",
+          content: "In a professional engineering environment, a single master stackup definition (the SSOT) drives every downstream process to prevent errors and unauthorized material substitutions at the fabrication house.",
+          flow: [
+            { step: "01", title: "Define", desc: "Master SSOT definition (Materials, Dk, Df, Cu Weight, Thickness)" },
+            { step: "02", title: "Import", desc: "EDA tool loads SSOT — trace/via rules are auto-applied" },
+            { step: "03", title: "Simulate", desc: "SI/PI tools load SSOT Dk/Df — simulation finally matches reality" },
+            { step: "04", title: "Fabricate", desc: "Fabrication house quotes from SSOT — no interpretation, no substitutions" }
           ]
         },
         {
-          heading: "Symmetric Design Principle",
-          content: "Stackups MUST be mirror-symmetric about the center plane. L1 must match Ln, L2 must match Ln-1 in terms of copper weight, dielectric thickness, and material type. Asymmetric stackups will physically bow or warp during the high heat of reflow soldering due to Coefficient of Thermal Expansion (CTE) mismatch.",
+          heading: "Material Science: The Laminate",
+          content: "Your material selection locks in the dielectric constant (Dk) and dissipation factor (Df). High-speed designs require ultra-low loss (low Df) materials to maintain signal integrity at frequencies >3 GHz.",
+          filletGrid: [
+            {
+              title: "Dk (Dielectric Constant)",
+              color: "blue",
+              list: [
+                { label: "Definition", text: "Relative permittivity; slows EM waves compared to vacuum." },
+                { label: "Formula", text: "v = c / √Dk. (Dk=4 ≈ 50% speed of light)." },
+                { label: "Glass Weave", text: "Glass density (1080 vs 7628) directly alters local Dk values." }
+              ]
+            },
+            {
+              title: "Df (Dissipation Factor)",
+              color: "orange",
+              list: [
+                { label: "Definition", text: "Loss tangent; energy absorbed by the board as heat." },
+                { label: "FR4 vs Megtron 6", text: "FR4 (0.02) vs Megtron 6 (0.004) — 5x loss difference." },
+                { label: "Impact", text: "Critical for long traces and high-speed SerDes >10Gbps." }
+              ]
+            },
+            {
+              title: "Tg (Glass Transition)",
+              color: "green",
+              list: [
+                { label: "Definition", text: "The temperature where the board softens into a 'rubber' state." },
+                { label: "Requirement", text: "Lead-free reflow (260°C) requires High-Tg (>170°C) FR4." },
+                { label: "Standard", text: "High-Tg materials prevent via barrel cracking during reflow." }
+              ]
+            }
+          ]
+        },
+        {
+          heading: "Laminate Benchmarks (Thermal & Dielectric)",
+          content: "Laminate selection must account for both electrical performance (Dk/Df) and thermal survivability (Tg/Td/CTE). High-speed materials often sacrifice mechanical robustness for lower loss tangent.",
+          table: {
+            headers: ["Material Class", "Example Product", "Dk (@10GHz)", "Df (@10GHz)", "Tg (°C)", "Td (°C)", "CTE-Z (ppm)"],
+            rows: [
+              ["Standard FR4", "Isola 370HR", "4.17", "0.0160", "180", "340", "45"],
+              { type: 'highlight', data: ["Low-Loss (Speed)", "Panasonic Megtron 6", "3.10", "0.0020", "185", "410", "45"] },
+              ["Ultra-Low Loss (RF)", "Rogers RO4350B", "3.66", "0.0031", ">280", "390", "32"],
+              ["High-Speed/High-Tg", "TUC TU-883", "3.80", "0.0080", "200", "400", "35"]
+            ]
+          },
           alerts: [
-            { type: 'warning', text: "Never approve an asymmetric stackup from a manufacturer without a strict sign-off on warpage risks." }
+            { type: 'info', text: "Tg (Glass Transition) is where the board softens. Td (Decomposition) is the 'point of no return' where it loses 5% mass. CTE-Z determines via reliability." }
           ]
         },
         {
-          heading: "Routing and Reference Planes",
-          content: "Every high-speed signal layer MUST have an adjacent solid reference plane (GND or PWR). This controls impedance and minimizes the return current loop area, drastically reducing EMI."
+          heading: "Visual 8-Layer Stackup Configuration",
+          content: "Modern high-speed designs (DDR4/5, PCIe Gen5) utilize 8 or more layers to provide isolation between high-speed signal groups and dedicated reference planes.",
+          type: 'visualizer'
+        },
+        {
+          heading: "Standard 8-Layer PCB Construction",
+          content: "A standard 1.6mm (62 mil) 8-layer board requires precise material thickness control to achieve target impedances while maintaining mechanical symmetry. Below is a representative 1.6mm build-up using alternating Core and Prepreg construction.",
+          table: {
+            headers: ["Layer", "Function", "Material Type", "Thickness (mil)", "Thickness (mm)", "Copper (oz)"],
+            rows: [
+              ["L1", "Signal (Microstrip)", "Top Solder Mask + Foil", "1.4 mil", "0.035 mm", "0.5 oz (p)"],
+              ["DI-1", "Prepreg", "1080 / 2116 Glass Style", "4.0 mil", "0.100 mm", "-"],
+              ["L2", "Ground Plane", "Core (Reference)", "1.4 mil", "0.035 mm", "1.0 oz"],
+              ["DI-2", "Core", "Dielectric isolation", "8.0 mil", "0.200 mm", "-"],
+              ["L3", "Signal (Stripline)", "Internal Signal", "1.4 mil", "0.035 mm", "1.0 oz"],
+              ["DI-3", "Prepreg", "1080 / 2116 Glass Style", "4.0 mil", "0.100 mm", "-"],
+              ["L4", "Power Plane", "Core (Distribution)", "1.4 mil", "0.035 mm", "1.0 oz"],
+              ["DI-4", "Core", "Mid-Plane Isolation", "8.0 mil", "0.200 mm", "-"],
+              ["L5", "Ground Plane", "Core (Reference)", "1.4 mil", "0.035 mm", "1.0 oz"],
+              ["DI-5", "Prepreg", "1080 / 2116 Glass Style", "4.0 mil", "0.100 mm", "-"],
+              ["L6", "Signal (Stripline)", "Internal Signal", "1.4 mil", "0.035 mm", "1.0 oz"],
+              ["DI-6", "Core", "Dielectric isolation", "8.0 mil", "0.200 mm", "-"],
+              ["L7", "Ground Plane", "Core (Reference)", "1.4 mil", "0.035 mm", "1.0 oz"],
+              ["DI-7", "Prepreg", "1080 / 2116 Glass Style", "4.0 mil", "0.100 mm", "-"],
+              ["L8", "Signal (Microstrip)", "Bottom Solder Mask + Foil", "1.4 mil", "0.035 mm", "0.5 oz (p)"]
+            ]
+          },
+          alerts: [
+            { type: 'info', text: "The above buildup yields exactly 62.8 mil (1.59 mm), falling within the standard ±10% fabrication tolerance. Copper weights on L1/L8 include plating (p)." }
+          ]
+        },
+        {
+          heading: "Routing Topologies & Impedance Control",
+          content: "The propagation speed and characteristic impedance (Z₀) of a signal change depending on if it is on the surface (Microstrip) or embedded between planes (Stripline).",
+          twoColumnGrid: [
+            {
+              badge: "Microstrip",
+              badgeClass: "tool-badge-altium",
+              title: "Surface Layers",
+              items: [
+                "Trace sits on outer surface; field partly in air",
+                "εr,eff < εr (Faster propagation speed)",
+                "Easier to debug but prone to EMI emissions",
+                "Differential Microstrip requires spacing (S) control"
+              ]
+            },
+            {
+              badge: "Stripline",
+              badgeClass: "tool-badge-cadence",
+              title: "Inner Layers",
+              items: [
+                "Trace embedded between two ground planes",
+                "εr,eff = εr (Full material Dk speed path)",
+                "Best EMI shielding and return path isolation",
+                "Symmetric Stripline uses balanced heights (H1=H2)"
+              ]
+            }
+          ]
+        },
+        {
+          heading: "Universal Impedance Solver",
+          content: "Calculate characteristic impedance (Z₀) for Single-Ended and Differential configurations across Microstrip and Stripline topologies using professional IPC-2141A models.",
+          type: 'calculator'
+        },
+        {
+          heading: "Core vs. Foil Construction",
+          content: "Choosing between Foil Build (industry standard) or Core Build determines the lamination sequence and final board rigidity.",
+          table: {
+            headers: ["Construction Type", "Process", "Primary Benefit", "Standard Application"],
+            rows: [
+              ["Foil Build", "Copper foil + Prepreg on outer cores", "Cheaper; thinner dielectric control", "Standard 4-10 layer commercial"],
+              ["Core Build", "Laminating double-sided cores together", "Increased rigidity; symmetric stability", "Backplanes, high-reliability aerospace"]
+            ]
+          }
+        },
+        {
+          heading: "Return Currents: High-Frequency Physics",
+          content: "Every signal needs a return path. At high frequencies (>1 MHz), current follows the path of least Inductance, not least Resistance.",
+          list: [
+            { label: "High-Frequency Physics", text: "Return current concentrates directly beneath the signal trace to minimize the loop area." },
+            { label: "Inductance Rule", text: "Minimizing loop area between the signal and plane reduces EMI and crosstalk." },
+            { label: "Discontinuity Risk", text: "Crossing a gap (split) in a reference plane forces a long return path, causing massive EMI radiation." }
+          ],
+          alerts: [
+            { type: 'danger', text: "Never route a high-speed signal across a split in its reference plane. Use stitching capacitors if a cross-over is unavoidable." }
+          ]
+        },
+        {
+          heading: "Copper Balancing & Thieving (DFM)",
+          content: "Resin starvation occurs during the lamination press cycle if one side of the board has significantly higher copper density than the other, leading to board warpage (bow and twist).",
+          list: [
+            { label: "The Resin Starvation Risk", text: "Prepreg resin flows toward empty copper areas. If one layer is 'starved,' the board becomes unstable." },
+            { label: "Copper Thieving", text: "Adding 'dead' copper pads or pours in open board areas to equalize the copper density and resin flow." },
+            { label: "Lamination Balance", text: "Maintain a symmetric copper density (±10%) about the board's vertical center plane." }
+          ]
+        },
+        {
+          heading: "Via Technologies: Aspect Ratio & DFM",
+          content: "Vias transition signals between layers. Each type carries different parasitic inductance and fabrication costs. Always calculate your Aspect Ratio to ensure plating reliability.",
+          type: 'aspect-ratio-calc'
+        },
+        {
+          heading: "SSOT Intelligence & Export Formats",
+          content: "Standard Gerber RS-274X is a 'dumb' format that only contains geometry. For professional stackup handovers, use intelligent formats that carry the SSOT definition.",
+          table: {
+            headers: ["Format", "Intelligence", "Content", "Preferred Usage"],
+            rows: [
+              ["IPC-2581", "Full SSOT", "Stackup, materials, Dk/Df, netlist, BOM", "Modern 1st Choice; Vendor Preferred"],
+              ["ODB++", "High-Level", "Layer stackup, component footprints, netlist", "Industry Standard; Tool agnostic"],
+              ["Gerber RS-274X", "Zero", "Only lines and polygons (Apertures)", "Legacy; Requires manual FAB drawing"]
+            ]
+          },
+          alerts: [
+            { type: 'info', text: "Exporting in IPC-2581 allows the fabricator to verify impedance targets against actual material Dk in their software automatically." }
+          ]
+        },
+        {
+          heading: "IPC Standards Compliance",
+          content: "Specify laminates by IPC slash-sheet designators in your SSOT — never by brand name alone — to prevent unauthorized substitutions.",
+          table: {
+            headers: ["Standard", "Title", "Masterclass Application"],
+            rows: [
+              ["IPC-2221B", "Generic PWB Design", "Electrical clearances, via aspect ratios"],
+              ["IPC-2222", "Sectional Standard for Rigid", "Rigid organic board requirements"],
+              ["IPC-4101C", "Rigid Base Materials", "/21 (Std FR4), /24 (High-Tg), /99 (Halogen-Free)"],
+              ["IPC-4562A", "Metal Foil Standard", "ED, RA, and VLP copper foil specifications"],
+              ["IPC-6012E", "Qualification & Perf.", "Acceptance criteria (Bow/Twist <0.75%)"],
+              ["IPC-1601A", "Handling & Storage", "Mandatory bake-out (125°C) to prevent delamination"]
+            ]
+          }
         }
       ],
-      checklist: [
-        "Verify mirror symmetry across the center of the board.",
-        "Ensure all high-speed routing layers are directly adjacent to a solid reference plane.",
-        "Avoid routing high-speed traces across splits in the reference plane.",
-        "Confirm Dk and Df values with the specific laminate manufacturer datasheet."
+      checklists: [
+        {
+          category: "1. Material Selection",
+          items: [
+            "Laminate specified by IPC-4101 slash-sheet designer.",
+            "Thermal properties (Tg/Td) meet assembly heat profile.",
+            "VLP copper grade specified for high-speed differential pairs.",
+            "CTE-Z value confirmed to prevent via fatigue.",
+            "Dk/Df values verified at target operational frequency."
+          ]
+        },
+        {
+          category: "2. Mechanical Symmetry",
+          items: [
+            "Stackup has an EVEN number of layers (required for balance).",
+            "Material types mirrored exactly about the board midplane.",
+            "Copper density balanced on opposite layers (Copper Thieving).",
+            "Overall thickness tolerance meets IPC-6012 Class 2/3 (<10%).",
+            "Bow and Twist tolerance documented on fabrication drawing."
+          ]
+        },
+        {
+          category: "3. Electrical Design",
+          items: [
+            "Impedance targets calculated with Single-Ended and Diff models.",
+            "Symmetric Stripline heights (H1=H2) maintained for consistency.",
+            "Reference planes (GND/PWR) are adjacent to every signal layer.",
+            "Return paths cleared: No signals routing over plane splits.",
+            "Trace spacing (S) defined to hit differential Zdiff goals."
+          ]
+        },
+        {
+          category: "4. DFM & Fabrication Export",
+          items: [
+            "Aspect Ratio (Thickness/Drill) verified to be ≤ 10:1.",
+            "Layer stackup table included in the SSOT Fab Drawing.",
+            "Microvia stack/stagger rules follow IPC-2226.",
+            "Export format selected: IPC-2581 or ODB++ for stackup parity.",
+            "Fabricator confirmation for High-Tg lamination sequence."
+          ]
+        }
       ]
     }
   },

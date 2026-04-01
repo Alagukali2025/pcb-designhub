@@ -3,6 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { modulesData } from '../data/modules';
 import { ArrowLeft, Check, AlertTriangle, Info, List, Clock, Zap, Calculator } from 'lucide-react';
 import IPCCalculator from './IPCCalculator';
+import StackupCalculator from './StackupCalculator';
+import StackupVisualizer from './StackupVisualizer';
+import AspectRatioCalculator from './AspectRatioCalculator';
 
 export default function ContentViewer() {
   const { id } = useParams();
@@ -62,6 +65,7 @@ export default function ContentViewer() {
 
   // Reset checklist and scroll when module changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCheckedItems({});
     setScrollProgress(0);
     const container = document.querySelector('.page-content');
@@ -260,8 +264,12 @@ export default function ContentViewer() {
                 )}
 
                 {sec.type === 'calculator' && (
-                  <IPCCalculator />
+                  id === 'footprint' ? <IPCCalculator /> : <StackupCalculator />
                 )}
+
+                {sec.type === 'visualizer' && <StackupVisualizer />}
+                
+                {sec.type === 'aspect-ratio-calc' && <AspectRatioCalculator />}
 
                 {sec.filletGrid && (
                   <div className="fillet-grid slide-up">
