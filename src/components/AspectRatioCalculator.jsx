@@ -32,7 +32,7 @@ const AspectRatioCalculator = () => {
           <p className="text-xs text-secondary font-bold italic opacity-80 uppercase tracking-widest">Manufacturing & Signal Integrity Risk Analysis</p>
         </div>
         
-        <div className="flex bg-black-40 p-1.5 rounded-2xl border border-white-05 shadow-inner w-full md:w-auto">
+        <div className="vtc-tab-bar flex bg-black-40 p-1.5 rounded-2xl border border-white-05 shadow-inner w-full md:w-auto">
           <button 
             className={`flex-1 md:flex-none px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${mode === 'aspect' ? 'bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)]' : 'text-tertiary hover:text-primary hover:bg-white-05'}`}
             onClick={() => setMode('aspect')}
@@ -53,14 +53,14 @@ const AspectRatioCalculator = () => {
         {/* Input Columns */}
         <div className="space-y-8">
           {mode === 'aspect' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white-02 p-6 rounded-[1.5rem] border border-white-05">
+            <div className="vtc-input-panel grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white-02 p-6 rounded-[1.5rem] border border-white-05">
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] block pl-2">Total Board Thickness (mm)</label>
                 <div className="relative group/input">
                   <input 
                     type="number" step="0.1" value={thickness}
                     onChange={(e) => setThickness(Number(e.target.value))}
-                    className="w-full bg-black-40 border border-white-10 rounded-xl px-5 py-4 text-primary text-lg font-black focus:outline-none focus:border-blue-500 shadow-inner transition-colors"
+                    className="vtc-input w-full bg-black-40 border border-white-10 rounded-xl px-5 py-4 text-primary text-lg font-black focus:outline-none focus:border-blue-500 shadow-inner transition-colors"
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-tertiary uppercase">mm</div>
                 </div>
@@ -71,21 +71,21 @@ const AspectRatioCalculator = () => {
                   <input 
                     type="number" step="0.05" value={drill}
                     onChange={(e) => setDrill(Number(e.target.value))}
-                    className="w-full bg-black-40 border border-white-10 rounded-xl px-5 py-4 text-primary text-lg font-black focus:outline-none focus:border-blue-500 shadow-inner transition-colors"
+                    className="vtc-input w-full bg-black-40 border border-white-10 rounded-xl px-5 py-4 text-primary text-lg font-black focus:outline-none focus:border-blue-500 shadow-inner transition-colors"
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-tertiary uppercase">mm</div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white-02 p-6 rounded-[1.5rem] border border-white-05">
+            <div className="vtc-input-panel grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white-02 p-6 rounded-[1.5rem] border border-white-05">
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] block pl-2">Unused Stub Length (mm)</label>
                 <div className="relative group/input">
                   <input 
                     type="number" step="0.1" value={stubLength}
                     onChange={(e) => setStubLength(Math.max(0.01, Number(e.target.value)))}
-                    className="w-full bg-black-40 border border-white-10 rounded-xl px-5 py-4 text-primary text-lg font-black focus:outline-none focus:border-orange-500 shadow-inner transition-colors"
+                    className="vtc-input w-full bg-black-40 border border-white-10 rounded-xl px-5 py-4 text-primary text-lg font-black focus:outline-none focus:border-orange-500 shadow-inner transition-colors"
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-tertiary uppercase">mm</div>
                 </div>
@@ -95,7 +95,7 @@ const AspectRatioCalculator = () => {
                 <input 
                   type="number" step="0.1" value={dk}
                   onChange={(e) => setDk(Math.max(1, Number(e.target.value)))}
-                  className="w-full bg-black-40 border border-white-10 rounded-xl px-5 py-4 text-primary text-lg font-black focus:outline-none focus:border-orange-500 shadow-inner transition-colors"
+                  className="vtc-input w-full bg-black-40 border border-white-10 rounded-xl px-5 py-4 text-primary text-lg font-black focus:outline-none focus:border-orange-500 shadow-inner transition-colors"
                 />
               </div>
             </div>
@@ -178,7 +178,7 @@ const AspectRatioCalculator = () => {
         {/* Results Column */}
         <div className="w-full shrink-0">
           {mode === 'aspect' ? (
-            <div className={`p-8 rounded-[2rem] border shadow-2xl transition-all duration-700 h-full flex flex-col justify-center items-center relative overflow-hidden ${
+            <div className={`vtc-result-panel p-8 rounded-[2rem] border shadow-2xl transition-all duration-700 h-full flex flex-col justify-center items-center relative overflow-hidden ${
               isHighRiskAspect ? 'bg-red-500/5 border-red-500/20' : 
               isOptimalAspect ? 'bg-green-500/5 border-green-500/20' : 
               'bg-blue-500/5 border-blue-500/20'
@@ -191,10 +191,10 @@ const AspectRatioCalculator = () => {
               }`}>
                 {aspectRatio}<span className="text-3xl opacity-50 relative top-[-15px] ml-1">:1</span>
               </div>
-              <div className="w-16 h-1 mt-6 rounded-full bg-white-10" />
+              <div className="vtc-divider w-16 h-1 mt-6 rounded-full bg-white-10" />
             </div>
           ) : (
-            <div className={`p-8 rounded-[2rem] border shadow-2xl transition-all duration-700 h-full flex flex-col justify-center items-center relative overflow-hidden ${
+            <div className={`vtc-result-panel p-8 rounded-[2rem] border shadow-2xl transition-all duration-700 h-full flex flex-col justify-center items-center relative overflow-hidden ${
               isHighRiskStub ? 'bg-orange-500/5 border-orange-500/20' : 'bg-blue-500/5 border-blue-500/20'
             }`}>
               <div className="text-[10px] font-black text-tertiary uppercase tracking-[0.3em] mb-4 text-center">F_Res Frequency</div>
@@ -206,7 +206,7 @@ const AspectRatioCalculator = () => {
               <div className={`text-lg font-black uppercase tracking-widest ${isHighRiskStub ? 'text-orange-500/70' : 'text-blue-500/70'}`}>
                 GHz
               </div>
-              <div className="w-16 h-1 mt-6 rounded-full bg-white-10" />
+              <div className="vtc-divider w-16 h-1 mt-6 rounded-full bg-white-10" />
               <button className="mt-6 flex items-center gap-2 text-[9px] uppercase font-black tracking-widest text-tertiary hover:text-white transition-colors group">
                 <Info size={14} className="group-hover:text-blue-500 transition-colors" />
                 Eq = 75 / (L * √Dk)
