@@ -222,28 +222,28 @@ export const modulesData = [
           heading: "Step-by-Step: Altium Designer",
           content: "Standard workflow for creating an SMD footprint (e.g., SOT-23):",
           list: [
-            "1. Create New Component in .PcbLib and enter metadata.",
-            "2. Place SMD Pads at exact coordinates from IPC calculation.",
-            "3. Draw Top Overlay (Silkscreen) with 0.10mm pad clearance.",
-            "4. Draw Assembly Outline on Mechanical layer at body dimensions.",
-            "5. Draw Courtyard at +0.25mm boundary (Density B).",
-            "6. Set Origin to Component Centroid.",
-            "7. Align manufacturer STEP model to assembly outline.",
-            "8. Run Component Rule Check and release to library."
+            "Create New Component in .PcbLib and enter metadata.",
+            "Place SMD Pads at exact coordinates from IPC calculation.",
+            "Draw Top Overlay (Silkscreen) with 0.10mm pad clearance.",
+            "Draw Assembly Outline on Mechanical layer at body dimensions.",
+            "Draw Courtyard at +0.25mm boundary (Density B).",
+            "Set Origin to Component Centroid.",
+            "Align manufacturer STEP model to assembly outline.",
+            "Run Component Rule Check and release to library."
           ]
         },
         {
           heading: "Step-by-Step: Cadence Allegro",
           content: "Standard workflow for creating a managed footprint:",
           list: [
-            "1. Create Padstack (.pad) in Padstack Editor first.",
-            "2. File → New → Package Symbol (.dra) in Allegro.",
-            "3. Layout → Pins to place pads using the created .pad files.",
-            "4. Add → Line on Package_Geometry/Silkscreen_Top for body.",
-            "5. Add → Line on Package_Geometry/Assembly_Top for assembly.",
-            "6. Add → Rectangle on Place_Bound_Top for Courtyard.",
-            "7. Setup → Change Drawing Origin to centroid.",
-            "8. Check → Check Symbol to verify zero DRC violations."
+            "Create Padstack (.pad) in Padstack Editor first.",
+            "File → New → Package Symbol (.dra) in Allegro.",
+            "Layout → Pins to place pads using the created .pad files.",
+            "Add → Line on Package_Geometry/Silkscreen_Top for body.",
+            "Add → Line on Package_Geometry/Assembly_Top for assembly.",
+            "Add → Rectangle on Place_Bound_Top for Courtyard.",
+            "Setup → Change Drawing Origin to centroid.",
+            "Check → Check Symbol to verify zero DRC violations."
           ]
         },
         {

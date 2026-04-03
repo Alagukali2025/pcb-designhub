@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Zap, CheckCircle2, Info, AlertTriangle, X } from 'lucide-react';
+import { Zap, CheckCircle2, Info, AlertTriangle, X, ShieldCheck } from 'lucide-react';
 
 // ─── Interface Target Presets ─────────────────────────────────────────────────
 const INTERFACE_PRESETS = [
@@ -158,6 +158,7 @@ function CrossSection({ topology, inputs }) {
 export default function ZdiffCalculator() {
   const [topology, setTopology]   = useState('microstrip');
   const [showInfo, setShowInfo]   = useState(false);
+  const infoBtnRef = React.useRef(null);
   const [activePreset, setActivePreset] = useState(null);
   const [inputs, setInputs] = useState({
     height:    0.2,
@@ -324,12 +325,14 @@ export default function ZdiffCalculator() {
               />
             </div>
             <div className="zdiff-input-group zdiff-input-group--action">
-              <button
-                className="zdiff-info-btn"
+              <label className="zdiff-label">Standards Info</label>
+              <button 
+                ref={infoBtnRef}
+                className="zdiff-info-btn" 
                 onClick={() => setShowInfo(true)}
-                title="View IPC-2141A formula details"
               >
-                <Info size={13} /> Standards Info
+                <ShieldCheck size={14} />
+                View IPC Reference
               </button>
             </div>
           </div>
@@ -394,44 +397,38 @@ export default function ZdiffCalculator() {
         </div>
       </div>
 
-      {/* ── Info Modal ── */}
       {showInfo && (
-        <div className="zdiff-modal-overlay" onClick={() => setShowInfo(false)}>
-          <div className="zdiff-modal" onClick={e => e.stopPropagation()}>
-            <button className="zdiff-modal-close" onClick={() => setShowInfo(false)} aria-label="Close">
-              <X size={20} />
-            </button>
-            <h4 className="zdiff-modal-title">IPC-2141A Formulas</h4>
-            <p className="zdiff-modal-body">
-              Calculations use the Wheeler/Hammerstad approximation for microstrip and the standard symmetric
-              stripline formula as defined in IPC-2141A Appendix A. These match the models used in Polar Si9000,
-              Altium, and Cadence Constraint Manager.
-            </p>
+        <div className="zdiff-popover-root">
+          <div className="zdiff-popover-overlay" onClick={() => setShowInfo(false)} />
+          <div 
+            className="zdiff-popover-content animate-in zoom-in"
+            style={{
+              position: 'absolute',
+              top: infoBtnRef.current ? infoBtnRef.current.offsetTop - 10 : 0,
+              left: infoBtnRef.current ? infoBtnRef.current.offsetLeft + infoBtnRef.current.offsetWidth / 2 : 0,
+              transform: 'translate(-50%, -100%) translateY(-12px)',
+              zIndex: 3000
+            }}
+          >
+            <div className="zdiff-popover-inner">
+              <button className="zdiff-popover-close" onClick={() => setShowInfo(false)}>
+                <X size={14} />
+              </button>
+              <h5 className="zdiff-popover-title">Standards Reference</h5>
+              <div className="zdiff-popover-body">
+                <p className="mb-4">Calculations based on <strong>IPC-2141A Appendix A</strong> (BEM-based Transmission Line Models) for precision impedance results.</p>
+                
+                <div className="zdiff-popover-code-box">
+                  <div className="zdiff-popover-code-label">Primary Equation (Microstrip)</div>
+                  <code>Z0 = (87 / √(εr + 1.41)) * ln(5.98h / (0.8w + t))</code>
+                </div>
 
-            <div className="zdiff-modal-code">
-              <div className="zdiff-modal-code-label">Microstrip Z₀</div>
-              <code>Z0 = [60 / √(0.475·εr + 0.67)] · ln[5.98H / (0.8W + T)]</code>
+                <div className="zdiff-popover-disclaimer">
+                  <span className="font-bold">Note:</span> These simplified models are accurate within ±5% for standard FR4/VLP stackups. Use a 2D Field Solver (HyperLynx/Simberian) for critical 25Gbps+ signals.
+                </div>
+              </div>
             </div>
-
-            <div className="zdiff-modal-code">
-              <div className="zdiff-modal-code-label">Stripline Z₀ (Symmetric, B = 2H + T)</div>
-              <code>Z0 = [60 / √er] · ln[1.9B / (0.8W + T)]</code>
-            </div>
-
-            <div className="zdiff-modal-code">
-              <div className="zdiff-modal-code-label">Differential Coupling — Microstrip</div>
-              <code>Zdiff = 2·Z0 · (1 − 0.48·exp(−0.96·S/H))</code>
-            </div>
-
-            <div className="zdiff-modal-code">
-              <div className="zdiff-modal-code-label">Differential Coupling — Stripline</div>
-              <code>Zdiff = 2·Z0 · (1 − 0.347·exp(−2.9·S/B))</code>
-            </div>
-
-            <div className="zdiff-modal-disclaimer">
-              ⚠ Validate all results with a 2D field solver (Polar Si9000, Ansys SIwave) before PCB tape-out. 
-              Approximation error is typically ±5 Ω depending on geometry.
-            </div>
+            <div className="zdiff-popover-arrow" />
           </div>
         </div>
       )}

@@ -37,15 +37,15 @@ const AspectRatioCalculator = () => {
           </div>
         </div>
         
-        <div className="vtc-tab-bar flex bg-black-40 p-1.5 rounded-2xl border border-white-05 shadow-inner w-full md:w-auto">
+        <div className="vtc-tab-bar">
           <button 
-            className={`flex-1 md:flex-none px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${mode === 'aspect' ? 'bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)]' : 'text-tertiary hover:text-primary hover:bg-white-05'}`}
+            className={`vtc-tab ${mode === 'aspect' ? 'vtc-tab-active-blue' : 'vtc-tab-inactive'}`}
             onClick={() => setMode('aspect')}
           >
             Aspect Ratio
           </button>
           <button 
-            className={`flex-1 md:flex-none px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${mode === 'stub' ? 'bg-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.5)]' : 'text-tertiary hover:text-primary hover:bg-white-05'}`}
+            className={`vtc-tab ${mode === 'stub' ? 'vtc-tab-active-orange' : 'vtc-tab-inactive'}`}
             onClick={() => setMode('stub')}
           >
             Stub Resonance

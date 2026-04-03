@@ -112,11 +112,18 @@ const DRILL_TYPES = [
 export default function StackupLayerToggle() {
   const [layerCount, setLayerCount] = useState(8);
   const [maskColor, setMaskColor]   = useState('green');
-  const [drillType, setDrillType]   = useState('thru');
+  const [drillTypes, setDrillTypes] = useState(['thru']);
 
   const config = STACKUP_CONFIGS[layerCount];
   const mask   = MASK_COLORS[maskColor];
-  const drill  = DRILL_TYPES.find(d => d.id === drillType);
+
+  const toggleDrill = (id) => {
+    setDrillTypes(prev => 
+      prev.includes(id) 
+        ? (prev.length > 1 ? prev.filter(t => t !== id) : prev) 
+        : [...prev, id]
+    );
+  };
 
   const getLayerColor = (type) => {
     if (type === 'mask')    return mask.bg;
@@ -126,22 +133,32 @@ export default function StackupLayerToggle() {
     return '#0f172a';
   };
 
-  const getDrillSpanStyle = (layers, idx, drillType) => {
+  const getDrillSpanStyle = (layers, idx, types) => {
     const isTop    = layers[idx].type === 'mask' && idx === 0;
-    const isBottom = layers[idx].type === 'mask' && idx === layers.length - 1;
+    // const isBottom = layers[idx].type === 'mask' && idx === layers.length - 1;
     const isFirst  = idx === 1; // first copper
-    const isLast   = idx === layers.length - 2; // last copper
-    const isMid    = idx > 1 && idx < layers.length - 2;
+    // const isLast   = idx === layers.length - 2; // last copper
 
-    if (drillType === 'thru') return 'layer-drill-thru';
-    if (drillType === 'blind') {
-      return (isFirst || isTop || (idx >= 1 && idx <= 3)) ? 'layer-drill-active' : 'layer-drill-none';
+    let activeStyles = [];
+
+    if (types.includes('thru')) {
+      activeStyles.push('layer-drill-thru');
     }
-    if (drillType === 'buried') {
+    
+    if (types.includes('blind')) {
+      if (isFirst || isTop || (idx >= 1 && idx <= 3)) {
+        activeStyles.push('layer-drill-active-blind');
+      }
+    }
+    
+    if (types.includes('buried')) {
       const midIdx = Math.floor(layers.length / 2);
-      return (idx >= midIdx - 2 && idx <= midIdx + 2 && layers[idx].type !== 'mask') ? 'layer-drill-active' : 'layer-drill-none';
+      if (idx >= midIdx - 2 && idx <= midIdx + 2 && layers[idx].type !== 'mask') {
+        activeStyles.push('layer-drill-active-buried');
+      }
     }
-    return 'layer-drill-none';
+
+    return activeStyles.join(' ');
   };
 
   return (
@@ -201,21 +218,24 @@ export default function StackupLayerToggle() {
           </div>
         </div>
 
-        {/* Drill type */}
+        {/* Drill types */}
         <div className="slt-control-group">
           <span className="slt-control-label">Drill Span Overlay</span>
           <div className="slt-drill-picker">
-            {DRILL_TYPES.map(d => (
-              <button
-                key={d.id}
-                className={`slt-drill-btn ${drillType === d.id ? 'slt-drill-active' : ''}`}
-                style={{ '--drill-color': d.color }}
-                onClick={() => setDrillType(d.id)}
-              >
-                <Circle size={8} style={{ color: d.color, fill: d.color }} />
-                {d.label}
-              </button>
-            ))}
+            {DRILL_TYPES.map(d => {
+              const isActive = drillTypes.includes(d.id);
+              return (
+                <button
+                  key={d.id}
+                  className={`slt-drill-btn ${isActive ? 'slt-drill-active' : 'slt-drill-outlined'}`}
+                  style={{ '--drill-color': d.color }}
+                  onClick={() => toggleDrill(d.id)}
+                >
+                  <Circle size={8} style={{ color: d.color, fill: isActive ? d.color : 'transparent' }} />
+                  {d.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -273,10 +293,15 @@ export default function StackupLayerToggle() {
 
             {/* Drill span indicator */}
             <div className="slt-drill-col">
-              <div
-                className={`slt-drill-indicator ${getDrillSpanStyle(config.layers, idx, drillType)}`}
-                style={{ '--drill-accent': drill.color }}
-              />
+              {drillTypes.includes('thru') && (
+                <div className="slt-drill-indicator layer-drill-thru" />
+              )}
+              {drillTypes.includes('blind') && (idx === 0 || (idx >= 1 && idx <= 3)) && (
+                <div className="slt-drill-indicator layer-drill-active-blind" />
+              )}
+              {drillTypes.includes('buried') && (idx >= Math.floor(config.layers.length / 2) - 2 && idx <= Math.floor(config.layers.length / 2) + 2 && config.layers[idx].type !== 'mask') && (
+                <div className="slt-drill-indicator layer-drill-active-buried" />
+              )}
             </div>
           </div>
         ))}
@@ -285,7 +310,7 @@ export default function StackupLayerToggle() {
       {/* ─── Drill legend ─────────────────────────────────────────── */}
       <div className="slt-drill-legend">
         {DRILL_TYPES.map(d => (
-          <div key={d.id} className={`slt-drill-legend-item ${drillType === d.id ? 'slt-drill-legend-active' : ''}`}>
+          <div key={d.id} className={`slt-drill-legend-item ${drillTypes.includes(d.id) ? 'slt-drill-legend-active' : ''}`}>
             <span className="slt-drill-dot" style={{ background: d.color }} />
             <div>
               <span className="slt-drill-legend-name">{d.label}</span>
