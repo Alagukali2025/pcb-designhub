@@ -6,8 +6,8 @@ export default function Dashboard() {
   return (
     <div className="dashboard-container fade-in">
       <div className="dashboard-header">
-        <h1>Learning Dashboard</h1>
-        <p>Select a topic below to begin your engineering journey.</p>
+        <h1>PCB Design Hub</h1>
+        <p>Footprints • Stackup • Layout • Standards</p>
       </div>
 
       <div className="modules-grid">

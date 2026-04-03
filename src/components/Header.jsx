@@ -18,7 +18,7 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
         
         <Link to="/" className="header-logo">
           <Layers className="logo-icon" />
-          <span className="logo-text">PCB Masterclass</span>
+          <span className="logo-text">PCB Design Hub</span>
         </Link>
         
         <div className={`search-bar ${isSearchExpanded ? 'expanded' : ''}`}>
