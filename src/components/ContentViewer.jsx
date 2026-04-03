@@ -368,6 +368,58 @@ export default function ContentViewer() {
                   </div>
                 )}
 
+                {sec.mistakeList && (
+                  <div className="mistake-list slide-up">
+                    {sec.mistakeList.map((m, mi) => (
+                      <div key={mi} className="mistake-item">
+                        <span className="mis-label mis-bad">Mistake</span>
+                        <span className="mistake-text">{m.mistake}</span>
+                        <span className="mis-label mis-fix">Fix</span>
+                        <span className="mistake-text">{m.fix}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {sec.terminationGrid && (
+                  <div className="termination-grid slide-up">
+                    {sec.terminationGrid.map((t, ti) => (
+                      <div key={ti} className="term-card">
+                        <div className="term-name">{t.name}</div>
+                        <span className={`term-tag ${t.tagColor}-tag`}>{t.tag}</span>
+                        <div className="term-pros"><strong>Pros:</strong> {t.pros}</div>
+                        <div className="term-cons"><strong>Cons:</strong> {t.cons}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {sec.stackVisual && (
+                  <div className="stack-visual slide-up">
+                    {sec.stackVisual.map((row, ri) => (
+                      <div key={ri} className="stack-row">
+                        <div className="stack-swatch" style={{ background: row.color }}></div>
+                        <div className="stack-layer">{row.layer}</div>
+                        <div className="stack-spec">{row.spec}</div>
+                        <div className="stack-note">{row.note}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {sec.phaseList && (
+                  <div className="phase-list slide-up">
+                    {sec.phaseList.map((p, pi) => (
+                      <div key={pi} className="phase-item">
+                        <div className="phase-num">{p.num}</div>
+                        <div className="phase-content">
+                          <p className="phase-text"><strong style={{ color: 'var(--text-primary)' }}>{p.title}:</strong> {p.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {sec.alerts && (
                   <div className="section-alerts">
                     {sec.alerts.map((alert, idx) => renderAlert(alert, idx))}
