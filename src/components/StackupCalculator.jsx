@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Calculator, Ruler, Info, CheckCircle2, X, Layers, Zap } from 'lucide-react';
+import { useDesign } from '../context/DesignContext';
 
 const MATERIAL_PRESETS = [
   { name: 'Standard FR4', dk: 4.2, df: 0.02 },
@@ -9,20 +10,15 @@ const MATERIAL_PRESETS = [
 ];
 
 const StackupCalculator = () => {
+  const { activeStackup, updateStackup } = useDesign();
   const [mode, setMode] = useState('single'); // 'single' | 'diff'
   const [topology, setTopology] = useState('microstrip'); // 'microstrip' | 'stripline'
-  const [inputs, setInputs] = useState({
-    height: 0.2, // H (mm)
-    height2: 0.2, // H2 (mm) - for stripline / asymmetric
-    width: 0.35, // W (mm)
-    thickness: 0.035, // T (mm)
-    spacing: 0.2, // S (mm) - for differential
-    dk: 4.17
-  });
+  
+  // Local overlay for tooltip
   const [showTooltip, setShowTooltip] = useState(false);
 
   const results = useMemo(() => {
-    const { height: h, height2: h2, width: w, thickness: t, spacing: s, dk: er } = inputs;
+    const { height: h, width: w, thickness: t, spacing: s, dk: er } = activeStackup;
     
     // Convert to floats
     const h_f = parseFloat(h);
@@ -69,10 +65,10 @@ const StackupCalculator = () => {
       delay: delay.toFixed(2),
       effDk: effDk.toFixed(2)
     };
-  }, [inputs, mode, topology]);
+  }, [activeStackup, mode, topology]);
 
   const handleInputChange = (key, value) => {
-    setInputs(prev => ({ ...prev, [key]: value }));
+    updateStackup({ [key]: parseFloat(value) || 0 });
   };
 
   const currentResult = mode === 'single' ? results.z0 : results.zdiff;
@@ -158,7 +154,7 @@ const StackupCalculator = () => {
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-tertiary uppercase tracking-widest pl-1">H (Dielectric Height)</label>
               <input 
-                type="number" step="0.001" value={inputs.height}
+                type="number" step="0.001" value={activeStackup.height}
                 onChange={(e) => handleInputChange('height', e.target.value)}
                 className="w-full bg-black-40 border border-white-10 rounded-xl px-4 py-2-5 text-primary text-sm focus:outline-none focus:border-blue-500/50"
               />
@@ -166,7 +162,7 @@ const StackupCalculator = () => {
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-tertiary uppercase tracking-widest pl-1">W (Trace Width)</label>
               <input 
-                type="number" step="0.001" value={inputs.width}
+                type="number" step="0.001" value={activeStackup.width}
                 onChange={(e) => handleInputChange('width', e.target.value)}
                 className="w-full bg-black-40 border border-white-10 rounded-xl px-4 py-2-5 text-primary text-sm focus:outline-none focus:border-blue-500/50"
               />
@@ -175,7 +171,7 @@ const StackupCalculator = () => {
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-orange-500 uppercase tracking-widest pl-1">S (Spacing)</label>
                 <input 
-                  type="number" step="0.001" value={inputs.spacing}
+                  type="number" step="0.001" value={activeStackup.spacing}
                   onChange={(e) => handleInputChange('spacing', e.target.value)}
                   className="w-full bg-black-40 border border-orange-20 rounded-xl px-4 py-2-5 text-primary text-sm focus:outline-none focus:border-orange-500/50"
                 />
@@ -184,7 +180,7 @@ const StackupCalculator = () => {
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-tertiary uppercase tracking-widest pl-1">T (Copper Weight)</label>
               <input 
-                type="number" step="0.001" value={inputs.thickness}
+                type="number" step="0.001" value={activeStackup.thickness}
                 onChange={(e) => handleInputChange('thickness', e.target.value)}
                 className="w-full bg-black-40 border border-white-10 rounded-xl px-4 py-2-5 text-primary text-sm focus:outline-none focus:border-blue-500/50"
               />
@@ -192,7 +188,7 @@ const StackupCalculator = () => {
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-tertiary uppercase tracking-widest pl-1">εr (Dk Value)</label>
               <input 
-                type="number" step="0.01" value={inputs.dk}
+                type="number" step="0.01" value={activeStackup.dk}
                 onChange={(e) => handleInputChange('dk', e.target.value)}
                 className="w-full bg-black-40 border border-white-10 rounded-xl px-4 py-2-5 text-primary text-sm focus:outline-none focus:border-blue-500/50"
               />
@@ -260,8 +256,8 @@ const StackupCalculator = () => {
               {MATERIAL_PRESETS.map((p, idx) => (
                 <button 
                   key={idx}
-                  className={`text-[10px] px-3 py-2 rounded-lg border text-left transition-all ${inputs.dk === p.dk ? 'bg-white-10 border-white-20 text-primary' : 'bg-transparent border-white-05 text-tertiary hover:text-secondary'}`}
-                  onClick={() => handleInputChange('dk', p.dk)}
+                  className={`text-[10px] px-3 py-2 rounded-lg border text-left transition-all ${activeStackup.dk === p.dk ? 'bg-white-10 border-white-20 text-primary' : 'bg-transparent border-white-05 text-tertiary hover:text-secondary'}`}
+                  onClick={() => updateStackup({ dk: p.dk, df: p.df, material: p.name })}
                 >
                   {p.name}
                 </button>

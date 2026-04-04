@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { AlertTriangle, CheckCircle2, AlertCircle, ShieldCheck, Zap, Ruler, Sliders } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { AlertTriangle, CheckCircle2, AlertCircle, ShieldCheck, Zap, Ruler, Sliders, Activity } from 'lucide-react';
+import { useDesign } from '../context/DesignContext';
 
 // ─── Status helpers ────────────────────────────────────────────────────────────
 function StatusBadge({ level }) {
@@ -40,13 +41,36 @@ function RulePanel({ title, icon: Icon, accentClass, status, result, children })
 }
 
 export default function DFMRuleChecker() {
+  const { activeStackup } = useDesign();
+
   // Rule 1 — Aspect Ratio
   const [thickness, setThickness] = useState(1.6);
-  const [drill, setDrill]         = useState(0.25);
+  const [drill, setDrill]         = useState(0.2);
+
+  // Sync board thickness with global stackup (if H is very small, we assume it's just one layer, 
+  // but usually "Board Thickness" is the sum. For this DFM check, we'll use a standard 1.6mm 
+  // unless the stackup height implies a thinner core).
+  useEffect(() => {
+    // If H indicates a thin core flex or similar
+    if (activeStackup.height < 0.1) {
+      setThickness(0.8);
+    }
+  }, [activeStackup.height]);
 
   // Rule 2 — Copper vs Trace
   const [copperOz, setCopperOz]   = useState(1);
   const [traceWidth, setTraceWidth] = useState(5); // mil
+
+  // Sync trace width from global (mm to mil conversion)
+  useEffect(() => {
+    const widthMil = parseFloat((activeStackup.width * 39.37).toFixed(1));
+    setTraceWidth(widthMil);
+    
+    // Auto-detect copper weight based on thickness in mm
+    if (activeStackup.thickness >= 0.07) setCopperOz(2);
+    else if (activeStackup.thickness >= 0.03) setCopperOz(1);
+    else setCopperOz(0.5);
+  }, [activeStackup.width, activeStackup.thickness]);
 
   // Rule 3 — Copper Balance
   const [topCopper, setTopCopper] = useState(60); // %
@@ -78,6 +102,15 @@ export default function DFMRuleChecker() {
     ? 'Moderate imbalance detected. Consider copper thieving fills on the sparser side to equalise resin flow during lamination press.'
     : 'Copper density is well-balanced. Board symmetry meets IPC-6012 bow & twist criteria (<0.75%).';
 
+  // ─── Rule 4 calculations (New: High-Speed Coupling) ──────────────
+  const shRatio = activeStackup.height > 0 ? activeStackup.spacing / activeStackup.height : 0;
+  const cpStatus = shRatio > 3 ? 'alert' : shRatio < 1 ? 'pass' : 'warn';
+  const cpMessage = shRatio > 3
+    ? `LOOSE COUPLING RISK (S > 3H). The pair is too far apart relative to the ground plane height. High risk of crosstalk and EMI. Consider reducing spacing or increasing height.`
+    : shRatio < 1
+    ? `TIGHT COUPLING (S < H). Optimal for noise immunity and signal integrity. High common-mode rejection achieved.`
+    : `MODERATE COUPLING (1 < S < 3H). Typical for standard routing, but verify crosstalk margins if adjacent pairs are close.`;
+
   return (
     <div className="dfm-card slide-up">
       {/* Header */}
@@ -86,8 +119,11 @@ export default function DFMRuleChecker() {
           <ShieldCheck size={20} className="dfm-header-icon" />
         </div>
         <div>
-          <h4 className="dfm-title">Real-Time DFM Rule Checker</h4>
-          <p className="dfm-subtitle">IPC-2221B · 3 Active Rule Engines · Live Validation</p>
+          <div className="flex items-center gap-2">
+            <h4 className="dfm-title">Real-Time DFM Rule Checker</h4>
+            <span className="px-2 py-0.5 rounded-full bg-blue-10 text-[8px] font-black text-blue-500 border border-blue-20 animate-pulse">SSOT SYNC ACTIVE</span>
+          </div>
+          <p className="dfm-subtitle">IPC-2221B · 4 Active Rule Engines · Live Validation</p>
         </div>
       </div>
 
@@ -154,6 +190,7 @@ export default function DFMRuleChecker() {
           status={traceStatus}
           result={`${traceWidth} mil / ${copperOz}oz Cu`}
         >
+          <p className="text-[10px] text-blue-500 font-bold mb-3 italic">⚡ Auto-synced from Stackup Engine</p>
           <div className="dfm-inputs-row">
             <div className="dfm-input-group">
               <label className="dfm-input-label">Copper Weight</label>
@@ -162,7 +199,7 @@ export default function DFMRuleChecker() {
                   <button
                     key={oz}
                     className={`dfm-oz-btn ${copperOz === oz ? 'dfm-oz-active' : ''}`}
-                    onClick={() => setCopperOz(oz)}
+                    disabled
                   >
                     {oz} oz
                   </button>
@@ -173,10 +210,9 @@ export default function DFMRuleChecker() {
               <label className="dfm-input-label">Minimum Trace Width (mil)</label>
               <div className="dfm-input-wrap">
                 <input
-                  type="number" min="1" max="50" step="0.5"
-                  value={traceWidth}
-                  onChange={e => setTraceWidth(Number(e.target.value))}
-                  className="dfm-input"
+                  type="number" value={traceWidth}
+                  disabled
+                  className="dfm-input opacity-60 cursor-not-allowed"
                 />
                 <span className="dfm-unit">mil</span>
               </div>
@@ -228,14 +264,43 @@ export default function DFMRuleChecker() {
           <p className="dfm-rule-ref">Ref: IPC-6012E — Bow &amp; Twist ≤ 0.75% for SMT population</p>
         </RulePanel>
 
+        {/* ─── Rule 4: High-Speed Spacing (New) ───────────────────── */}
+        <RulePanel
+          title="Rule 4 — Differential Spacing / Coupling"
+          icon={Activity}
+          accentClass="dfm-accent-red"
+          status={cpStatus}
+          result={`${shRatio.toFixed(2)} S/H`}
+        >
+          <div className="p-4 bg-black-20 rounded-xl border border-white-05 mb-4">
+            <div className="flex justify-between text-[10px] font-bold text-tertiary uppercase tracking-widest mb-2">
+              <span>Tight Coupling</span>
+              <span>Loose Coupling</span>
+            </div>
+            <div className="h-2 bg-black-40 rounded-full overflow-hidden relative border border-white-05">
+              <div 
+                className={`h-full transition-all duration-500 ${shRatio > 3 ? 'bg-red-500' : shRatio < 1 ? 'bg-green-500' : 'bg-orange-500'}`}
+                style={{ width: `${Math.min((shRatio / 5) * 100, 100)}%` }}
+              />
+              <div className="absolute top-0 left-[20%] w-0.5 h-full bg-white-20" />
+              <div className="absolute top-0 left-[60%] w-0.5 h-full bg-white-20" />
+            </div>
+            <div className="flex justify-between text-[8px] text-tertiary mt-1 px-1">
+              <span>S=H</span>
+              <span>S=3H Limit</span>
+            </div>
+          </div>
+          <p className="dfm-message">{cpMessage}</p>
+        </RulePanel>
+
       </div>
 
       {/* Summary bar */}
       <div className="dfm-summary">
         <span className="dfm-summary-label">Overall DFM Status:</span>
-        {[arStatus, traceStatus, balStatus].some(s => s === 'fail')
+        {[arStatus, traceStatus, balStatus, cpStatus].some(s => s === 'fail' || s === 'alert')
           ? <StatusBadge level="fail" />
-          : [arStatus, traceStatus, balStatus].some(s => s === 'warn' || s === 'alert')
+          : [arStatus, traceStatus, balStatus, cpStatus].some(s => s === 'warn')
           ? <StatusBadge level="warn" />
           : <StatusBadge level="pass" />
         }

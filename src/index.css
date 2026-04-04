@@ -5833,3 +5833,88 @@ a:hover {
 }
 
 
+
+/* ──────────────────────────────────────────────────────────
+   ZDIFF ENGINE - ADVANCED SI VISUALIZER
+   ────────────────────────────────────────────────────────── */
+
+.zdiff-switches {
+  display: flex;
+  gap: 12px;
+  background: var(--bg-primary);
+  padding: 4px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
+}
+
+.zdiff-switch {
+  padding: 6px 14px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  background: transparent;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.zdiff-switch:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.zdiff-switch.active {
+  color: var(--warning);
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.2);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.1);
+}
+
+.field-line-animate {
+  stroke-dasharray: 4;
+  animation: fieldLineFlow 3s linear infinite;
+}
+
+@keyframes fieldLineFlow {
+  0% { stroke-dashoffset: 20; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.zdiff-diagram-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+  padding: var(--space-4);
+  background: radial-gradient(circle at center, rgba(30, 41, 59, 0.4) 0%, transparent 100%);
+}
+
+.zdiff-pulse-line {
+  stroke-width: 2;
+  stroke: var(--warning);
+  filter: drop-shadow(0 0 8px var(--warning));
+  stroke-linecap: round;
+}
+
+/* ──────────────────────────────────────────────────────────
+   ZDIFF VERDICT THEMES
+   ────────────────────────────────────────────────────────── */
+.zdiff-verdict--ok {
+  background: rgba(26, 107, 58, 0.08);
+  border-color: rgba(26, 107, 58, 0.3);
+  color: #1a6b3a;
+}
+
+.zdiff-verdict--warn {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+}
+
+.zdiff-verdict--danger {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}

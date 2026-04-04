@@ -13,7 +13,7 @@ const INTERFACE_PRESETS = [
 ];
 
 // ─── IPC-2141A Formulas ───────────────────────────────────────────────────────
-function calcResults(inputs, topology) {
+function calcResults(inputs, topology, isRefined = false) {
   const h  = parseFloat(inputs.height)   || 0;
   const w  = parseFloat(inputs.width)    || 0;
   const t  = parseFloat(inputs.thickness)|| 0;
@@ -31,19 +31,30 @@ function calcResults(inputs, topology) {
 
   if (topology === 'microstrip') {
     effDk = 0.475 * er + 0.67;
-    z0    = (60 / Math.sqrt(effDk)) * Math.log((5.98 * h) / (0.8 * w + t));
-    zdiff = 2 * z0 * (1 - 0.48 * Math.exp(-0.96 * (s / h)));
+    // Refined Hammerstad accounts for trace thickness effect on Z0
+    const w_prime = isRefined ? w + (t / Math.PI) * (1 + Math.log((4 * Math.PI * w) / t)) : w;
+    z0 = (60 / Math.sqrt(effDk)) * Math.log((5.98 * h) / (0.8 * w_prime + t));
+    
+    // Zdiff with refined coupling coefficient
+    const k = isRefined 
+      ? 0.48 * Math.exp(-0.96 * (s / h)) * (1 + 0.1 * (t / h)) 
+      : 0.48 * Math.exp(-0.96 * (s / h));
+    zdiff = 2 * z0 * (1 - k);
     delay = 84.75 * Math.sqrt(effDk);
   } else {
     // Symmetric Stripline: B = 2H + T
     const b = 2 * h + t;
     effDk = er;
-    z0    = (60 / Math.sqrt(er)) * Math.log((1.9 * b) / (0.8 * w + t));
-    zdiff = 2 * z0 * (1 - 0.347 * Math.exp(-2.9 * (s / b)));
+    const w_prime = isRefined ? w + (t / (Math.PI * 0.8)) * (1 + Math.log(4 / (t/b))) : w;
+    z0 = (60 / Math.sqrt(er)) * Math.log((1.9 * b) / (0.8 * w_prime + t));
+    
+    const k = isRefined
+      ? 0.347 * Math.exp(-2.9 * (s / b)) * (1 + 0.05 * (t / b))
+      : 0.347 * Math.exp(-2.9 * (s / b));
+    zdiff = 2 * z0 * (1 - k);
     delay = 84.75 * Math.sqrt(er);
   }
 
-  // Coupling coefficient k: from Zdiff = 2·Z0·(1 - k)
   const coupling = 1 - zdiff / (2 * z0);
 
   return {
@@ -56,7 +67,7 @@ function calcResults(inputs, topology) {
 }
 
 // ─── SVG Cross-Section Diagram ────────────────────────────────────────────────
-function CrossSection({ topology, inputs }) {
+function CrossSection({ topology, inputs, coupling, showFields }) {
   const isStrip = topology === 'stripline';
   
   // Normalized dimensions for visual scaling (Base values)
@@ -88,6 +99,10 @@ function CrossSection({ topology, inputs }) {
   const traceP_X = centerSplit - traceS / 2 - traceW;
   const traceN_X = centerSplit + traceS / 2;
 
+  // E-Field Visualization Density
+  const fieldLinesCount = Math.floor(Math.max(3, 12 - (sScale * 2)));
+  const fieldOpacity = Math.min(0.8, coupling * 4);
+
   return (
     <svg viewBox="0 0 320 130" className="zdiff-svg" aria-label="Differential pair cross-section diagram">
       {/* Top Ground Plane (stripline only) */}
@@ -96,12 +111,6 @@ function CrossSection({ topology, inputs }) {
       )}
       {/* Bottom Ground Plane */}
       <rect x="20" y={groundY} width="280" height="5" fill="var(--accent-primary)" rx="2" fillOpacity="0.75" />
-
-      {/* Ground labels */}
-      <text x="10" y={groundY + 5} fill="var(--accent-primary)" fontSize="7" fontWeight="700" fillOpacity="0.7">GND</text>
-      {isStrip && (
-        <text x="10" y={topGroundY + 5} fill="var(--accent-primary)" fontSize="7" fontWeight="700" fillOpacity="0.7">GND</text>
-      )}
 
       {/* Dielectric fill */}
       <rect
@@ -113,6 +122,23 @@ function CrossSection({ topology, inputs }) {
         rx="2"
         style={{ transition: 'all 0.4s ease-in-out' }}
       />
+
+      {/* Coupling E-Fields */}
+      {showFields && Array.from({ length: fieldLinesCount }).map((_, i) => {
+        const offset = (i - (fieldLinesCount - 1) / 2) * (traceHeight / (fieldLinesCount - 1 || 1));
+        const curve = 10 + (sScale * 5);
+        return (
+          <path
+            key={i}
+            d={`M ${traceP_X + traceW} ${traceY + traceHeight / 2 + offset} Q ${centerSplit} ${traceY + traceHeight / 2 + offset - curve}, ${traceN_X} ${traceY + traceHeight / 2 + offset}`}
+            stroke="var(--warning)"
+            strokeWidth="0.5"
+            fill="none"
+            strokeOpacity={fieldOpacity * (1 - Math.abs(offset) / (traceHeight / 2 + 1))}
+            className="field-line-animate"
+          />
+        );
+      })}
 
       {/* D+ Trace */}
       <rect x={traceP_X} y={traceY} width={traceW} height={traceHeight} fill="var(--warning)" rx="2" style={{ transition: 'all 0.4s ease-in-out' }} />
@@ -156,45 +182,41 @@ function CrossSection({ topology, inputs }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function ZdiffCalculator() {
+  const { activeStackup, updateStackup } = useDesign();
   const [topology, setTopology]   = useState('microstrip');
   const [showInfo, setShowInfo]   = useState(false);
+  const [refinedMode, setRefinedMode] = useState(false);
+  const [showFields, setShowFields]   = useState(true);
   const infoBtnRef = React.useRef(null);
   const [activePreset, setActivePreset] = useState(null);
-  const [inputs, setInputs] = useState({
-    height:    0.2,
-    width:     0.18,
-    thickness: 0.035,
-    spacing:   0.2,
-    dk:        4.17,
-  });
 
   // Target zdiff from selected preset (default 100Ω)
   const targetZdiff = activePreset !== null ? INTERFACE_PRESETS[activePreset].zdiff : 100;
   const targetTol   = activePreset !== null ? INTERFACE_PRESETS[activePreset].tol   : 15;
 
-  const results = useMemo(() => calcResults(inputs, topology), [inputs, topology]);
+  const results = useMemo(() => 
+    calcResults(activeStackup, topology, refinedMode), 
+    [activeStackup, topology, refinedMode]
+  );
 
   const handleChange = (key, val) => {
     setActivePreset(null);
-    setInputs(prev => ({ ...prev, [key]: val }));
+    updateStackup({ [key]: parseFloat(val) || 0 });
   };
 
   // ─── Data Synergy: Listen for external preset loads ─────────────────────────
   React.useEffect(() => {
     const handleRemoteLoad = (e) => {
       if (e && e.detail) {
-        // Ensure values are numbers for state consistency
-        const newInputs = {
+        updateStackup({
           height:    parseFloat(e.detail.height)    || 0.2,
           width:     parseFloat(e.detail.width)     || 0.18,
           thickness: parseFloat(e.detail.thickness) || 0.035,
           spacing:   parseFloat(e.detail.spacing)   || 0.2,
           dk:        parseFloat(e.detail.dk)        || 4.17
-        };
-        setInputs(newInputs);
+        });
         setActivePreset(null);
         
-        // Smarter scroll: Only scroll if calc is not mostly in view
         const el = document.getElementById('zdiff-calculator');
         if (el) {
           const rect = el.getBoundingClientRect();
@@ -207,12 +229,12 @@ export default function ZdiffCalculator() {
     };
     window.addEventListener('zdiff:set-inputs', handleRemoteLoad);
     return () => window.removeEventListener('zdiff:set-inputs', handleRemoteLoad);
-  }, []);
+  }, [updateStackup]);
 
   const applyPreset = (idx) => {
     const p = INTERFACE_PRESETS[idx];
     setActivePreset(idx);
-    setInputs({ height: p.h, width: p.w, thickness: p.t, spacing: p.s, dk: p.dk });
+    updateStackup({ height: p.h, width: p.w, thickness: p.t, spacing: p.s, dk: p.dk });
   };
 
   const delta   = parseFloat(results.zdiff) - targetZdiff;
@@ -234,6 +256,9 @@ export default function ZdiffCalculator() {
       ? `Impedance ${absDelta.toFixed(1)} Ω too low. Increase H or reduce W/S.`
       : `Impedance ${absDelta.toFixed(1)} Ω too high. Decrease H or increase W.`;
 
+  // SI Pulse Animation Speed (proportional to delay)
+  const pulseDuration = (results.delay / 150) * 2; // Normalize delay to duration
+
   return (
     <div className="zdiff-calc slide-up" id="zdiff-calculator">
       {/* ── Header ── */}
@@ -243,10 +268,29 @@ export default function ZdiffCalculator() {
             <Zap size={18} />
           </div>
           <div>
-            <h3 className="zdiff-title">Zdiff Calculator</h3>
-            <p className="zdiff-subtitle">Differential impedance per IPC-2141A — Microstrip & Stripline</p>
+            <h3 className="zdiff-title">Zdiff Engine</h3>
+            <p className="zdiff-subtitle">Industrial Signal Integrity Solver — Refined Analytical Mode</p>
           </div>
         </div>
+
+        {/* Feature Switches */}
+        <div className="zdiff-switches">
+          <button 
+            className={`zdiff-switch ${refinedMode ? 'active' : ''}`}
+            onClick={() => setRefinedMode(!refinedMode)}
+            title="Hammerstad 2nd-Order Refinement"
+          >
+            Refined Math
+          </button>
+          <button 
+            className={`zdiff-switch ${showFields ? 'active' : ''}`}
+            onClick={() => setShowFields(!showFields)}
+            title="Toggle E-Field Visualization"
+          >
+            Show E-Fields
+          </button>
+        </div>
+
         {/* Topology Toggle */}
         <div className="zdiff-toggle-group">
           <button
@@ -273,8 +317,13 @@ export default function ZdiffCalculator() {
         <div className="zdiff-left">
           {/* Cross-section diagram */}
           <div className="zdiff-diagram-box">
-            <span className="zdiff-diagram-label">Interactive Cross-Section</span>
-            <CrossSection topology={topology} inputs={inputs} />
+            <span className="zdiff-diagram-label">Interactive SI Visualization</span>
+            <CrossSection 
+              topology={topology} 
+              inputs={activeStackup} 
+              coupling={results.coupling}
+              showFields={showFields}
+            />
           </div>
 
           {/* Input grid */}
@@ -283,7 +332,7 @@ export default function ZdiffCalculator() {
               <label htmlFor="zdiff-h" className="zdiff-label">H — Dielectric Height (mm)</label>
               <input
                 id="zdiff-h"
-                type="number" step="0.001" min="0.01" value={inputs.height}
+                type="number" step="0.001" min="0.01" value={activeStackup.height}
                 onChange={e => handleChange('height', e.target.value)}
                 className="zdiff-input"
               />
@@ -292,7 +341,7 @@ export default function ZdiffCalculator() {
               <label htmlFor="zdiff-w" className="zdiff-label">W — Trace Width (mm)</label>
               <input
                 id="zdiff-w"
-                type="number" step="0.001" min="0.01" value={inputs.width}
+                type="number" step="0.001" min="0.01" value={activeStackup.width}
                 onChange={e => handleChange('width', e.target.value)}
                 className="zdiff-input"
               />
@@ -301,7 +350,7 @@ export default function ZdiffCalculator() {
               <label htmlFor="zdiff-s" className="zdiff-label zdiff-label--orange">S — Intra-pair Spacing (mm)</label>
               <input
                 id="zdiff-s"
-                type="number" step="0.001" min="0.01" value={inputs.spacing}
+                type="number" step="0.001" min="0.01" value={activeStackup.spacing}
                 onChange={e => handleChange('spacing', e.target.value)}
                 className="zdiff-input zdiff-input--orange"
               />
@@ -310,7 +359,7 @@ export default function ZdiffCalculator() {
               <label htmlFor="zdiff-t" className="zdiff-label">T — Copper Thickness (mm)</label>
               <input
                 id="zdiff-t"
-                type="number" step="0.001" min="0.001" value={inputs.thickness}
+                type="number" step="0.001" min="0.001" value={activeStackup.thickness}
                 onChange={e => handleChange('thickness', e.target.value)}
                 className="zdiff-input"
               />
@@ -319,7 +368,7 @@ export default function ZdiffCalculator() {
               <label htmlFor="zdiff-dk" className="zdiff-label">εr — Dielectric Constant (Dk)</label>
               <input
                 id="zdiff-dk"
-                type="number" step="0.01" min="1" value={inputs.dk}
+                type="number" step="0.01" min="1" value={activeStackup.dk}
                 onChange={e => handleChange('dk', e.target.value)}
                 className="zdiff-input"
               />

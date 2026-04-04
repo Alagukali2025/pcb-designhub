@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import ContentViewer from './components/ContentViewer';
+import { DesignProvider } from './context/DesignContext';
 
 function App() {
   const [theme, setTheme] = useState(() => {
@@ -46,27 +47,29 @@ function App() {
   };
 
   return (
-    <div className={`app-layout ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-      <div className="main-content">
-        <Header 
-          theme={theme} 
-          toggleTheme={toggleTheme} 
-          toggleSidebar={toggleSidebar}
-          isSidebarOpen={isSidebarOpen}
-        />
-        <main className="page-content">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/module/:id" element={<ContentViewer />} />
-          </Routes>
-        </main>
+    <DesignProvider>
+      <div className={`app-layout ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+        <div className="main-content">
+          <Header 
+            theme={theme} 
+            toggleTheme={toggleTheme} 
+            toggleSidebar={toggleSidebar}
+            isSidebarOpen={isSidebarOpen}
+          />
+          <main className="page-content">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/module/:id" element={<ContentViewer />} />
+            </Routes>
+          </main>
+        </div>
+        {/* Mobile Overlay */}
+        {isSidebarOpen && (
+          <div className="sidebar-overlay" onClick={toggleSidebar}></div>
+        )}
       </div>
-      {/* Mobile Overlay */}
-      {isSidebarOpen && (
-        <div className="sidebar-overlay" onClick={toggleSidebar}></div>
-      )}
-    </div>
+    </DesignProvider>
   );
 }
 
