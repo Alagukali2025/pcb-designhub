@@ -12,6 +12,7 @@ import FiberWeaveSkew from './FiberWeaveSkew';
 import StackupExport from './StackupExport';
 import ZdiffCalculator from './ZdiffCalculator';
 import DiffPairReferenceTable from './DiffPairReferenceTable';
+import DDRTimingCalculator from './DDRTimingCalculator';
 
 export default function ContentViewer() {
   const { id } = useParams();
@@ -288,6 +289,8 @@ export default function ContentViewer() {
                 {sec.type === 'zdiff-calculator' && <ZdiffCalculator />}
 
                 {sec.type === 'diff-reference-table' && <DiffPairReferenceTable />}
+
+                {sec.type === 'ddr-timing-calculator' && <DDRTimingCalculator />}
 
                 {sec.ruleCards && (
                   <div className="rule-cards-grid slide-up">
