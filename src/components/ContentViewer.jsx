@@ -13,11 +13,17 @@ import StackupExport from './StackupExport';
 import ZdiffCalculator from './ZdiffCalculator';
 import DiffPairReferenceTable from './DiffPairReferenceTable';
 import DDRTimingCalculator from './DDRTimingCalculator';
+import EMICalculator from './EMICalculator';
+import EMIVisualizer from './EMIVisualizer';
+import EMIKnowledgeToggle from './EMIKnowledgeToggle';
+
+
 
 export default function ContentViewer() {
   const { id } = useParams();
   const moduleData = modulesData.find(m => m.id === id);
   const [activeSection, setActiveSection] = useState(0);
+  const [knowledgeLevel, setKnowledgeLevel] = useState(['beginner', 'intermediate', 'expert']);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [checkedItems, setCheckedItems] = useState({});
   const sectionRefs = useRef([]);
@@ -143,293 +149,311 @@ export default function ContentViewer() {
 
             <h1 className="content-title">{moduleData.title}</h1>
             <p className="content-intro">{content.intro}</p>
+
+            {moduleData.id === 'emi_emc' && (
+              <div className="module-control-panel slide-up">
+                <EMIKnowledgeToggle 
+                  currentLevels={knowledgeLevel} 
+                  onLevelChange={setKnowledgeLevel} 
+                />
+              </div>
+            )}
           </header>
 
           <div className="content-sections">
-            {content.sections && content.sections.map((sec, i) => (
-              <section
-                key={i}
-                className="content-section"
-                id={`section-${i}`}
-                data-index={i}
-                ref={el => sectionRefs.current[i] = el}
-              >
-                <h2 className="section-heading">
-                  <span className="section-number">{i + 1}</span>
-                  {sec.heading}
-                </h2>
+            {content.sections && content.sections.map((sec, i) => {
+              if (moduleData.id === 'emi_emc' && sec.level && !knowledgeLevel.includes(sec.level)) return null;
+              return (
+                <section
+                  key={i}
+                  className="content-section"
+                  id={`section-${i}`}
+                  data-index={i}
+                  ref={el => sectionRefs.current[i] = el}
+                >
+                  <h2 className="section-heading">
+                    <span className="section-number">{i + 1}</span>
+                    {sec.heading}
+                  </h2>
 
-                {sec.content && <p className="section-text">{sec.content}</p>}
+                  {sec.content && <p className="section-text">{sec.content}</p>}
 
-                {sec.list && (
-                  <ul className="body-list slide-up">
-                    {sec.list.map((item, li) => (
-                      <li key={li} className="list-item">
-                        {typeof item === 'string' ? item : (
-                          <>
-                            <strong className="list-label">{item.label}:</strong> {item.text}
-                          </>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {sec.table && (
-                  <div className="table-wrapper slide-up">
-                    <div className="table-hint">Swipe to see more →</div>
-                    <table className="content-table">
-                      <thead>
-                        <tr>
-                          {sec.table.headers.map((h, hi) => <th key={hi}>{h}</th>)}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sec.table.rows.map((row, ri) => {
-                          const isSpecial = !!row.data;
-                          const cells = isSpecial ? row.data : row;
-                          const rowClass = row.type ? `${row.type}-row` : '';
-                          
-                          return (
-                            <tr key={ri} className={rowClass}>
-                              {cells.map((cell, ci) => (
-                                <td key={ci}>
-                                  {typeof cell === 'string' ? cell : (
-                                    <span className={`tag-${cell.tag.toLowerCase()}`}>{cell.text}</span>
-                                  )}
-                                </td>
-                              ))}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {sec.formula && (
-                  <div className="formula-container slide-up">
-                    <div className="formula-header">{sec.formula.title}</div>
-                    <div className="formula-box">
-                      {sec.formula.equations.map((eq, ei) => (
-                        <div key={ei} className="formula-line">
-                          <code>{eq}</code>
-                        </div>
+                  {sec.list && (
+                    <ul className="body-list slide-up">
+                      {sec.list.map((item, li) => (
+                        <li key={li} className="list-item">
+                          {typeof item === 'string' ? item : (
+                            <>
+                              <strong className="list-label">{item.label}:</strong> {item.text}
+                            </>
+                          )}
+                        </li>
                       ))}
+                    </ul>
+                  )}
+
+                  {sec.table && (
+                    <div className="table-wrapper slide-up">
+                      <div className="table-hint">Swipe to see more →</div>
+                      <table className="content-table">
+                        <thead>
+                          <tr>
+                            {sec.table.headers.map((h, hi) => <th key={hi}>{h}</th>)}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sec.table.rows.map((row, ri) => {
+                            const isSpecial = !!row.data;
+                            const cells = isSpecial ? row.data : row;
+                            const rowClass = row.type ? `${row.type}-row` : '';
+                            
+                            return (
+                              <tr key={ri} className={rowClass}>
+                                {cells.map((cell, ci) => (
+                                  <td key={ci}>
+                                    {typeof cell === 'string' ? cell : (
+                                      <span className={`tag-${cell.tag.toLowerCase()}`}>{cell.text}</span>
+                                    )}
+                                  </td>
+                                ))}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
-                    {sec.formula.variables && (
-                      <div className="formula-variables">
-                        {sec.formula.variables.map((v, vi) => (
-                          <div key={vi} className="formula-var">
-                            <span className="var-name">{v.name}</span>
-                            <span className="var-desc">{v.desc}</span>
-                            {v.tag && <span className={`var-tag tag-${v.tag.toLowerCase()}`}>{v.tag}</span>}
+                  )}
+
+                  {sec.formula && (
+                    <div className="formula-container slide-up">
+                      <div className="formula-header">{sec.formula.title}</div>
+                      <div className="formula-box">
+                        {sec.formula.equations.map((eq, ei) => (
+                          <div key={ei} className="formula-line">
+                            <code>{eq}</code>
                           </div>
                         ))}
                       </div>
-                    )}
-                  </div>
-                )}
-
-                {sec.flow && (
-                  <div className="flow-container slide-up">
-                    {sec.flow.map((f, fi) => (
-                      <div key={fi} className="flow-step">
-                        <div className="flow-num">{f.step}</div>
-                        <div className="flow-title">{f.title}</div>
-                        <div className="flow-desc">{f.desc}</div>
-                        {fi < sec.flow.length - 1 && <div className="flow-arrow">→</div>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {sec.codeBlock && (
-                  <div className="code-block-container slide-up">
-                    <pre className="code-pre">
-                      <code>{sec.codeBlock}</code>
-                    </pre>
-                  </div>
-                )}
-
-                {sec.twoColumnGrid && (
-                  <div className="two-column-grid slide-up">
-                    {sec.twoColumnGrid.map((col, ci) => (
-                      <div key={ci} className="grid-column">
-                        <div className="column-header">
-                          <span className={`tool-badge ${col.badgeClass}`}>{col.badge}</span>
+                      {sec.formula.variables && (
+                        <div className="formula-variables">
+                          {sec.formula.variables.map((v, vi) => (
+                            <div key={vi} className="formula-var">
+                              <span className="var-name">{v.name}</span>
+                              <span className="var-desc">{v.desc}</span>
+                              {v.tag && <span className={`var-tag tag-${v.tag.toLowerCase()}`}>{v.tag}</span>}
+                            </div>
+                          ))}
                         </div>
-                        <div className="column-body">
-                          <h4>{col.title}</h4>
-                          <ul className="column-list">
-                            {col.items.map((item, ii) => <li key={ii}>{item}</li>)}
-                          </ul>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  )}
 
-                {sec.type === 'calculator' && (
-                  id === 'footprint' ? <IPCCalculator /> : <StackupCalculator />
-                )}
-
-                {sec.type === 'visualizer' && <StackupLayerToggle />}
-
-                {sec.type === 'aspect-ratio-calc' && <AspectRatioCalculator />}
-
-                {sec.type === 'laminate-table' && <LaminateTable />}
-
-                {sec.type === 'dfm-checker' && <DFMRuleChecker />}
-
-                {sec.type === 'fiber-weave' && <FiberWeaveSkew />}
-
-                {sec.type === 'stackup-export' && <StackupExport />}
-
-                {sec.type === 'zdiff-calculator' && <ZdiffCalculator />}
-
-                {sec.type === 'diff-reference-table' && <DiffPairReferenceTable />}
-
-                {sec.type === 'ddr-timing-calculator' && <DDRTimingCalculator />}
-
-                {sec.ruleCards && (
-                  <div className="rule-cards-grid slide-up">
-                    {sec.ruleCards.map((rule, ri) => (
-                      <div key={ri} className={`rule-card rule-card--${rule.severity}`}>
-                        <div className="rule-card-header">
-                          <span className="rule-badge">{rule.number}</span>
-                          <div className="rule-card-title-wrap">
-                            <h4 className="rule-card-title">{rule.title}</h4>
-                            <span className={`rule-severity-tag rule-severity-tag--${rule.severity}`}>
-                              {rule.severity === 'danger' ? <ShieldAlert size={10} /> : rule.severity === 'warning' ? <AlertTriangle size={10} /> : <Info size={10} />}
-                              {rule.severity === 'danger' ? 'DRC Violation' : rule.severity === 'warning' ? 'Caution' : 'Best Practice'}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="rule-card-body">{rule.body}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {sec.filletGrid && (
-                  <div className="fillet-grid slide-up">
-                    {sec.filletGrid.map((fg, fgi) => (
-                      <div key={fgi} className={`fillet-card border-${fg.color}`}>
-                        <h4 className={`text-${fg.color}`}>{fg.title}</h4>
-                        {fg.list ? (
-                          <div className="fillet-details">
-                            {fg.list.map((item, li) => (
-                              <p key={li}><strong>{item.label}:</strong> {item.text}</p>
-                            ))}
-                          </div>
-                        ) : <p>{fg.body}</p>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {sec.steps && (
-                  <div className="steps-container slide-up">
-                    {sec.steps.map((step, si) => (
-                      <div key={si} className="step-item">
-                        <div className="step-number">{si + 1}</div>
-                        <div className="step-content">
-                          <h4>{step.title}</h4>
-                          <p>{step.body}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {sec.tabs && (
-                  <div className="tabs-container slide-up">
-                    <div className="tabs-content">
-                      {sec.tabs.map((tab, ti) => (
-                        <div key={ti} className="tab-panel">
-                          <div className="tab-header">
-                            <span className="tool-tag">{tab.title}</span>
-                          </div>
-                          <ul className="tab-list">
-                            {tab.content.map((item, ii) => <li key={ii}>{item}</li>)}
-                          </ul>
+                  {sec.flow && (
+                    <div className="flow-container slide-up">
+                      {sec.flow.map((f, fi) => (
+                        <div key={fi} className="flow-step">
+                          <div className="flow-num">{f.step}</div>
+                          <div className="flow-title">{f.title}</div>
+                          <div className="flow-desc">{f.desc}</div>
+                          {fi < sec.flow.length - 1 && <div className="flow-arrow">→</div>}
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {sec.cards && (
-                  <div className="section-cards-grid">
-                    {sec.cards.map((card, j) => (
-                      <div key={j} className="info-card">
-                        <h4>{card.title}</h4>
-                        <p>{card.text}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                  {sec.codeBlock && (
+                    <div className="code-block-container slide-up">
+                      <pre className="code-pre">
+                        <code>{sec.codeBlock}</code>
+                      </pre>
+                    </div>
+                  )}
 
-                {sec.mistakeList && (
-                  <div className="mistake-list slide-up">
-                    {sec.mistakeList.map((m, mi) => (
-                      <div key={mi} className="mistake-item">
-                        <span className="mis-label mis-bad">Mistake</span>
-                        <span className="mistake-text">{m.mistake}</span>
-                        <span className="mis-label mis-fix">Fix</span>
-                        <span className="mistake-text">{m.fix}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {sec.terminationGrid && (
-                  <div className="termination-grid slide-up">
-                    {sec.terminationGrid.map((t, ti) => (
-                      <div key={ti} className="term-card">
-                        <div className="term-name">{t.name}</div>
-                        <span className={`term-tag ${t.tagColor}-tag`}>{t.tag}</span>
-                        <div className="term-pros"><strong>Pros:</strong> {t.pros}</div>
-                        <div className="term-cons"><strong>Cons:</strong> {t.cons}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {sec.stackVisual && (
-                  <div className="stack-visual slide-up">
-                    {sec.stackVisual.map((row, ri) => (
-                      <div key={ri} className="stack-row">
-                        <div className="stack-swatch" style={{ background: row.color }}></div>
-                        <div className="stack-layer">{row.layer}</div>
-                        <div className="stack-spec">{row.spec}</div>
-                        <div className="stack-note">{row.note}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {sec.phaseList && (
-                  <div className="phase-list slide-up">
-                    {sec.phaseList.map((p, pi) => (
-                      <div key={pi} className="phase-item">
-                        <div className="phase-num">{p.num}</div>
-                        <div className="phase-content">
-                          <p className="phase-text"><strong style={{ color: 'var(--text-primary)' }}>{p.title}:</strong> {p.desc}</p>
+                  {sec.twoColumnGrid && (
+                    <div className="two-column-grid slide-up">
+                      {sec.twoColumnGrid.map((col, ci) => (
+                        <div key={ci} className="grid-column">
+                          <div className="column-header">
+                            <span className={`tool-badge ${col.badgeClass}`}>{col.badge}</span>
+                          </div>
+                          <div className="column-body">
+                            <h4>{col.title}</h4>
+                            <ul className="column-list">
+                              {col.items.map((item, ii) => <li key={ii}>{item}</li>)}
+                            </ul>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
 
-                {sec.alerts && (
-                  <div className="section-alerts">
-                    {sec.alerts.map((alert, idx) => renderAlert(alert, idx))}
-                  </div>
-                )}
-              </section>
-            ))}
+                  {sec.type === 'calculator' && (
+                    id === 'footprint' ? <IPCCalculator /> : <StackupCalculator />
+                  )}
+
+                  {sec.type === 'visualizer' && <StackupLayerToggle />}
+
+                  {sec.type === 'aspect-ratio-calc' && <AspectRatioCalculator />}
+
+                  {sec.type === 'laminate-table' && <LaminateTable />}
+
+                  {sec.type === 'dfm-checker' && <DFMRuleChecker />}
+
+                  {sec.type === 'fiber-weave' && <FiberWeaveSkew />}
+
+                  {sec.type === 'stackup-export' && <StackupExport />}
+
+                  {sec.type === 'zdiff-calculator' && <ZdiffCalculator />}
+
+                  {sec.type === 'diff-reference-table' && <DiffPairReferenceTable />}
+
+                  {sec.type === 'ddr-timing-calculator' && <DDRTimingCalculator />}
+
+                  {sec.type === 'emi-calculator' && <EMICalculator />}
+
+                  {sec.type === 'emi-visualizer' && <EMIVisualizer />}
+
+
+
+                  {sec.ruleCards && (
+                    <div className="rule-cards-grid slide-up">
+                      {sec.ruleCards.map((rule, ri) => (
+                        <div key={ri} className={`rule-card rule-card--${rule.severity}`}>
+                          <div className="rule-card-header">
+                            <span className="rule-badge">{rule.number}</span>
+                            <div className="rule-card-title-wrap">
+                              <h4 className="rule-card-title">{rule.title}</h4>
+                              <span className={`rule-severity-tag rule-severity-tag--${rule.severity}`}>
+                                {rule.severity === 'danger' ? <ShieldAlert size={10} /> : rule.severity === 'warning' ? <AlertTriangle size={10} /> : <Info size={10} />}
+                                {rule.severity === 'danger' ? 'DRC Violation' : rule.severity === 'warning' ? 'Caution' : 'Best Practice'}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="rule-card-body">{rule.body}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {sec.filletGrid && (
+                    <div className="fillet-grid slide-up">
+                      {sec.filletGrid.map((fg, fgi) => (
+                        <div key={fgi} className={`fillet-card border-${fg.color}`}>
+                          <h4 className={`text-${fg.color}`}>{fg.title}</h4>
+                          {fg.list ? (
+                            <div className="fillet-details">
+                              {fg.list.map((item, li) => (
+                                <p key={li}><strong>{item.label}:</strong> {item.text}</p>
+                              ))}
+                            </div>
+                          ) : <p>{fg.body}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {sec.steps && (
+                    <div className="steps-container slide-up">
+                      {sec.steps.map((step, si) => (
+                        <div key={si} className="step-item">
+                          <div className="step-number">{si + 1}</div>
+                          <div className="step-content">
+                            <h4>{step.title}</h4>
+                            <p>{step.body}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {sec.tabs && (
+                    <div className="tabs-container slide-up">
+                      <div className="tabs-content">
+                        {sec.tabs.map((tab, ti) => (
+                          <div key={ti} className="tab-panel">
+                            <div className="tab-header">
+                              <span className="tool-tag">{tab.title}</span>
+                            </div>
+                            <ul className="tab-list">
+                              {tab.content.map((item, ii) => <li key={ii}>{item}</li>)}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {sec.cards && (
+                    <div className="section-cards-grid">
+                      {sec.cards.map((card, j) => (
+                        <div key={j} className="info-card">
+                          <h4>{card.title}</h4>
+                          <p>{card.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {sec.mistakeList && (
+                    <div className="mistake-list slide-up">
+                      {sec.mistakeList.map((m, mi) => (
+                        <div key={mi} className="mistake-item">
+                          <span className="mis-label mis-bad">Mistake</span>
+                          <span className="mistake-text">{m.mistake}</span>
+                          <span className="mis-label mis-fix">Fix</span>
+                          <span className="mistake-text">{m.fix}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {sec.terminationGrid && (
+                    <div className="termination-grid slide-up">
+                      {sec.terminationGrid.map((t, ti) => (
+                        <div key={ti} className="term-card">
+                          <div className="term-name">{t.name}</div>
+                          <span className={`term-tag ${t.tagColor}-tag`}>{t.tag}</span>
+                          <div className="term-pros"><strong>Pros:</strong> {t.pros}</div>
+                          <div className="term-cons"><strong>Cons:</strong> {t.cons}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {sec.stackVisual && (
+                    <div className="stack-visual slide-up">
+                      {sec.stackVisual.map((row, ri) => (
+                        <div key={ri} className="stack-row">
+                          <div className="stack-swatch" style={{ background: row.color }}></div>
+                          <div className="stack-layer">{row.layer}</div>
+                          <div className="stack-spec">{row.spec}</div>
+                          <div className="stack-note">{row.note}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {sec.phaseList && (
+                    <div className="phase-list slide-up">
+                      {sec.phaseList.map((p, pi) => (
+                        <div key={pi} className="phase-item">
+                          <div className="phase-num">{p.num}</div>
+                          <div className="phase-content">
+                            <p className="phase-text"><strong style={{ color: 'var(--text-primary)' }}>{p.title}:</strong> {p.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {sec.alerts && (
+                    <div className="section-alerts">
+                      {sec.alerts.map((alert, idx) => renderAlert(alert, idx))}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
           </div>
 
           {content.checklists ? (
@@ -441,29 +465,41 @@ export default function ContentViewer() {
                 </div>
               </div>
 
-              {content.checklists.map((cat, ci) => (
-                <div key={ci} className="checklist-category">
-                  <h3 className="category-title">{cat.category}</h3>
-                  <div className="task-items">
-                    {cat.items.map((item, i) => {
-                      const itemKey = `${ci}-${i}`;
-                      const isChecked = checkedItems[itemKey] || false;
-                      return (
-                        <div
-                          key={i}
-                          className={`task-item ${isChecked ? 'completed' : ''}`}
-                          onClick={() => toggleChecklist(itemKey)}
-                        >
-                          <div className="task-checkbox">
-                            {isChecked && <Check size={16} />}
+              {content.checklists.map((cat, ci) => {
+                if (moduleData.id === 'emi_emc') {
+                  const hasBeginner = knowledgeLevel.includes('beginner');
+                  const hasIntermediate = knowledgeLevel.includes('intermediate');
+                  const hasExpert = knowledgeLevel.includes('expert');
+                  
+                  if (ci === 0 && !hasBeginner) return null;
+                  if (ci === 1 && !hasIntermediate) return null;
+                  if (ci === 2 && !hasExpert) return null;
+                  if (ci === 3 && !hasExpert) return null; // Tier 4 is also expert
+                }
+                return (
+                  <div key={ci} className="checklist-category">
+                    <h3 className="category-title">{cat.category}</h3>
+                    <div className="task-items">
+                      {cat.items.map((item, i) => {
+                        const itemKey = `${ci}-${i}`;
+                        const isChecked = checkedItems[itemKey] || false;
+                        return (
+                          <div
+                            key={i}
+                            className={`task-item ${isChecked ? 'completed' : ''}`}
+                            onClick={() => toggleChecklist(itemKey)}
+                          >
+                            <div className="task-checkbox">
+                              {isChecked && <Check size={16} />}
+                            </div>
+                            <span className="task-label">{item}</span>
                           </div>
-                          <span className="task-label">{item}</span>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : content.checklist && (
             <div className="task-board slide-up">
@@ -498,24 +534,28 @@ export default function ContentViewer() {
           )}
         </div>
 
-        {/* Right Column - Table of Contents */}
         {content.sections && content.sections.length > 0 && (
           <aside className="toc-container">
             <div className="toc-header">
               <List size={16} /> On This Page
             </div>
             <ul className="toc-list">
-              {content.sections.map((sec, i) => (
-                <li key={i} className={`toc-item ${activeSection === i ? 'active' : ''}`}>
-                  <button
-                    className="toc-link"
-                    onClick={() => scrollToSection(i)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%' }}
-                  >
-                    {sec.heading}
-                  </button>
-                </li>
-              ))}
+              {content.sections.map((sec, i) => {
+                // Filter TOC items by knowledge level for EMI/EMC module
+                if (moduleData.id === 'emi_emc' && sec.level && !knowledgeLevel.includes(sec.level)) return null;
+                
+                return (
+                  <li key={i} className={`toc-item ${activeSection === i ? 'active' : ''}`}>
+                    <button
+                      className="toc-link"
+                      onClick={() => scrollToSection(i)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%' }}
+                    >
+                      {sec.heading}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </aside>
         )}

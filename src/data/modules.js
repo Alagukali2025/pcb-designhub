@@ -1566,29 +1566,155 @@ export const modulesData = [
   },
   { 
     id: "emi_emc",    
-    icon: ShieldAlert,   
-    title: "EMI / EMC Compliance",                 
-    desc: "Mitigate radiation and ensure compliance.",
+    icon: ShieldAlert,      
+    title: "EMI / EMC Compliance", 
+    desc: "Master regulatory standards and suppression techniques.",
     content: {
-      intro: "Electromagnetic Interference (EMI) and Electromagnetic Compatibility (EMC) are critical for regulatory certification (FCC, CE). A board that works perfectly on the bench can still fail emissions testing and be legally barred from sale.",
+      intro: "A professional-grade engineering guide to electromagnetic compatibility. Success in the EMC lab begins with physics-driven PCB layout, focusing on loop area containment, spectrum management, and strategic grounding based on IPC-2141A and IPC-2221B.",
       sections: [
         {
-          heading: "Loop Area is the Enemy",
-          content: "The majority of radiated EMI problems come from uncontrolled return currents forming large loop areas. Radiation is proportional to Loop Area × Current × Frequency². Keep the dielectric height between signal and reference plane as thin as possible."
+          heading: "EMI vs. EMC: The Noise vs. The Law",
+          level: "beginner",
+          content: "Electromagnetic Interference (EMI) is the 'noise' escaping your device. Electromagnetic Compatibility (EMC) is our achievement of product coexistence through emission control and immunity performance.",
+          filletGrid: [
+            {
+              title: "What is EMI? (The Noise)",
+              color: "blue",
+              list: [
+                { label: "Analogy", text: "EMI is noise pollution. It disrupts nearby radios, monitors, and sensitive analog instruments." },
+                { label: "Sources", text: "Clock signals, switching power supplies, and poorly shielded cables." }
+              ]
+            },
+            {
+              title: "What is EMC? (The Law)",
+              color: "orange",
+              list: [
+                { label: "Analogy", text: "EMC is the noise ordinance. It ensures your device doesn't disturb others AND can survive high-noise environments." },
+                { label: "Goal", text: "EMC = Emission Control + Immunity (Susceptibility)." }
+              ]
+            }
+          ]
         },
         {
-          heading: "Chassis Ground vs Digital Ground",
-          content: "Connectors and metal enclosures should tie to a Chassis Ground, which couples to Digital Ground through high-voltage capacitors or specific tie points. This directs ESD strikes away from sensitive ICs and prevents the cable shield from becoming an antenna."
+          heading: "The Regulatory Landscape: Class A vs. Class B",
+          level: "beginner",
+          content: "Regulatory bodies like the FCC (USA) and CISPR (International) define limits based on the product's environment. Failing these tests bars your product from the market.",
+          table: {
+            headers: ["Standard", "Class", "Environment", "Emission Limit (Radiated)"],
+            rows: [
+              ["CISPR 32 / FCC Part 15", "Class A", "Industrial / Commercial", "40 dBμV/m (at 10m, 30-230MHz)"],
+              { type: 'highlight', data: ["CISPR 32 / FCC Part 15", "Class B", "Residential / Consumer", "30 dBμV/m (at 10m, 30-230MHz) — 10dB Stricter"] },
+              ["CISPR 25", "Class 5", "Automotive (Internal)", "18 dBμV/m (Strict frequency specific bands)"]
+            ]
+          },
+          alerts: [
+            { type: 'info', text: "Class B is 10dB stricter than Class A. If your product goes into a home, it MUST meet Class B. A 10dB difference is a 3.16x reduction in voltage field strength." }
+          ]
+        },
+        {
+          heading: "SMPS Noise & The Hot Loop",
+          level: "intermediate",
+          content: "Switching Power Supplies (SMPS) are the #1 source of conducted and radiated noise in modern PCBs. The layout of the 'Hot Loop' is critical for passing the 150kHz-30MHz range.",
+          cards: [
+            {
+              title: "Hot Loop Minimization",
+              text: "Keep the area between the input capacitor, switching transistor, and diode less than 1 cm². Loop area is directly proportional to radiated emission."
+            },
+            {
+              title: "Magnetic Orientation",
+              text: "Orient inductors away from sensitive analog areas. Use shielded inductors where possible to contain flux."
+            }
+          ]
+        },
+        {
+          heading: "Antenna Theory for Traces (λ/20 Rule)",
+          level: "intermediate",
+          content: "Every trace is a potential antenna. A trace becomes an efficient radiator when its length exceeds 1/20th of the wavelength (λ) of the signal harmonics.",
+          type: 'emi-calculator'
+        },
+        {
+          heading: "Ground Bounce & Signal Integrity",
+          level: "intermediate",
+          content: "When multiple signals switch simultaneously, current flows through ground plane inductance, creating a voltage drop ($V = L \cdot di/dt$). This causes spurious triggers and common-mode noise.",
+          alerts: [
+            { type: 'warning', text: "A 1ns edge rate through a 5nH ground path can create a 2V ground bounce. Use solid planes and multiple ground vias to minimize inductance." }
+          ]
+        },
+        {
+          heading: "The Ghost of Return Current: Image Planes",
+          level: "expert",
+          content: "In high-speed design, current follows the path of least **inductance**, not least resistance. At frequencies above 100 kHz, the return current crowds directly beneath the signal trace to minimize the loop area of the magnetic field.",
+          type: 'emi-visualizer'
+        },
+        {
+          heading: "The Pigtail Trap: Shield Integrity",
+          level: "expert",
+          content: "A cable shield is only as good as its termination. Connecting a shield via a wire 'pigtail' introduces enough inductance to ruin the shielding effectiveness at frequencies above 100 MHz.",
+          cards: [
+            {
+              title: "360° Termination",
+              text: "Use metal backshells that provide a continuous circular connection between the cable shield and the chassis. This ensures zero 'leakage' apertures."
+            },
+            {
+              title: "Transfer Impedance",
+              text: "Low transfer impedance (Zt) is the goal. A pigtail adds ~20nH per inch, which at 500MHz is a 60Ω impedance—effectively an open circuit to EMI."
+            }
+          ]
+        },
+        {
+          heading: "Golden Rule: Functional Partitioning",
+          level: "expert",
+          content: "Contrary to old advice, modern IPC-2221B standards suggest using a **solid, unified ground plane**. Instead of physically splitting the plane, partition your components by frequency and function.",
+          ruleCards: [
+            {
+              number: "01",
+              title: "No Ground Splits",
+              severity: "warning",
+              body: "Splitting a ground plane creates slots. If a signal crosses a slot, it creates a massive loop antenna. Use partitioning, not slots."
+            },
+            {
+              number: "02",
+              title: "Bridge Capacitors",
+              severity: "info",
+              body: "If you must have a split (e.g., isolation), use 'stitching' or bridge capacitors to provide a high-frequency return path."
+            }
+          ]
         }
       ],
-      checklist: [
-        "Filter all incoming power with proper bypass capacitors and ferrites.",
-        "Never cross a disrupted reference plane with a high-speed signal.",
-        "Slow down edge rates (rise/fall times) on non-critical signals using series resistors.",
-        "Add ESD protection diodes to all external I/O ports."
+      checklists: [
+        {
+          category: "Tier 1: Foundations (Beginner)",
+          items: [
+            "Maintain a solid ground plane across the entire board.",
+            "Filter all incoming power with proper bypass capacitors.",
+            "Add ESD protection to all user-accessible ports.",
+            "Keep clock signals as short as possible."
+          ]
+        },
+        {
+          category: "Tier 2: Applied Engineering (Intermediate)",
+          items: [
+            "Maintain minimal Hot Loop area for all SMPS stages (<1 cm²).",
+            "Slow down edge rates (Rise Time) on non-critical lines.",
+            "Choose ferrite beads based on resistive peak at problem frequency.",
+            "Ensure λ/20 trace length limits are respected for harmonics."
+          ]
+        },
+        {
+          category: "Tier 3: Advanced Physics (Expert)",
+          items: [
+            "Verify all layer transitions have adjacent ground stitching vias.",
+            "Shielded connectors use 360° circular metal backshells (No pigtails).",
+            "Zero trace-to-slot crossings on reference planes verified.",
+            "Return current loop area minimized via thin dielectric (<5 mil)."
+          ]
+        }
       ]
     }
   },
+
+
+
   { 
     id: "dfm_dft",    
     icon: Factory,        
