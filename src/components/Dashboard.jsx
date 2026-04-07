@@ -1,11 +1,11 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { modulesData } from '../data/modules';
 import { ChevronRight } from 'lucide-react';
 import RoadMap from './RoadMap';
+import { useDesign } from '../context/DesignContext';
 
 export default function Dashboard() {
-  const [activePhase, setActivePhase] = useState('Library');
+  const { activePhase, setActivePhase } = useDesign();
 
   // Mapping flow phase to module IDs
   const phaseToModules = {

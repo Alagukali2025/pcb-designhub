@@ -11,6 +11,8 @@ export const useDesign = () => {
 };
 
 export const DesignProvider = ({ children }) => {
+  const [activePhase, setActivePhase] = useState('Library');
+  
   // Global Engineering State (Single Source of Truth)
   const [activeStackup, setActiveStackup] = useState({
     height: 0.2,      // Dielectric Height H1 (mm)
@@ -32,6 +34,8 @@ export const DesignProvider = ({ children }) => {
   }, []);
 
   const value = {
+    activePhase,
+    setActivePhase,
     activeStackup,
     updateStackup
   };
