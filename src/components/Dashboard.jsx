@@ -13,7 +13,7 @@ export default function Dashboard() {
     'Stackup': ['stackup'],
     'Routing': ['diff_pair', 'high_speed', 'ddr', 'si_pi'],
     'DFM': ['dfm_dft', 'emi_emc'],
-    'Output': [] // No specific modules yet for Output output
+    'Output': ['pcb_output_system']
   };
 
   // Filter modules based on active phase (if null, show all)

@@ -18,6 +18,7 @@ import EMIVisualizer from './EMIVisualizer';
 import EMIKnowledgeToggle from './EMIKnowledgeToggle';
 import PITargetCalculator from './PITargetCalculator';
 import ViaResonanceCalculator from './ViaResonanceCalculator';
+import ReleaseSimulator from './OutputSystem/ReleaseSimulator';
 
 
 
@@ -318,6 +319,8 @@ export default function ContentViewer() {
                   {sec.type === 'pi-target-calc' && <PITargetCalculator />}
 
                   {sec.type === 'via-resonance-calc' && <ViaResonanceCalculator />}
+
+                  {sec.type === 'output-simulator' && <ReleaseSimulator />}
 
 
 
