@@ -115,8 +115,8 @@ const StackupCalculator = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg-grid-12 gap-8">
-        <div className="lg-col-7 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-7 space-y-8">
           <div className="bg-black-20 p-6 rounded-2xl border border-white-05">
             <h4 className="text-[10px] font-black text-tertiary uppercase tracking-widest mb-6">Cross-Section Diagram</h4>
             <div className="flex justify-center h-32">
@@ -148,7 +148,7 @@ const StackupCalculator = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-tertiary uppercase tracking-widest pl-1">H — Dielectric Height (mm)</label>
               <input 
@@ -203,7 +203,7 @@ const StackupCalculator = () => {
           </div>
         </div>
 
-        <div className="lg-col-5 space-y-6">
+        <div className="lg:col-span-5 space-y-6">
           <div className="bg-gradient-to-br from-blue-500/5 to-purple-500/5 p-8 rounded-3xl border border-white-05 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
               <Calculator size={80} className="text-secondary" />

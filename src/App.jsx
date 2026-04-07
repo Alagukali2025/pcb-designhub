@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import ContentViewer from './components/ContentViewer';
+import LoadingScreen from './components/LoadingScreen';
 import { DesignProvider } from './context/DesignContext';
 
 function App() {
@@ -15,6 +16,18 @@ function App() {
     // Default open on desktop, closed on mobile
     return window.innerWidth > 1024;
   });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFadingOut, setIsFadingOut] = useState(false);
+
+  useEffect(() => {
+    // Simulate engine bootstrapping / loading models
+    const timer = setTimeout(() => {
+      setIsFadingOut(true);
+      setTimeout(() => setIsLoading(false), 800); // Wait for fade out animation
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (theme === 'light') {
@@ -48,6 +61,7 @@ function App() {
 
   return (
     <DesignProvider>
+      {isLoading && <LoadingScreen isFadingOut={isFadingOut} />}
       <div className={`app-layout ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
         <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
         <div className="main-content">

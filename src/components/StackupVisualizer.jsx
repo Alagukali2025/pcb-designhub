@@ -44,7 +44,7 @@ const StackupVisualizer = () => {
       {/* Main Visualizer Container */}
       <div className="max-w-6xl mx-auto space-y-3 relative z-10">
         {layers.map((layer, idx) => (
-          <div key={idx} className={`group/row grid grid-cols-[60px_1fr_300px] lg:grid-cols-[100px_1fr_400px] items-center gap-6 lg:gap-16 relative ${layer.isMid ? 'py-6' : ''}`}>
+          <div key={idx} className={`group/row flex flex-col md:grid md:grid-cols-[80px_1fr_250px] lg:grid-cols-[100px_1fr_400px] items-center md:items-center gap-4 md:gap-6 lg:gap-16 relative p-6 md:p-0 bg-white/[0.02] md:bg-transparent rounded-3xl md:rounded-none border border-white/5 md:border-none ${layer.isMid ? 'md:py-6 mt-8 md:mt-0' : ''}`}>
             
             {/* Mid-Plane Indicator */}
             {layer.isMid && (
@@ -58,15 +58,15 @@ const StackupVisualizer = () => {
             )}
 
             {/* Column 1: ID */}
-            <div className="text-right">
+            <div className="text-center md:text-right w-full md:w-auto mb-2 md:mb-0">
               <span className="text-base lg:text-2xl font-black text-white/20 group-hover/row:text-blue-400 group-hover/row:scale-125 transition-all duration-500 block transform">
                 {layer.id}
               </span>
             </div>
 
             {/* Column 2: The Visual Bar (Solid Height via Style) */}
-            <div className="relative w-full rounded-2xl shadow-lg border border-white/10 overflow-hidden cursor-pointer group-hover/row:border-blue-400/50 group-hover/row:scale-[1.02] transition-all duration-700 box-border"
-                 style={{ height: `${layer.h}px`, backgroundColor: layer.color }}>
+            <div className="relative w-full rounded-2xl shadow-lg border border-white/10 overflow-hidden cursor-pointer group-hover/row:border-blue-400/50 group-hover/row:scale-[1.02] transition-all duration-700 box-border flex-shrink-0"
+                 style={{ minHeight: '32px', height: `${layer.h}px`, backgroundColor: layer.color }}>
                
                {/* Depth & Light effects */}
                <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent opacity-40" />
@@ -85,16 +85,16 @@ const StackupVisualizer = () => {
             </div>
 
             {/* Column 3: The Technical Legend */}
-            <div className="flex items-center gap-6 group-hover/row:translate-x-8 transition-all duration-500">
-               <div className={`w-3 h-12 rounded-full shadow-inner transition-all duration-700 ${
+            <div className="flex flex-col md:flex-row items-center md:items-center gap-4 md:gap-6 group-hover/row:translate-x-8 transition-all duration-500 w-full md:w-auto text-center md:text-left mt-2 md:mt-0">
+               <div className={`hidden md:block w-3 h-12 rounded-full shadow-inner transition-all duration-700 ${
                  layer.type === 'copper' ? 'bg-orange-600/20 group-hover/row:bg-orange-500 group-hover/row:shadow-[0_0_20px_rgba(249,115,22,0.6)]' :
                  layer.type === 'mask' ? 'bg-green-600/20 group-hover/row:bg-green-500 group-hover/row:shadow-[0_0_20px_rgba(34,197,94,0.6)]' :
                  'bg-white/5 group-hover/row:bg-blue-500 group-hover/row:shadow-[0_0_20px_rgba(59,130,246,0.6)]'
                }`} />
 
                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-4 mb-2">
-                    <span className="text-[15px] lg:text-[17px] font-black text-white tracking-tighter uppercase truncate leading-none">
+                  <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mb-2">
+                    <span className="text-[14px] md:text-[15px] lg:text-[17px] font-black text-white tracking-tighter uppercase truncate leading-none">
                       {layer.label}
                     </span>
                     <span className="shrink-0 px-3 py-1 bg-white/10 border border-white/10 rounded-lg text-[10px] font-black text-white/50 shadow-2xl">
