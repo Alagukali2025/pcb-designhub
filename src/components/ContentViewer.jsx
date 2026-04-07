@@ -16,8 +16,12 @@ import DDRTimingCalculator from './DDRTimingCalculator';
 import EMICalculator from './EMICalculator';
 import EMIVisualizer from './EMIVisualizer';
 import EMIKnowledgeToggle from './EMIKnowledgeToggle';
-import PITargetCalculator from './PITargetCalculator';
 import ViaResonanceCalculator from './ViaResonanceCalculator';
+import ViaAdvancedCalculator from './ViaAdvancedCalculator';
+import PDNAnalyzer from './PDNAnalyzer';
+import ThermalAnalysisTool from './ThermalAnalysisTool';
+import IPC2152Calculator from './IPC2152Calculator';
+import EMIChecklist from './EMIChecklist';
 import ReleaseSimulator from './OutputSystem/ReleaseSimulator';
 
 
@@ -319,6 +323,16 @@ export default function ContentViewer() {
                   {sec.type === 'pi-target-calc' && <PITargetCalculator />}
 
                   {sec.type === 'via-resonance-calc' && <ViaResonanceCalculator />}
+
+                  {sec.type === 'via-advanced-calc' && <ViaAdvancedCalculator />}
+
+                  {sec.type === 'pdn-analyzer' && <PDNAnalyzer />}
+
+                  {sec.type === 'thermal-tool' && <ThermalAnalysisTool />}
+
+                  {sec.type === 'ipc2152-calc' && <IPC2152Calculator />}
+
+                  {sec.type === 'emi-checklist-tool' && <EMIChecklist />}
 
                   {sec.type === 'output-simulator' && <ReleaseSimulator />}
 

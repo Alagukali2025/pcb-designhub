@@ -549,6 +549,11 @@ export const modulesData = [
           type: 'stackup-export'
         },
         {
+          heading: "Current Carrying Capacity (IPC-2152)",
+          content: "Calculate the required trace width for a target current and allowable temperature rise based on the modern IPC-2152 standards. Internal traces (stripline) and external traces (microstrip) require different widths due to thermal dissipation variables.",
+          type: 'ipc2152-calc'
+        },
+        {
           heading: "IPC Standards Compliance",
           content: "Specify laminates by IPC slash-sheet designators in your SSOT — never by brand name alone — to prevent unauthorized substitutions.",
           table: {
@@ -1078,22 +1083,7 @@ export const modulesData = [
         {
           heading: "Power Integrity (PI) Fundamentals",
           content: "Power Delivery Networks (PDN) serve as the return path for all signals. If the PDN impedance is too high at a given frequency, the voltage rails will collapse during high-speed switching (SSN).",
-          formula: {
-            title: "Target Impedance (Ztarget)",
-            equations: [
-              "Ztarget = (Vrail × ripple_max%) / Imax_transient"
-            ],
-            variables: [
-              { name: "Vrail", desc: "Voltage level", tag: "INPUT" },
-              { name: "Imax", desc: "Transient current", tag: "INPUT" }
-            ]
-          },
-          list: [
-            { label: "Plane Capacitance", text: "Keep PWR and GND planes adjacent (e.g., 2–4 mils) to provide high-frequency buried capacitance." },
-            { label: "Target Impedance", text: "Maintain Ztarget from DC to the 5th harmonic of the data rate." },
-            { label: "Decoupling Loop", text: "Minimize the 'Loop Inductance' between the IC and the decoupling capacitor pins." }
-          ],
-          type: "pi-target-calc"
+          type: "pdn-analyzer"
         },
         {
           heading: "Routing Techniques & Geometry",
@@ -1213,23 +1203,7 @@ export const modulesData = [
         {
           heading: "Via Design & Stitching",
           content: "Vias introduce parasitic inductance and capacitance. Optimization is non-negotiable above 5 Gbps.",
-          formula: {
-            title: "Via Parasitic Model",
-            equations: [
-              "Lvia ≈ (5.08 × H) × [ln(4H/d) + 1] // nH",
-              "Cvia ≈ 1.41 × εr × T × D / (D₂ − D) // pF"
-            ],
-            variables: [
-              { name: "H", desc: "Via length (inch)", tag: "INPUT" },
-              { name: "d", desc: "Drill diameter (inch)", tag: "INPUT" }
-            ]
-          },
-          list: [
-            { label: "Back-drilling", text: "Removes unused via stubs. Essential for >5 Gbps designs." },
-            { label: "GND Proximity", text: "Place GND reference vias within 20 mils of high-speed signal vias." },
-            { label: "Stitching", text: "Spacing ≤ λ/20 to suppress EMI and prevent plane separation." }
-          ],
-          type: "via-resonance-calc"
+          type: "via-advanced-calc"
         },
         {
           heading: "EMI / EMC Compliance",
@@ -1658,6 +1632,11 @@ export const modulesData = [
               ["Surge / EFT", "IEC 61000-4-4/5", "±1kV - ±2kV Transients", "Criterion B (No reset)"]
             ]
           }
+        },
+        {
+          heading: "EMI Design Compliance Checklist",
+          content: "A systematic, engineering-accurate checklist for ensuring electromagnetic compatibility. Based on industrial shielding, grounding, and filtering best practices.",
+          type: "emi-checklist-tool"
         }
       ],
       checklists: [
@@ -1805,6 +1784,11 @@ export const modulesData = [
           ]
         },
         {
+          heading: "Thermal Management & Copper Relief",
+          content: "Analyze the thermal resistance of vias and the efficiency of copper pour thermal relief. Solid connections provide better thermal dissipation but create soldering risks; relief spokes balance these requirements.",
+          type: "thermal-tool"
+        },
+        {
           heading: "Interactive: Real-Time DFM Rule Checker",
           level: "expert",
           content: "Validate your design parameters against the IPC-2221B and IPC-6012 industrial limits. This engine provides instant feedback on aspect ratio, annular rings, and solder mask dams.",
@@ -1895,7 +1879,7 @@ export const modulesData = [
         {
           heading: "PI Core: Target Impedance & PDN",
           content: "The Power Distribution Network (PDN) must maintain an impedance (Ztarget) below the threshold from DC to the bandwidth of the switching current.",
-          type: 'pi-target-calc'
+          type: 'pdn-analyzer'
         },
         {
           heading: "Decoupling Hierarchy & Via Physics",
