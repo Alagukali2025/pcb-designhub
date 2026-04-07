@@ -1,5 +1,4 @@
 import React from 'react';
-import { Cpu } from 'lucide-react';
 
 const LoadingScreen = ({ isFadingOut }) => {
   return (
@@ -19,7 +18,7 @@ const LoadingScreen = ({ isFadingOut }) => {
             
             {/* Central Hexagon Core (Green/Copper Mix) */}
             <div className="hex-core">
-              <Cpu size={36} className="core-icon" />
+              <img src="/logo.png" alt="Engineering Core" className="core-logo-img" />
             </div>
 
             {/* Orbiting particles */}

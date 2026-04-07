@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, User, Sun, Moon, Menu, X, Layers } from 'lucide-react';
+import { Search, User, Sun, Moon, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpen }) {
@@ -17,7 +17,7 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
         </button>
         
         <Link to="/" className="header-logo">
-          <Layers className="logo-icon" />
+          <img src="/logo.png" alt="PCB Design Hub Logo" className="logo-img" />
           <span className="logo-text">PCB Design Hub</span>
         </Link>
         

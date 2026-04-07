@@ -1572,132 +1572,109 @@ export const modulesData = [
     title: "EMI / EMC Compliance", 
     desc: "Master regulatory standards and suppression techniques.",
     content: {
-      intro: "A professional-grade engineering guide to electromagnetic compatibility. Success in the EMC lab begins with physics-driven PCB layout, focusing on loop area containment, spectrum management, and strategic grounding based on IPC-2141A and IPC-2221B.",
+      intro: "A professional-grade engineering guide to electromagnetic compatibility. Success in the EMC lab begins with physics-driven PCB layout, focusing on loop area containment, spectrum management, and strategic grounding based on IPC-2141A, CISPR 32, and FCC Part 15 standards.",
       sections: [
         {
-          heading: "EMI vs. EMC: The Noise vs. The Law",
+          heading: "1. The Regulatory Landscape: Class A vs. Class B",
           level: "beginner",
-          content: "Electromagnetic Interference (EMI) is the 'noise' escaping your device. Electromagnetic Compatibility (EMC) is our achievement of product coexistence through emission control and immunity performance.",
-          filletGrid: [
-            {
-              title: "What is EMI? (The Noise)",
-              color: "blue",
-              list: [
-                { label: "Analogy", text: "EMI is noise pollution. It disrupts nearby radios, monitors, and sensitive analog instruments." },
-                { label: "Sources", text: "Clock signals, switching power supplies, and poorly shielded cables." }
-              ]
-            },
-            {
-              title: "What is EMC? (The Law)",
-              color: "orange",
-              list: [
-                { label: "Analogy", text: "EMC is the noise ordinance. It ensures your device doesn't disturb others AND can survive high-noise environments." },
-                { label: "Goal", text: "EMC = Emission Control + Immunity (Susceptibility)." }
-              ]
-            }
-          ]
-        },
-        {
-          heading: "The Regulatory Landscape: Class A vs. Class B",
-          level: "beginner",
-          content: "Regulatory bodies like the FCC (USA) and CISPR (International) define limits based on the product's environment. Failing these tests bars your product from the market.",
+          content: "Regulatory bodies like the FCC (USA) and CISPR (International) define strict limits based on the product's environment. Failing these tests bars your product from the market.",
           table: {
             headers: ["Standard", "Class", "Environment", "Emission Limit (Radiated)"],
             rows: [
               ["CISPR 32 / FCC Part 15", "Class A", "Industrial / Commercial", "40 dBμV/m (at 10m, 30-230MHz)"],
               { type: 'highlight', data: ["CISPR 32 / FCC Part 15", "Class B", "Residential / Consumer", "30 dBμV/m (at 10m, 30-230MHz) — 10dB Stricter"] },
-              ["CISPR 25", "Class 5", "Automotive (Internal)", "18 dBμV/m (Strict frequency specific bands)"]
+              ["CISPR 25", "Class 5", "Automotive (Internal)", "18 dBμV/m (Extreme Sensitivity)"]
             ]
           },
           alerts: [
-            { type: 'info', text: "Class B is 10dB stricter than Class A. If your product goes into a home, it MUST meet Class B. A 10dB difference is a 3.16x reduction in voltage field strength." }
+            { type: 'info', text: "Class B is 10dB stricter than Class A. If your product enters a home, it MUST meet Class B. A 10dB difference is a 3.16x reduction in voltage field strength." }
           ]
         },
         {
-          heading: "SMPS Noise & The Hot Loop",
+          heading: "2. Antenna Theory for Traces (The λ/20 Rule)",
           level: "intermediate",
-          content: "Switching Power Supplies (SMPS) are the #1 source of conducted and radiated noise in modern PCBs. The layout of the 'Hot Loop' is critical for passing the 150kHz-30MHz range.",
+          content: "Every trace is a potential antenna. A trace becomes an efficient radiator when its length exceeds 1/20th of the wavelength (λ) of the signal harmonics. The edge rate (Rise Time) is more dangerous than the fundamental frequency.",
+          formula: {
+            title: "Maximum Harmonic Frequencies",
+            equations: [
+              "Fmax ≈ 0.35 / Tr (Rise Time)",
+              "λ (Wavelength) = c / (Fmax × √εr)",
+              "Critical Length = λ / 20"
+            ],
+            variables: [
+              { name: "Tr", desc: "10-90% Rise Time (ns)", tag: "INPUT" },
+              { name: "√εr", desc: "Dielectric Constant (e.g., 4.4 for FR4)", tag: "CONST" }
+            ]
+          }
+        },
+        {
+          heading: "3. Power Supplies: The Hot Loop Physics",
+          level: "intermediate",
+          content: "Switching Power Supplies (SMPS) are the primary source of conducted and radiated noise. The 'Hot Loop' (high di/dt path) must be minimized to contain the magnetic field.",
           cards: [
             {
-              title: "Hot Loop Minimization",
-              text: "Keep the area between the input capacitor, switching transistor, and diode less than 1 cm². Loop area is directly proportional to radiated emission."
+              title: "Current Loop Area",
+              text: "Radiated Field (B) ∝ I × Area / r³. Keep the area between the input capacitor and the switching transistor < 1 cm²."
             },
             {
-              title: "Magnetic Orientation",
-              text: "Orient inductors away from sensitive analog areas. Use shielded inductors where possible to contain flux."
+              title: "Common-Mode Chokes",
+              text: "Essential for conducted emissions (150kHz - 30MHz). Chokes provide high impedance to common-mode currents while passing differential-mode power."
             }
           ]
         },
         {
-          heading: "Antenna Theory for Traces (λ/20 Rule)",
-          level: "intermediate",
-          content: "Every trace is a potential antenna. A trace becomes an efficient radiator when its length exceeds 1/20th of the wavelength (λ) of the signal harmonics.",
-          type: 'emi-calculator'
-        },
-        {
-          heading: "Ground Bounce & Signal Integrity",
-          level: "intermediate",
-          content: "When multiple signals switch simultaneously, current flows through ground plane inductance, creating a voltage drop ($V = L \cdot di/dt$). This causes spurious triggers and common-mode noise.",
+          heading: "4. The Ghost of Return Current: Image Planes",
+          level: "expert",
+          content: "In high-speed design, current follows the path of least **inductance**, not resistance. Above 100 kHz, the return current crowds directly beneath the signal trace to minimize loop area. Any split in this image plane creates a massive antenna.",
           alerts: [
-            { type: 'warning', text: "A 1ns edge rate through a 5nH ground path can create a 2V ground bounce. Use solid planes and multiple ground vias to minimize inductance." }
+            { type: 'danger', text: "Never route signal traces over slots or splits in ground planes. The return current detour creates a 'Slot Antenna' that can fail FCC/CISPR limits by 20dB or more." }
           ]
         },
         {
-          heading: "The Ghost of Return Current: Image Planes",
+          heading: "5. The Pigtail Trap: Shield Integrity",
           level: "expert",
-          content: "In high-speed design, current follows the path of least **inductance**, not least resistance. At frequencies above 100 kHz, the return current crowds directly beneath the signal trace to minimize the loop area of the magnetic field.",
-          type: 'emi-visualizer'
-        },
-        {
-          heading: "The Pigtail Trap: Shield Integrity",
-          level: "expert",
-          content: "A cable shield is only as good as its termination. Connecting a shield via a wire 'pigtail' introduces enough inductance to ruin the shielding effectiveness at frequencies above 100 MHz.",
+          content: "A cable shield is only as good as its termination. Connecting a shield via a wire 'pigtail' introduces enough inductance to ruin shielding above 100 MHz.",
           cards: [
             {
               title: "360° Termination",
-              text: "Use metal backshells that provide a continuous circular connection between the cable shield and the chassis. This ensures zero 'leakage' apertures."
+              text: "Use metal backshells for continuous circular connection between shield and chassis. Zero 'leakage' apertures are the goal."
             },
             {
-              title: "Transfer Impedance",
-              text: "Low transfer impedance (Zt) is the goal. A pigtail adds ~20nH per inch, which at 500MHz is a 60Ω impedance—effectively an open circuit to EMI."
+              title: "The Pigtail Impedance",
+              text: "A 1-inch pigtail (20nH) at 500MHz presents a 63Ω impedance—effectively an open circuit to EMI."
             }
           ]
         },
         {
-          heading: "Golden Rule: Functional Partitioning",
+          heading: "6. Regulatory Tiers: FCC / CISPR / IEC Standards",
           level: "expert",
-          content: "Contrary to old advice, modern IPC-2221B standards suggest using a **solid, unified ground plane**. Instead of physically splitting the plane, partition your components by frequency and function.",
-          ruleCards: [
-            {
-              number: "01",
-              title: "No Ground Splits",
-              severity: "warning",
-              body: "Splitting a ground plane creates slots. If a signal crosses a slot, it creates a massive loop antenna. Use partitioning, not slots."
-            },
-            {
-              number: "02",
-              title: "Bridge Capacitors",
-              severity: "info",
-              body: "If you must have a split (e.g., isolation), use 'stitching' or bridge capacitors to provide a high-frequency return path."
-            }
-          ]
+          content: "Professional engineers design for global compliance simultaneously. CISPR 32 is the industry baseline for multimedia equipment.",
+          table: {
+            headers: ["Test Type", "Standard", "Typical Requirement", "Pass Criteria"],
+            rows: [
+              ["Conducted Emissions", "CISPR 32 / FCC P15", "150kHz - 30MHz (LISN)", "< 56 dBuV (QP)"],
+              ["Radiated Emissions", "CISPR 32 / FCC P15", "30MHz - 6GHz (Anechoic)", "< 40 dBuV/m (Class A)"],
+              ["ESD Immunity", "IEC 61000-4-2", "±8kV Air / ±4kV Contact", "Criterion B (No reset)"],
+              ["Surge / EFT", "IEC 61000-4-4/5", "±1kV - ±2kV Transients", "Criterion B (No reset)"]
+            ]
+          }
         }
       ],
       checklists: [
         {
           category: "Tier 1: Foundations (Beginner)",
           items: [
-            "Maintain a solid ground plane across the entire board.",
+            "Maintain a solid, unified ground plane across the entire board.",
+            "Partition noisy power circuits from sensitive analog zones.",
             "Filter all incoming power with proper bypass capacitors.",
-            "Add ESD protection to all user-accessible ports.",
-            "Keep clock signals as short as possible."
+            "Keep clock signals as short as possible with dedicated return paths."
           ]
         },
         {
           category: "Tier 2: Applied Engineering (Intermediate)",
           items: [
             "Maintain minimal Hot Loop area for all SMPS stages (<1 cm²).",
-            "Slow down edge rates (Rise Time) on non-critical lines.",
+            "Slow down edge rates (Rise Time) on non-critical control lines.",
             "Choose ferrite beads based on resistive peak at problem frequency.",
             "Ensure λ/20 trace length limits are respected for harmonics."
           ]
@@ -1707,7 +1684,7 @@ export const modulesData = [
           items: [
             "Verify all layer transitions have adjacent ground stitching vias.",
             "Shielded connectors use 360° circular metal backshells (No pigtails).",
-            "Zero trace-to-slot crossings on reference planes verified.",
+            "Zero trace-to-slot crossings on reference planes verified via CAM.",
             "Return current loop area minimized via thin dielectric (<5 mil)."
           ]
         }
@@ -1720,180 +1697,149 @@ export const modulesData = [
   { 
     id: "dfm_dft",    
     icon: Factory,        
-    title: "DFM / DFT",                 
-    desc: "Achieve industrial-grade yields and test coverage.",
+    title: "DFM / DFT Mastery",                 
+    desc: "Achieve industrial-grade yields and 100% test coverage.",
     content: {
-      intro: "Design for Manufacturing (DFM) and Design for Testing (DFT) are the twin pillars of professional PCB engineering. DFM ensures your board can be built reliably, repeatably, and at target cost. DFT ensures that every critical net, component, and function can be verified after assembly. This guide provides a Single Source of Truth for DFM/DFT based on IPC-A-610, IPC-2221B, and J-STD-020 standards, ensuring high-yield production from prototype to volume.",
+      intro: "Design for Manufacturing (DFM) and Design for Testing (DFT) are the twin pillars of professional PCB engineering. DFM ensures your board can be built reliably and repeatably at target cost, while DFT ensures every critical net is verifiable. Grounded in IPC-A-610, IPC-2221B, and J-STD-020, this module serves as the authoritative Single Source of Truth (SSOT) for industrial-grade production.",
       sections: [
         {
-          heading: "The Business Case: Yield and Rework",
-          content: "In volume production, every 1% drop in yield significantly increases total product cost. DFM reduces NPI (New Product Introduction) cycles, while DFT prevents field failures by catching assembly defects at ICT.",
+          heading: "1. The Business Case: Yield and Rework",
+          level: "beginner",
+          content: "In volume production, every 1% drop in yield significantly increases total product cost. First Pass Yield (FPY) is the primary metric of design quality.",
           table: {
-            headers: ["Metric", "Without DFM/DFT", "Professional Engineering (SSOT)"],
+            headers: ["Metric", "Standard Layout", "Professional Engineering (SSOT)"],
             rows: [
               ["First-Pass Yield", "≤ 85%", "> 99.5%"],
               ["Rework Cost", "High (Manual)", "Minimal (Optimized Process)"],
-              ["Time-to-Market", "3-5 Rework Cycles", "1-2 Cycles (Correct by Design)"],
               ["Field Reliability", "Variable/Unknown", "Verifiable & Guaranteed"]
+            ]
+          },
+          alerts: [
+            { type: 'info', text: "A board with 5,000 solder joints at a 100 PPM defect rate has a 50% chance of failing FPY. DFM reduces joint-level defects; DFT catches the rest." }
+          ]
+        },
+        {
+          heading: "2. Fabrication Physics: Beyond the Basics",
+          level: "intermediate",
+          content: "PCB fabrication is a subtractive chemical process. Layout geometry determines etching consistency and plating integrity.",
+          mistakeList: [
+            { mistake: "Acid Traps (Acute Angles)", fix: "Use 45° or rounded corners. Acute angles (<90°) trap etchant, leading to over-etching and open circuits." },
+            { mistake: "Copper Slivers", fix: "Maintain min 8 mil spacing between features to prevent thin copper flakes that can cause intermittent shorts." },
+            { mistake: "Aspect Ratio Violation", fix: "Keep board-thickness-to-drill-diameter ratio ≤ 12:1 to ensure reliable copper plating inside the barrel." }
+          ],
+          table: {
+            headers: ["Parameter", "Class 2 (Standard)", "Class 3 (High Rel)"],
+            rows: [
+              ["Min Annular Ring (PTH)", "0.125mm (5 mil)", "0.050mm (2 mil)"],
+              ["Trace / Space", "0.100mm (4 mil)", "0.075mm (3 mil)"],
+              ["Plating Thickness", "20µm", "25µm (min wall)"]
             ]
           }
         },
         {
-          heading: "Fabrication & Assembly Thermal Profiles",
-          content: "Your design must survive the heat. Assembly processes like Reflow and Wave Soldering subject the board to temperatures between 235°C and 260°C. Material selection and pad design must account for these thermal cycles.",
+          heading: "3. Assembly & Thermal Profiles (J-STD-020)",
+          level: "intermediate",
+          content: "Your design must survive the heat. Assembly processes like Reflow and Wave Soldering subject the board to temperatures between 235°C and 260°C.",
           table: {
-            headers: ["Process", "Standard", "Temperature Range", "Duration (Time Above Liquidus)"],
+            headers: ["Process Stage", "Temperature Range", "Duration (Time Above Liquidus)"],
             rows: [
-              ["Reflow (SMT)", "J-STD-020", "235–260°C (SAC305)", "30–90 sec (217°C)"],
-              { type: 'highlight', data: ["Wave (PTH)", "IPC-A-610", "260°C ±5°C", "2–4 sec Contact"] },
-              ["Preheat", "MFR Spec", "100–130°C", "60–120 sec"]
+              ["Reflow (SMT)", "235–260°C (SAC305)", "30–90 sec (217°C)"],
+              { type: 'highlight', data: ["Wave (PTH)", "260°C ±5°C", "2–4 sec Contact"] },
+              ["Preheat", "100–130°C", "60–120 sec"]
             ]
           },
-          alerts: [
-            { type: 'info', text: "Lead-free SAC305 solder requires significantly higher temperatures than leaded SnPb. Ensure all components are rated for 260°C reflow." }
+          ruleCards: [
+            {
+              number: "01",
+              title: "4-Spoke Thermal Relief",
+              severity: "warning",
+              body: "Add 4 spokes to all PTH pads in copper pours. Solid connections act as heatsinks, causing 'cold solder joints' that fail inspection."
+            },
+            {
+              number: "02",
+              title: "Tombstoning Prevention",
+              severity: "danger",
+              body: "Ensure symmetric pad sizes and copper balance for MLCC passives. Unbalanced wetting forces will pull the component upright during reflow."
+            }
           ]
         },
         {
-          heading: "Testing Methodologies & DFT Coverage",
-          content: "DFT ensures the board is testable after assembly. A combination of In-Circuit Testing (ICT), Flying Probe, and JTAG provides maximum fault coverage.",
+          heading: "4. DFT Architecture: ICT vs. JTAG",
+          level: "expert",
+          content: "DFT ensures the board is testable after assembly. A combination of In-Circuit Testing (ICT) and Boundary Scan (JTAG) provides 100% fault coverage.",
           filletGrid: [
             {
-              title: "ICT (In-Circuit)",
+              title: "ICT (Bed-of-Nails)",
               color: "blue",
               list: [
-                { label: "Method", text: "Bed-of-Nails fixture contacts dedicated test points simultaneously." },
-                { label: "Strength", text: "Fast; captures manufacturing defects on every net." },
-                { label: "Cost", text: "High fixture cost ($5k–$50k); amortized over volume." }
-              ]
-            },
-            {
-              title: "Flying Probe",
-              color: "orange",
-              list: [
-                { label: "Method", text: "Robotic probes move to pads and vias independently." },
-                { label: "Strength", text: "No fixture cost; flexible for NPI and low volume." },
-                { label: "Requirement", text: "Accessible pads/vias on both sides." }
+                { label: "Requirement", text: "Min 1mm (40mil) test points on 100% of nets." },
+                { label: "Spacing", text: "Maintain 100mil (2.54mm) grid for standard probe fixtures." },
+                { label: "Side", text: "Place 100% of TPs on bottom side to allow single-stage testing." }
               ]
             },
             {
               title: "Boundary Scan (JTAG)",
               color: "cyan",
               list: [
-                { label: "Method", text: "IEEE 1149.1; tests IC pins via software chain." },
-                { label: "Strength", text: "Probes nets under BGAs where physical access is impossible." },
-                { label: "Requirement", text: "TDI, TDO, TMS, TCK, TRST* TAP interface." }
+                { label: "Standard", text: "IEEE 1149.1 TAP interface (TMS, TCK, TDI, TDO)." },
+                { label: "Advantage", text: "Probes nets under BGAs where physical access is impossible." },
+                { label: "Chain", text: "Connect TDO of IC1 to TDI of IC2 for unified chain access." }
               ]
             }
           ]
         },
         {
-          heading: "Panelization & Depaneling Stress",
-          content: "Individual boards are typically arrayed in a larger 'panel' for assembly. The method of depaneling (separation) introduces mechanical stress that can crack ceramic capacitors (MLCCs).",
+          heading: "5. Panelization & Fiducial Strategy",
+          level: "expert",
+          content: "Individual boards are arrayed in panels for assembly. Depaneling introduces mechanical stress that must be mitigated.",
           table: {
-            headers: ["Method", "Shape Capability", "Depanel Stress", "Advantage"],
+            headers: ["Method", "Component Clearance", "Depanel Stress", "Board Shape"],
             rows: [
-              ["V-Groove / V-Score", "Rectangular Only", "Moderate (Shear)", "Cheap; no material waste"],
-              { type: 'highlight', data: ["Tab-Routing", "Irregular Shapes", "Low (if routed properly)", "Best for sensitive components"] },
-              ["Laser Depaneling", "Any Shape", "Near Zero", "High precision; no stress"]
+              ["V-Score", "0.5mm (20 mil)", "Moderate (Shear)", "Rectangular Only"],
+              { type: 'highlight', data: ["Tab-Routing", "2.0-5.0mm (Tab)", "Low (if routed)", "Irregular Shapes"] },
+              ["Laser Depanel", "0.2mm", "Near Zero", "Any Shape / High Precision"]
             ]
           },
           alerts: [
-            { type: 'warning', text: "Keep MLCCs and sensitive ICs at least 3-5mm away from V-score lines or Tab-routing break-points to prevent stress-induced failure." }
+            { type: 'danger', text: "Place 3 global fiducials (non-colinear) on the panel rails. Camera alignment fails if fiducials are in a single line." }
           ]
         },
         {
-          heading: "Common DFM Defects & Mitigation",
-          content: "Preventable defects occur at the interaction between footprint geometry and soldering dynamics.",
-          mistakeList: [
-            { mistake: "Acid Traps (Acute Angles)", fix: "Use 45° or rounded corners on all traces to prevent etchant build-up." },
-            { mistake: "Tombstoning (Passive Lift)", fix: "Balance pad sizes and thermal relief to ensure symmetric wetting forces." },
-            { mistake: "Solder Bridging (Dams)", fix: "Ensure minimum 4 mil (0.1mm) solder mask dams between pads on fine-pitch components." },
-            { mistake: "BGA Voids (Via wicking)", fix: "Specify IPC-4761 Type VII filled/capped vias for via-in-pad locations." }
-          ]
-        },
-        {
-          heading: "Tool-Specific DFM Configuration",
-          content: "Modern EDA tools integrate DFM checks directly into the constraint manager. These rules should be imported early from the fabricator's capability list.",
-          twoColumnGrid: [
-            {
-              badge: "Altium Designer",
-              badgeClass: "tool-badge-altium",
-              title: "Manufacturing Rules",
-              items: [
-                "Verify 'Manufacturing' rule set (Min Annular Ring, Mask Expansion).",
-                "Use 'Testpoint' rules for probe grid (typically 2.54mm/100mil).",
-                "Layer Stack Manager → Impedance → Fabrication tolerance."
-              ]
-            },
-            {
-              badge: "Cadence Allegro",
-              badgeClass: "tool-badge-cadence",
-              title: "Analysis Modes",
-              items: [
-                "Analyze → Design for Manufacturing (DFM) check engine.",
-                "Verify 'Spacing' rules include component-to-edge constraints.",
-                "DFT Analyst add-on evaluates ICT coverage and testability."
-              ]
-            }
-          ]
-        },
-        {
-          heading: "Real-Time DFM Rule Checker",
-          content: "Enter your board parameters to validate against IPC-2221B and IPC-6012 manufacturing limits. This interactive engine checks Aspect Ratio, Copper Weight vs. Trace Width, and Copper Density Balance simultaneously, providing instant pass/fail feedback for high-yield production.",
+          heading: "Interactive: Real-Time DFM Rule Checker",
+          level: "expert",
+          content: "Validate your design parameters against the IPC-2221B and IPC-6012 industrial limits. This engine provides instant feedback on aspect ratio, annular rings, and solder mask dams.",
           type: 'dfm-checker'
-        },
-        {
-          heading: "Professional Design Flow (SSOT)",
-          content: "Follow this systematic workflow to ensure industrial compliance.",
-          flow: [
-            { step: "01", title: "Capabilities", desc: "Collect Fab Rules and Assembly DFM guidelines (The SSOT constraints)" },
-            { step: "02", title: "Constraints", desc: "Embed min trace/space/annular ring into CAD Constraint Manager" },
-            { step: "03", title: "Placement", desc: "Respect assembly keepouts, fiducials, and thermal balance" },
-            { step: "04", title: "DFT Planning", desc: "Assign test points to every net (Reset, PWR, Clocks, Buses)" },
-            { step: "05", title: "Verification", desc: "Run full DRC, DFA, and DFT reports — zero violations required" },
-            { step: "06", title: "Review", desc: "Formal MFR DFM Review before tape-out — incorporating fab feedback" }
-          ]
         }
       ],
       checklists: [
         {
-          category: "1. Pre-Layout & Fabrication",
+          category: "1. Fabrication Sign-Off",
           items: [
-            "Laminate selection (Tg/Td) verified against Lead-Free reflow profile.",
-            "Fabricator's min trace/space and drill size confirmed.",
-            "Soldermask expansion set to min 2 mil (0.05mm) or per fab requirement.",
-            "Impedance-controlled traces call-out clearly in fab drawings.",
-            "Solder mask dams for 0.5mm pitch parts verified (≥4 mil)."
+            "Laminate selection (Tg/Td) verified for Lead-Free reflow.",
+            "All PTH pads in copper pours have 4-spoke thermal relief.",
+            "Min Annular Ring (Class 2/3) verified across all via layers.",
+            "Aspect Ratio (Board Thickness / Smallest Drill) ≤ 12:1.",
+            "No acute acid traps (<90°) present in signal routing."
           ]
         },
         {
-          category: "2. Assembly & Footprint",
+          category: "2. Assembly & SMT Readiness",
           items: [
-            "All footprints verified against IPC-7351 and datasheet landing patterns.",
-            "Polarized components (Diodes, ICs) clearly marked on Silkscreen & ASM layers.",
-            "Component spacing (SMD-to-SMD) meets assembly house minimums.",
-            "3 global fiducials placed on panel in non-colinear arrangement.",
-            "Vias under BGA/QFN pads specified as epoxy-filled and plated-over."
+            "Global fiducials (3) placed non-colinearly on panel rails.",
+            "Components ≥ 5-10mm from V-score edges to prevent cracking.",
+            "Solder mask dams ≥ 4 mil (0.1mm) verified for all fine-pitch ICs.",
+            "Via-in-Pad locations specified as IPC-4761 Type VII (Filled/Capped).",
+            "Polarized components (Diodes, ICs) clearly silkscreened."
           ]
         },
         {
-          category: "3. DFT & Testability",
+          category: "3. DFT & Test Readiness",
           items: [
-            "Test points assigned to 100% of power, ground, and reset nets.",
-            "Test points accessible on all primary communication buses (I2C, SPI, UART).",
-            "JTAG (IEEE 1149.1) chain complete and accessible via 10-pin/14-pin header.",
-            "Test point grid ≥ 2.54mm (100mil) for ICT or ≥0.5mm for flying probe.",
-            "No silkscreen text or mask coverage on test point landing pads."
-          ]
-        },
-        {
-          category: "4. Final Verification (Sign-Off)",
-          items: [
-            "Full DRC run with ZERO violations (Electrical, Manufacturing, Silk).",
-            "Panelization drawing includes V-score/Tab-routing details and tooling holes.",
-            "Pick-and-Place centroid file (X, Y, Rotation) verified against drawing.",
-            "BOM (Bill of Materials) matched 100% with footprints and manufacturers.",
-            "MFR DFM Review feedback incorporated and signed off by lead engineer."
+            "Test points assigned to 100% of PWR, GND, and Reset nets.",
+            "Test point grid ≥ 2.54mm (100mil) for standard ICT fixture.",
+            "IEEE 1149.1 (JTAG) chain logic verified (TDO -> TDI chain).",
+            "Test points accessible on all primary communication buses.",
+            "Zero solder mask or silkscreen coverage on test point pads."
           ]
         }
       ]
