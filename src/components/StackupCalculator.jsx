@@ -2,6 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Calculator, Ruler, Info, CheckCircle2, X, Layers, Zap } from 'lucide-react';
 import { useDesign } from '../context/DesignContext';
 
+const MM_TO_MIL = 39.3701;
+const IN_TO_MM = 25.4;
+
 const MATERIAL_PRESETS = [
   { name: 'Standard FR4', dk: 4.2, df: 0.02 },
   { name: 'Isola 370HR', dk: 4.17, df: 0.016 },
@@ -13,6 +16,8 @@ const StackupCalculator = () => {
   const { activeStackup, updateStackup } = useDesign();
   const [mode, setMode] = useState('single'); // 'single' | 'diff'
   const [topology, setTopology] = useState('microstrip'); // 'microstrip' | 'stripline'
+  
+  const [unitSystem, setUnitSystem] = useState('mm'); // 'mm' | 'mil'
   
   // Local overlay for tooltip
   const [showTooltip, setShowTooltip] = useState(false);
@@ -66,7 +71,14 @@ const StackupCalculator = () => {
   }, [activeStackup, mode, topology]);
 
   const handleInputChange = (key, value) => {
-    updateStackup({ [key]: parseFloat(value) || 0 });
+    const rawValue = parseFloat(value) || 0;
+    const mmValue = unitSystem === 'mil' ? rawValue / MM_TO_MIL : rawValue;
+    updateStackup({ [key]: mmValue });
+  };
+
+  const convertValue = (val) => {
+    const num = parseFloat(val) || 0;
+    return unitSystem === 'mil' ? (num * MM_TO_MIL).toFixed(2) : num.toFixed(2);
   };
 
   const currentResult = mode === 'single' ? results.z0 : results.zdiff;
@@ -83,6 +95,11 @@ const StackupCalculator = () => {
     : delta < 0
       ? `Impedance ${absDelta.toFixed(1)}Ω too low. Suggest reducing Trace Width (W) or increasing Dielectric Distance (H).`
       : `Impedance ${absDelta.toFixed(1)}Ω excessive. Recommendation: Expand Trace Width (W) or compact Dielectric Layer (H).`;
+
+  const displayDelay = unitSystem === 'mm' 
+    ? (parseFloat(results.delay) / IN_TO_MM).toFixed(2) 
+    : results.delay;
+  const delayUnit = unitSystem === 'mm' ? 'ps/mm' : 'ps/in';
 
   return (
     <div className="zdiff-calc slide-up" id="impedance-solver">
@@ -111,6 +128,22 @@ const StackupCalculator = () => {
             onClick={() => setMode('diff')}
           >
             Differential
+          </button>
+        </div>
+
+        {/* Unit Selection Toggle */}
+        <div className="zdiff-toggle-group">
+          <button
+            className={`zdiff-toggle-btn ${unitSystem === 'mm' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setUnitSystem('mm')}
+          >
+            mm
+          </button>
+          <button
+            className={`zdiff-toggle-btn ${unitSystem === 'mil' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setUnitSystem('mil')}
+          >
+            mil
           </button>
         </div>
 
@@ -177,35 +210,35 @@ const StackupCalculator = () => {
           {/* Input grid */}
           <div className="zdiff-input-grid">
             <div className="zdiff-input-group">
-              <label className="zdiff-label">H — Dielectric Height (mm)</label>
+              <label className="zdiff-label">H — Height ({unitSystem})</label>
               <input
-                type="number" step="0.001" value={activeStackup.height}
+                type="number" step="0.001" value={convertValue(activeStackup.height)}
                 onChange={e => handleInputChange('height', e.target.value)}
                 className="zdiff-input"
               />
             </div>
             <div className="zdiff-input-group">
-              <label className="zdiff-label">W — Trace Width (mm)</label>
+              <label className="zdiff-label">W — Width ({unitSystem})</label>
               <input
-                type="number" step="0.001" value={activeStackup.width}
+                type="number" step="0.001" value={convertValue(activeStackup.width)}
                 onChange={e => handleInputChange('width', e.target.value)}
                 className="zdiff-input"
               />
             </div>
             {mode === 'diff' && (
               <div className="zdiff-input-group">
-                <label className="zdiff-label zdiff-label--orange">S — Intra-pair Spacing (mm)</label>
+                <label className="zdiff-label zdiff-label--orange">S — Spacing ({unitSystem})</label>
                 <input
-                  type="number" step="0.001" value={activeStackup.spacing}
+                  type="number" step="0.001" value={convertValue(activeStackup.spacing)}
                   onChange={e => handleInputChange('spacing', e.target.value)}
                   className="zdiff-input zdiff-input--orange"
                 />
               </div>
             )}
             <div className="zdiff-input-group">
-              <label className="zdiff-label">T — Copper Thickness (mm)</label>
+              <label className="zdiff-label">T — Thickness ({unitSystem})</label>
               <input
-                type="number" step="0.001" value={activeStackup.thickness}
+                type="number" step="0.001" value={convertValue(activeStackup.thickness)}
                 onChange={e => handleInputChange('thickness', e.target.value)}
                 className="zdiff-input"
               />
@@ -241,7 +274,7 @@ const StackupCalculator = () => {
             <div className="zdiff-result-sub-grid">
               <div className="zdiff-result-sub">
                 <div className="zdiff-result-sub-label">Prop. Delay</div>
-                <div className="zdiff-result-sub-val">{results.delay} <small>ps/in</small></div>
+                <div className="zdiff-result-sub-val">{displayDelay} <small>{delayUnit}</small></div>
               </div>
               <div className="zdiff-result-sub">
                 <div className="zdiff-result-sub-label">Eff. Dk (εr,eff)</div>

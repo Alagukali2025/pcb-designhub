@@ -1,197 +1,240 @@
 import React, { useState, useMemo } from 'react';
-import { Activity, Zap, ShieldAlert, Info, Layers, Maximize2 } from 'lucide-react';
+import { Zap, ShieldAlert, Info, Maximize2, CheckCircle2, Waves } from 'lucide-react';
+
+const MM_TO_MIL = 39.3701;
 
 const ViaAdvancedCalculator = () => {
-  // Inputs
-  const [stubMil, setStubMil] = useState(40); 
-  const [drillMil, setDrillMil] = useState(10); 
-  const [padMil, setPadMil] = useState(20); 
-  const [antiPadMil, setAntiPadMil] = useState(30); 
-  const [thicknessMil, setThicknessMil] = useState(62);
+  const [unitSystem, setUnitSystem] = useState('mil'); // Vias are often mil-specific, but we support both
+  
+  // Internal values kept in MILS for standard via formulas
+  const [drill, setDrill] = useState(10); 
+  const [pad, setPad] = useState(20); 
+  const [antiPad, setAntiPad] = useState(30); 
+  const [thickness, setThickness] = useState(62);
+  const [stub, setStub] = useState(40);
   const [er, setEr] = useState(4.2);
 
   const stats = useMemo(() => {
     // 1. Resonance (Quarter-wave)
-    // fres (GHz) = 11800 / (4 * stubMil * Math.sqrt(er))
-    const fres = 11800 / (4 * stubMil * Math.sqrt(er));
+    const fres = 11800 / (4 * stub * Math.sqrt(er));
 
-    // 2. Inductance (L) - Standard Formula (L in nH, h and d in mils)
-    // L ≈ 5.08 * h * (ln(4h/d) + 1) -> converted to mils
-    // L(nH) ≈ 0.00508 * h[mil] * (Math.log(4 * h[mil] / d[mil]) + 1)
-    const h = thicknessMil;
-    const d = drillMil;
-    const inductance = 0.00508 * h * (Math.log((4 * h) / d) + 1);
+    // 2. Inductance (L)
+    const inductance = 0.00508 * thickness * (Math.log((4 * thickness) / drill) + 1);
 
-    // 3. Capacitance (C) - Standard Approximation (C in pF)
-    // C ≈ (1.41 * Er * T * D1) / (D2 - D1) -> T, D1, D2 in mils
-    const capacitance = (1.41 * er * thicknessMil * padMil) / (antiPadMil - padMil) / 1000; 
-    // Divide by 1000 because formula usually expects inches? 
-    // Let's re-verify: C (pF) = 1.41 * Er * T * D1 / (D2 - D1) where T, D1, D2 are in inches.
-    // If they are in mils, the 1.41 remains the same but the result is still pF? 
-    // Actually, usually it's expressed as C = 0.55 * Er * T * D1 / (D2 - D1) in pF for mils.
-    // Let's use a conservative C(pF) = (0.55 * er * thicknessMil * padMil / (antiPadMil - padMil)) / 100?
-    // No, standard pF = (1.41 * er * T * D1) / (D2 - D1) where dimensions are in inches.
-    // Since it's a ratio D1/(D2-D1), only T matters.
-    const capPf = (1.41 * er * (thicknessMil/1000) * (padMil/1000)) / ((antiPadMil - padMil)/1000);
+    // 3. Capacitance (C)
+    const capPf = (1.41 * er * (thickness / 1000) * (pad / 1000)) / ((antiPad - pad) / 1000);
 
-    // 4. Characteristic Impedance of Via (Z_via)
-    // Z ≈ sqrt(L/C)
-    const zVia = Math.sqrt(inductance / (capPf / 1000)) || 0; // Avoid divide by zero
+    // 4. Characteristic Impedance
+    const zVia = Math.sqrt(inductance / (capPf / 1000)) || 0;
 
-    let status = 'Standard';
+    let status = 'Stable';
     let statusColor = 'var(--success)';
     
     if (fres < 10 || zVia > 70 || zVia < 35) {
-      status = 'High Speed Risk (Optimize Padstack)';
+      status = 'High Speed Risk';
       statusColor = 'var(--danger)';
     } else if (fres < 25) {
-      status = 'Moderate Risk';
+      status = 'Moderate SI Impact';
       statusColor = 'var(--warning)';
     }
 
     return { fres, inductance, capPf, zVia, status, statusColor };
-  }, [stubMil, drillMil, padMil, antiPadMil, thicknessMil, er]);
+  }, [stub, drill, pad, antiPad, thickness, er]);
+
+  const handleInputChange = (key, value) => {
+    const rawValue = parseFloat(value) || 0;
+    const milValue = unitSystem === 'mm' ? rawValue * MM_TO_MIL : rawValue;
+    
+    if (key === 'drill') setDrill(milValue);
+    if (key === 'pad') setPad(milValue);
+    if (key === 'antiPad') setAntiPad(milValue);
+    if (key === 'thickness') setThickness(milValue);
+    if (key === 'stub') setStub(milValue);
+  };
+
+  const convertValue = (val) => {
+    return unitSystem === 'mm' ? (val / MM_TO_MIL).toFixed(3) : val.toFixed(1);
+  };
 
   return (
-    <div className="si-tool-card" style={{
-      background: 'var(--bg-secondary)',
-      border: '1px solid var(--border-medium)',
-      borderRadius: 'var(--radius-xl)',
-      padding: 'var(--space-6)',
-      margin: 'var(--space-6) 0',
-      boxShadow: 'var(--shadow-lg)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
-        <div style={{ padding: 'var(--space-2)', background: 'rgba(212, 150, 58, 0.1)', borderRadius: 'var(--radius-md)', color: '#D4963A' }}>
-          <Maximize2 size={24} />
+    <div className="zdiff-calc slide-up" id="via-solver">
+      {/* ── Header ── */}
+      <div className="zdiff-header">
+        <div className="zdiff-header-left">
+          <div className="zdiff-header-icon" style={{ backgroundColor: 'rgba(212, 150, 58, 0.1)' }}>
+            <Maximize2 size={18} style={{ color: '#D4963A' }} />
+          </div>
+          <div>
+            <h3 className="zdiff-title">Advanced Via Parasitic Solver</h3>
+            <p className="zdiff-subtitle">Electromagnetic & SI Impact Analysis — High-Frequency Focus</p>
+          </div>
         </div>
-        <div>
-          <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>Advanced Via Parasitic Solver</h3>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>Electromagnetic & SI Impact Analysis</p>
+
+        <div className="zdiff-toggle-group">
+          <button
+            className={`zdiff-toggle-btn ${unitSystem === 'mm' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setUnitSystem('mm')}
+          >
+            mm
+          </button>
+          <button
+            className={`zdiff-toggle-btn ${unitSystem === 'mil' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setUnitSystem('mil')}
+          >
+            mil
+          </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
-        {/* Geometry Inputs */}
-        <div className="input-row" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <div className="input-group">
-            <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              Drill Diameter (mil)
-            </label>
-            <input 
-              type="number" step="1" value={drillMil}
-              onChange={(e) => setDrillMil(parseFloat(e.target.value) || 0)}
-              style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2) var(--space-3)', color: 'var(--text-primary)' }}
-            />
-          </div>
-          <div className="input-group">
-            <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              Via Pad Diameter (mil)
-            </label>
-            <input 
-              type="number" step="1" value={padMil}
-              onChange={(e) => setPadMil(parseFloat(e.target.value) || 0)}
-              style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2) var(--space-3)', color: 'var(--text-primary)' }}
-            />
-          </div>
-        </div>
-
-        <div className="input-row" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <div className="input-group">
-            <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              Anti-Pad Diameter (mil)
-            </label>
-            <input 
-              type="number" step="1" value={antiPadMil}
-              onChange={(e) => setAntiPadMil(parseFloat(e.target.value) || 0)}
-              style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2) var(--space-3)', color: 'var(--text-primary)' }}
-            />
-          </div>
-          <div className="input-group">
-            <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              Stub Length (mil)
-            </label>
-            <input 
-              type="number" step="1" value={stubMil}
-              onChange={(e) => setStubMil(parseFloat(e.target.value) || 0)}
-              style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2) var(--space-3)', color: 'var(--text-primary)' }}
-            />
-          </div>
-        </div>
-
-        <div className="input-row" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <div className="input-group">
-            <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              Board Thickness (mil)
-            </label>
-            <input 
-              type="number" step="1" value={thicknessMil}
-              onChange={(e) => setThicknessMil(parseFloat(e.target.value) || 0)}
-              style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2) var(--space-3)', color: 'var(--text-primary)' }}
-            />
-          </div>
-          <div className="input-group">
-            <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              Dielectric Constant (εr)
-            </label>
-            <input 
-              type="number" step="0.1" value={er}
-              onChange={(e) => setEr(parseFloat(e.target.value) || 0)}
-              style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2) var(--space-3)', color: 'var(--text-primary)' }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Result Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        {/* L & C Extraction */}
-        <div style={{ 
-          background: 'var(--bg-primary)', 
-          borderRadius: 'var(--radius-lg)', 
-          padding: 'var(--space-5)',
-          border: '1px solid var(--border-light)',
-        }}>
-          <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '0.85rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Parasitic Extraction</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Inductance (L)</span>
-              <span style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{stats.inductance.toFixed(3)} <small style={{ fontSize: '0.7rem' }}>nH</small></span>
+      <div className="zdiff-body">
+        {/* ── Left Side: Visualization & Inputs ── */}
+        <div className="zdiff-left">
+          <div className="zdiff-diagram-box">
+            <span className="zdiff-diagram-label">Mechanical Via Cross-Section</span>
+            <div className="flex justify-center py-4">
+              <svg viewBox="0 0 200 160" className="w-full max-w-[240px]">
+                {/* Board Layers */}
+                <rect x="40" y="20" width="120" height="120" fill="var(--success)" fillOpacity="0.05" rx="4" />
+                <line x1="40" y1="40" x2="160" y2="40" stroke="var(--border-light)" strokeWidth="1" strokeDasharray="4" />
+                <line x1="40" y1="80" x2="160" y2="80" stroke="var(--border-light)" strokeWidth="1" strokeDasharray="4" />
+                <line x1="40" y1="120" x2="160" y2="120" stroke="var(--border-light)" strokeWidth="1" strokeDasharray="4" />
+                
+                {/* Anti-pad area */}
+                <rect x={100 - (antiPad/drill)*10} y="20" width={(antiPad/drill)*20} height="120" fill="var(--bg-primary)" fillOpacity="0.4" />
+                
+                {/* Via Barrel */}
+                <rect x="92" y="15" width="16" height="130" fill="var(--warning)" rx="2" fillOpacity="0.3" stroke="var(--warning)" strokeWidth="1" />
+                
+                {/* Capture Pads */}
+                <rect x="75" y="18" width="50" height="4" fill="var(--warning)" rx="1" />
+                <rect x="75" y="138" width="50" height="4" fill="var(--warning)" rx="1" />
+                
+                {/* Stub indication */}
+                <rect x="94" y="80" width="12" height="60" fill="var(--warning)" fillOpacity="0.8" rx="1" />
+                
+                <text x="100" y="110" textAnchor="middle" fill="var(--warning)" fontSize="10" fontWeight="bold">STUB</text>
+              </svg>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Capacitance (C)</span>
-              <span style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{stats.capPf.toFixed(3)} <small style={{ fontSize: '0.7rem' }}>pF</small></span>
+          </div>
+
+          <div className="zdiff-input-grid">
+            <div className="zdiff-input-group">
+              <label className="zdiff-label">Drill Diameter ({unitSystem})</label>
+              <input
+                type="number" step="0.1" value={convertValue(drill)}
+                onChange={e => handleInputChange('drill', e.target.value)}
+                className="zdiff-input"
+              />
             </div>
-            <div style={{ height: '1px', background: 'var(--border-light)', margin: 'var(--space-1) 0' }}></div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Effective Z_via</span>
-              <span style={{ fontSize: '1.2rem', fontWeight: 700, color: '#D4963A' }}>{stats.zVia.toFixed(1)} <small style={{ fontSize: '0.7rem' }}>Ω</small></span>
+            <div className="zdiff-input-group">
+              <label className="zdiff-label">Pad Diameter ({unitSystem})</label>
+              <input
+                type="number" step="0.1" value={convertValue(pad)}
+                onChange={e => handleInputChange('pad', e.target.value)}
+                className="zdiff-input"
+              />
+            </div>
+            <div className="zdiff-input-group">
+              <label className="zdiff-label">Anti-Pad Dia. ({unitSystem})</label>
+              <input
+                type="number" step="0.1" value={convertValue(antiPad)}
+                onChange={e => handleInputChange('antiPad', e.target.value)}
+                className="zdiff-input"
+              />
+            </div>
+            <div className="zdiff-input-group">
+              <label className="zdiff-label zdiff-label--orange">Stub Length ({unitSystem})</label>
+              <input
+                type="number" step="0.1" value={convertValue(stub)}
+                onChange={e => handleInputChange('stub', e.target.value)}
+                className="zdiff-input zdiff-input--orange"
+              />
+            </div>
+            <div className="zdiff-input-group">
+              <label className="zdiff-label">Board Thick. ({unitSystem})</label>
+              <input
+                type="number" step="0.1" value={convertValue(thickness)}
+                onChange={e => handleInputChange('thickness', e.target.value)}
+                className="zdiff-input"
+              />
+            </div>
+            <div className="zdiff-input-group">
+              <label className="zdiff-label">εr (Dk)</label>
+              <input
+                type="number" step="0.01" value={er}
+                onChange={e => setEr(parseFloat(e.target.value) || 0)}
+                className="zdiff-input"
+              />
             </div>
           </div>
         </div>
 
-        {/* Resonance & Risk */}
-        <div style={{ 
-          background: 'var(--bg-primary)', 
-          borderRadius: 'var(--radius-lg)', 
-          padding: 'var(--space-5)',
-          border: `1px solid ${stats.statusColor}33`,
-        }}>
-          <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '0.85rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SI Domain Analysis</h4>
-          <div style={{ textAlign: 'center', padding: 'var(--space-2)' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: stats.statusColor, textTransform: 'uppercase', marginBottom: 'var(--space-3)' }}>{stats.status}</div>
-            <div style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--text-primary)' }}>{stats.fres.toFixed(1)} <small style={{ fontSize: '0.9rem', color: 'var(--text-tertiary)' }}>GHz</small></div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Resonant Null Point (λ/4)</div>
+        {/* ── Right Side: Analytical Results ── */}
+        <div className="zdiff-right">
+          <div className="zdiff-result-card" style={{ borderColor: stats.statusColor + '44' }}>
+            <div className="zdiff-result-label">Z_via — Characteristic Impedance</div>
+            <div className="zdiff-result-value">
+              <span className="zdiff-result-num" style={{ color: stats.zVia > 60 || stats.zVia < 40 ? 'var(--warning)' : 'var(--success)' }}>
+                {stats.zVia.toFixed(1)}
+              </span>
+              <span className="zdiff-result-unit">Ω</span>
+            </div>
+
+            <div className="zdiff-result-sub-grid">
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Inductance (L)</div>
+                <div className="zdiff-result-sub-val">{stats.inductance.toFixed(3)} <small>nH</small></div>
+              </div>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Capacitance (C)</div>
+                <div className="zdiff-result-sub-val">{stats.capPf.toFixed(3)} <small>pF</small></div>
+              </div>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Resonance (f₀)</div>
+                <div className="zdiff-result-sub-val" style={{ color: stats.fres < 15 ? 'var(--danger)' : 'inherit' }}>
+                  {stats.fres.toFixed(1)} <small>GHz</small>
+                </div>
+              </div>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">SI Status</div>
+                <div className="zdiff-result-sub-val" style={{ color: stats.statusColor }}>{stats.status}</div>
+              </div>
+            </div>
+
+            {/* Technical Verdict */}
+            <div className={`zdiff-verdict ${stats.fres < 15 ? 'zdiff-verdict--danger' : stats.fres < 25 ? 'zdiff-verdict--warn' : 'zdiff-verdict--ok'}`}>
+              <div className="zdiff-verdict-icon">
+                {stats.fres < 15 ? <ShieldAlert size={16} /> : <CheckCircle2 size={16} />}
+              </div>
+              <div>
+                <p className="zdiff-verdict-title">Electromagnetic Verdict</p>
+                <p className="zdiff-verdict-body">
+                  {stats.fres < 15 
+                    ? `Critical resonance detected at ${stats.fres.toFixed(1)} GHz. Via STUB must be removed via back-drilling.`
+                    : `Via impedance is ${stats.zVia.toFixed(1)}Ω. ${Math.abs(stats.zVia - 50) > 7 ? 'Optimization suggested for 50Ω match.' : 'Excellent match for 50Ω systems.'}`}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="zdiff-presets-box">
+             <h5 className="zdiff-presets-title">Quick Via Presets</h5>
+             <div className="zdiff-presets-grid">
+                <button className="zdiff-preset-btn" onClick={() => { setDrill(8); setPad(18); setAntiPad(28); }}>
+                  <span className="zdiff-preset-name">0.2mm High-Density</span>
+                  <span className="zdiff-preset-ohm">8/18 mil</span>
+                </button>
+                <button className="zdiff-preset-btn" onClick={() => { setDrill(10); setPad(20); setAntiPad(30); }}>
+                  <span className="zdiff-preset-name">Standard Through</span>
+                  <span className="zdiff-preset-ohm">10/20 mil</span>
+                </button>
+                <button className="zdiff-preset-btn" onClick={() => { setDrill(12); setPad(24); setAntiPad(34); }}>
+                  <span className="zdiff-preset-name">Power Via</span>
+                  <span className="zdiff-preset-ohm">12/24 mil</span>
+                </button>
+             </div>
           </div>
         </div>
-      </div>
-
-      <div style={{ padding: 'var(--space-4)', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', display: 'flex', gap: 'var(--space-3)' }}>
-        <div style={{ color: '#D4963A', marginTop: '3px' }}><ShieldAlert size={18} /></div>
-        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-          <strong>SI Impact:</strong> The via characteristic impedance (Z_via = {stats.zVia.toFixed(1)} Ω) creates a local discontinuity if not matched to your trace (typically 50 Ω). 
-          For multi-Gbps channels, a mismatch &gt; 15% causes significant jitter and eye-closing reflections. Increase Anti-Pad to lower capacitance or reduce Drill to lower inductance.
-        </p>
       </div>
     </div>
   );

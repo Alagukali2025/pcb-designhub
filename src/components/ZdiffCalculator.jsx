@@ -13,6 +13,9 @@ const INTERFACE_PRESETS = [
   { name: '1G/10G Ethernet', zdiff: 100, w: 0.20, s: 0.20, h: 0.20, t: 0.035, dk: 4.17, tol: 15 },
 ];
 
+const MM_TO_MIL = 39.3701;
+const IN_TO_MM = 25.4;
+
 // ─── IPC-2141A Formulas ───────────────────────────────────────────────────────
 function calcResults(inputs, topology, isRefined = false) {
   const h  = parseFloat(inputs.height)   || 0;
@@ -190,6 +193,7 @@ export default function ZdiffCalculator() {
   const [showFields, setShowFields]   = useState(true);
   const infoBtnRef = React.useRef(null);
   const [activePreset, setActivePreset] = useState(null);
+  const [unitSystem, setUnitSystem] = useState('mm'); // 'mm' | 'mil'
 
   // Target zdiff from selected preset (default 100Ω)
   const targetZdiff = activePreset !== null ? INTERFACE_PRESETS[activePreset].zdiff : 100;
@@ -202,7 +206,14 @@ export default function ZdiffCalculator() {
 
   const handleChange = (key, val) => {
     setActivePreset(null);
-    updateStackup({ [key]: parseFloat(val) || 0 });
+    const rawValue = parseFloat(val) || 0;
+    const mmValue = unitSystem === 'mil' ? rawValue / MM_TO_MIL : rawValue;
+    updateStackup({ [key]: mmValue });
+  };
+
+  const convertValue = (val) => {
+    const num = parseFloat(val) || 0;
+    return unitSystem === 'mil' ? (num * MM_TO_MIL).toFixed(2) : num.toFixed(2);
   };
 
   // ─── Data Synergy: Listen for external preset loads ─────────────────────────
@@ -260,6 +271,11 @@ export default function ZdiffCalculator() {
   // SI Pulse Animation Speed (proportional to delay)
   const pulseDuration = (results.delay / 150) * 2; // Normalize delay to duration
 
+  const displayDelay = unitSystem === 'mm' 
+    ? (parseFloat(results.delay) / IN_TO_MM).toFixed(2) 
+    : results.delay;
+  const delayUnit = unitSystem === 'mm' ? 'ps/mm' : 'ps/in';
+
   return (
     <div className="zdiff-calc slide-up" id="zdiff-calculator">
       {/* ── Header ── */}
@@ -289,6 +305,22 @@ export default function ZdiffCalculator() {
             title="Toggle E-Field Visualization"
           >
             Show E-Fields
+          </button>
+        </div>
+
+        {/* Unit Selection Toggle */}
+        <div className="zdiff-toggle-group" style={{ margin: '0 12px' }}>
+          <button
+            className={`zdiff-toggle-btn ${unitSystem === 'mm' ? 'zdiff-toggle-btn--active-orange' : ''}`}
+            onClick={() => setUnitSystem('mm')}
+          >
+            mm
+          </button>
+          <button
+            className={`zdiff-toggle-btn ${unitSystem === 'mil' ? 'zdiff-toggle-btn--active-orange' : ''}`}
+            onClick={() => setUnitSystem('mil')}
+          >
+            mil
           </button>
         </div>
 
@@ -330,37 +362,37 @@ export default function ZdiffCalculator() {
           {/* Input grid */}
           <div className="zdiff-input-grid">
             <div className="zdiff-input-group">
-              <label htmlFor="zdiff-h" className="zdiff-label">H — Dielectric Height (mm)</label>
+              <label htmlFor="zdiff-h" className="zdiff-label">H — Height ({unitSystem})</label>
               <input
                 id="zdiff-h"
-                type="number" step="0.001" min="0.01" value={activeStackup.height}
+                type="number" step="0.001" min="0.01" value={convertValue(activeStackup.height)}
                 onChange={e => handleChange('height', e.target.value)}
                 className="zdiff-input"
               />
             </div>
             <div className="zdiff-input-group">
-              <label htmlFor="zdiff-w" className="zdiff-label">W — Trace Width (mm)</label>
+              <label htmlFor="zdiff-w" className="zdiff-label">W — Width ({unitSystem})</label>
               <input
                 id="zdiff-w"
-                type="number" step="0.001" min="0.01" value={activeStackup.width}
+                type="number" step="0.001" min="0.01" value={convertValue(activeStackup.width)}
                 onChange={e => handleChange('width', e.target.value)}
                 className="zdiff-input"
               />
             </div>
             <div className="zdiff-input-group">
-              <label htmlFor="zdiff-s" className="zdiff-label zdiff-label--orange">S — Intra-pair Spacing (mm)</label>
+              <label htmlFor="zdiff-s" className="zdiff-label zdiff-label--orange">S — Spacing ({unitSystem})</label>
               <input
                 id="zdiff-s"
-                type="number" step="0.001" min="0.01" value={activeStackup.spacing}
+                type="number" step="0.001" min="0.01" value={convertValue(activeStackup.spacing)}
                 onChange={e => handleChange('spacing', e.target.value)}
                 className="zdiff-input zdiff-input--orange"
               />
             </div>
             <div className="zdiff-input-group">
-              <label htmlFor="zdiff-t" className="zdiff-label">T — Copper Thickness (mm)</label>
+              <label htmlFor="zdiff-t" className="zdiff-label">T — Thickness ({unitSystem})</label>
               <input
                 id="zdiff-t"
-                type="number" step="0.001" min="0.001" value={activeStackup.thickness}
+                type="number" step="0.001" min="0.001" value={convertValue(activeStackup.thickness)}
                 onChange={e => handleChange('thickness', e.target.value)}
                 className="zdiff-input"
               />
@@ -409,7 +441,7 @@ export default function ZdiffCalculator() {
               </div>
               <div className="zdiff-result-sub">
                 <div className="zdiff-result-sub-label">Prop. Delay</div>
-                <div className="zdiff-result-sub-val">{results.delay.toFixed(1)} <small>ps/in</small></div>
+                <div className="zdiff-result-sub-val">{displayDelay} <small>{delayUnit}</small></div>
               </div>
               <div className="zdiff-result-sub">
                 <div className="zdiff-result-sub-label">Eff. Dk (εr,eff)</div>

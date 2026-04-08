@@ -1,102 +1,172 @@
-import { useState, useMemo } from 'react';
-import { Calculator, Zap, ShieldAlert, AlertTriangle } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Zap, ShieldAlert, Waves, CheckCircle2, AlertTriangle, Ruler } from 'lucide-react';
 
-export default function EMICalculator() {
-  const [riseTime, setRiseTime] = useState(1); // ns
-  const [unit, setUnit] = useState('ns');
+const EMICalculator = () => {
+  const [riseTime, setRiseTime] = useState(1); // Default 1ns
+  const [trUnit, setTrUnit] = useState('ns'); // 'ns' | 'ps'
+  const [distanceUnit, setDistanceUnit] = useState('mm'); // 'mm' | 'mil'
+  
+  const MM_TO_MIL = 39.3701;
 
   const stats = useMemo(() => {
-    const tr = unit === 'ns' ? riseTime : riseTime / 1000;
+    // Standardize to ns
+    const tr = trUnit === 'ns' ? riseTime : riseTime / 1000;
     if (isNaN(tr) || tr <= 0) return null;
 
     // Significant Frequency (Harmonic Bandwidth)
     const fmax = 0.35 / tr; // GHz
     const fmaxMhz = fmax * 1000;
 
-    // Wavelength in FR4 (Er ~ 4.3)
+    // Speed of Light in FR4 (Er ~ 4.3)
     const er = 4.3;
-    const v = 300 / Math.sqrt(er); // mm/ns or speed in FR4 ~145 mm/ns
+    const v = 300 / Math.sqrt(er); // mm/ns
     const lambda = v / fmax; // mm
 
     return {
-      fmax: fmaxMhz.toFixed(2),
-      lambda: lambda.toFixed(2),
-      criticalLength: (lambda / 20).toFixed(2), // Significant radiation start
-      antennaLength: (lambda / 4).toFixed(2),  // Peak radiation (monopole resonance)
+      fmax: fmaxMhz,
+      lambda: lambda,
+      critical: lambda / 20, // Critical length mark
+      antenna: lambda / 4,   // Peak radiation
     };
-  }, [riseTime, unit]);
+  }, [riseTime, trUnit]);
+
+  const convertDist = (val) => {
+    return distanceUnit === 'mil' ? (val * MM_TO_MIL).toFixed(1) : val.toFixed(2);
+  };
+
+  const isHighFreq = stats && stats.fmax > 1000;
 
   return (
-    <div className="calculator-container slide-up">
-      <div className="calculator-header">
-        <div className="calc-title">
-          <Calculator size={20} />
-          <span>EMI Bandwidth & Critical Length Calculator</span>
-        </div>
-        <div className="calc-badge">Expert Tool</div>
-      </div>
-
-      <div className="calc-grid">
-        <div className="calc-input-section">
-          <div className="input-group">
-            <label>Signal Rise/Fall Time (10-90%)</label>
-            <div className="input-with-unit">
-              <input
-                type="number"
-                value={riseTime}
-                onChange={(e) => setRiseTime(parseFloat(e.target.value) || 0)}
-                step="0.1"
-                min="0.01"
-              />
-              <select value={unit} onChange={(e) => setUnit(e.target.value)}>
-                <option value="ns">ns</option>
-                <option value="ps">ps</option>
-              </select>
-            </div>
-            <p className="input-hint">The faster the edge (lower Tr), the higher the frequency bandwidth.</p>
+    <div className="zdiff-calc slide-up" id="emi-bandwidth-solver">
+      {/* ── Header ── */}
+      <div className="zdiff-header">
+        <div className="zdiff-header-left">
+          <div className="zdiff-header-icon" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
+            <Zap size={18} style={{ color: '#3b82f6' }} />
+          </div>
+          <div>
+            <h3 className="zdiff-title">EMI Bandwidth & Critical Length</h3>
+            <p className="zdiff-subtitle">Harmonic Spectral Analysis — Edge-Rate Domain</p>
           </div>
         </div>
 
-        <div className="calc-result-section">
-          {stats ? (
-            <div className="results-grid-mini">
-              <div className="result-card-mini accent-blue">
-                <span className="res-label">Significant Frequency (f<sub>max</sub>)</span>
-                <span className="res-value">{stats.fmax} <small>MHz</small></span>
-                <span className="res-note">Harmonic energy boundary</span>
-              </div>
-              <div className="result-card-mini accent-orange">
-                <span className="res-label">Critical Length (λ/20)</span>
-                <span className="res-value">{stats.criticalLength} <small>mm</small></span>
-                <span className="res-note">Traces longer than this radiate</span>
-              </div>
-              <div className="result-card-mini accent-red">
-                <span className="res-label">Resonant Length (λ/4)</span>
-                <span className="res-value">{stats.antennaLength} <small>mm</small></span>
-                <span className="res-note">Peak antenna efficiency</span>
+        <div className="zdiff-toggle-group">
+          <button
+            className={`zdiff-toggle-btn ${distanceUnit === 'mm' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setDistanceUnit('mm')}
+          >
+            mm
+          </button>
+          <button
+            className={`zdiff-toggle-btn ${distanceUnit === 'mil' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setDistanceUnit('mil')}
+          >
+            mil
+          </button>
+        </div>
+      </div>
+
+      <div className="zdiff-body">
+        {/* ── Left Side: Inputs & Theory ── */}
+        <div className="zdiff-left">
+          <div className="zdiff-diagram-box">
+             <span className="zdiff-diagram-label">Spectral Distribution Theory</span>
+             <div className="flex justify-center py-6">
+                <svg viewBox="0 0 200 100" className="w-full max-w-[240px]">
+                   <path d="M20 80 Q 50 20, 180 20" stroke="var(--accent-primary)" strokeWidth="2" fill="none" fillOpacity="0.2" />
+                   <rect x="20" y="20" width="30" height="60" fill="var(--warning)" fillOpacity="0.1" />
+                   <text x="35" y="95" textAnchor="middle" fill="var(--text-tertiary)" fontSize="8">Significant Bandwidth (0.35/Tr)</text>
+                   <line x1="20" y1="80" x2="180" y2="80" stroke="var(--border-light)" strokeWidth="1" />
+                   <line x1="20" y1="20" x2="20" y2="80" stroke="var(--border-light)" strokeWidth="1" />
+                </svg>
+             </div>
+          </div>
+
+          <div className="zdiff-input-grid">
+            <div className="zdiff-input-group" style={{ gridColumn: 'span 2' }}>
+              <label className="zdiff-label">Signal Rise/Fall Time (10-90%)</label>
+              <div className="flex gap-2">
+                <input
+                  type="number" step="0.1" value={riseTime}
+                  onChange={e => setRiseTime(parseFloat(e.target.value) || 0)}
+                  className="zdiff-input flex-1"
+                />
+                <select 
+                  value={trUnit} 
+                  onChange={e => setTrUnit(e.target.value)}
+                  className="zdiff-input w-20 px-2"
+                  style={{ fontSize: '0.75rem' }}
+                >
+                  <option value="ns">ns</option>
+                  <option value="ps">ps</option>
+                </select>
               </div>
             </div>
-          ) : (
-            <div className="calc-error">Enter a valid rise time to calculate results.</div>
-          )}
-        </div>
-      </div>
-
-      <div className="calc-info-box">
-        <div className="info-icon"><Zap size={20} /></div>
-        <div className="info-text">
-          <strong>The 0.35/Tr Rule:</strong> High-speed design is governed by <em>Edge Rate</em>, not clock frequency. Even a 1 MHz clock with a 1 ns rise time creates spectral energy up to 350 MHz, requiring high-frequency design tactics.
-        </div>
-      </div>
-
-      {stats && parseFloat(stats.fmax) > 1000 && (
-        <div className="alert alert-danger mt-4">
-          <div className="alert-icon"><ShieldAlert size={24} /></div>
-          <div className="alert-content">
-            <strong>Gigahertz Domain detected:</strong> At {stats.fmax} MHz, fiber weave skew and via stubs become first-order effects. Standard FR-4 is likely insufficient; consider Low-Loss laminates.
+            
+            <div className="zdiff-input-group zdiff-input-group--action" style={{ gridColumn: 'span 2' }}>
+               <label className="zdiff-label">Protocol Note</label>
+               <div className="p-3 bg-white/5 rounded-lg text-[0.7rem] text-tertiary italic">
+                 "High-speed design is governed by Edge Rate, not clock frequency."
+               </div>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* ── Right Side: Analytical Results ── */}
+        <div className="zdiff-right">
+          <div className="zdiff-result-card" style={{ borderColor: isHighFreq ? 'var(--danger-border)' : 'var(--accent-border)' }}>
+            <div className="zdiff-result-label">fmax — Harmonic Boundary</div>
+            <div className="zdiff-result-value">
+              <span className="zdiff-result-num" style={{ color: isHighFreq ? 'var(--danger)' : 'var(--accent-primary)' }}>
+                {stats ? stats.fmax.toFixed(0) : 0}
+              </span>
+              <span className="zdiff-result-unit">MHz</span>
+            </div>
+
+            <div className="zdiff-result-sub-grid">
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Critical (λ/20)</div>
+                <div className="zdiff-result-sub-val" style={{ color: 'var(--warning)' }}>
+                   {stats ? convertDist(stats.critical) : 0} <small>{distanceUnit}</small>
+                </div>
+              </div>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Resonant (λ/4)</div>
+                <div className="zdiff-result-sub-val" style={{ color: 'var(--danger)' }}>
+                   {stats ? convertDist(stats.antenna) : 0} <small>{distanceUnit}</small>
+                </div>
+              </div>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Wavelength (λ)</div>
+                <div className="zdiff-result-sub-val">
+                   {stats ? convertDist(stats.lambda) : 0} <small>{distanceUnit}</small>
+                </div>
+              </div>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Domain</div>
+                <div className="zdiff-result-sub-val">{isHighFreq ? 'HF / SI Domain' : 'General Purpose'}</div>
+              </div>
+            </div>
+
+            {/* Design Verdict */}
+            <div className={`zdiff-verdict ${isHighFreq ? 'zdiff-verdict--danger' : 'zdiff-verdict--ok'}`}>
+              <div className="zdiff-verdict-icon">
+                {isHighFreq ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
+              </div>
+              <div>
+                <p className="zdiff-verdict-title">EMI Impact Verdict</p>
+                <p className="zdiff-verdict-body">
+                  {isHighFreq 
+                    ? `Gigahertz Domain detected. Traces > ${stats ? convertDist(stats.critical) : 0}${distanceUnit} require termination and skew matching.`
+                    : `Low-frequency spectral content. Standard design rules apply.`}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default EMICalculator;
