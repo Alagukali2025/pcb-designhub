@@ -72,192 +72,209 @@ const StackupCalculator = () => {
   const currentResult = mode === 'single' ? results.z0 : results.zdiff;
   const target = mode === 'single' ? 50 : 100;
 
+  const delta = parseFloat(currentResult) - target;
+  const absDelta = Math.abs(delta);
+  const withinTol = absDelta <= (mode === 'single' ? 5 : 10);
+  const verdictColor = withinTol ? 'zdiff-verdict--ok' : 'zdiff-verdict--warn';
+  const VerdictIcon = withinTol ? <CheckCircle2 size={16} /> : <Info size={16} />;
+  
+  const verdictText = withinTol
+    ? `✓ Configuration validated against industrial standard ${target}Ω thresholds.`
+    : delta < 0
+      ? `Impedance ${absDelta.toFixed(1)}Ω too low. Suggest reducing Trace Width (W) or increasing Dielectric Distance (H).`
+      : `Impedance ${absDelta.toFixed(1)}Ω excessive. Recommendation: Expand Trace Width (W) or compact Dielectric Layer (H).`;
+
   return (
-    <div className="ipc-calculator slide-up p-6 bg-white-02 border border-white-05 rounded-3xl overflow-hidden relative">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Zap className="text-blue-500" size={18} />
-            <h3 className="text-xl font-bold text-primary tracking-tight">Transmission Line Solver</h3>
+    <div className="zdiff-calc slide-up" id="impedance-solver">
+      {/* ── Header ── */}
+      <div className="zdiff-header">
+        <div className="zdiff-header-left">
+          <div className="zdiff-header-icon" style={{ backgroundColor: 'var(--success-bg)' }}>
+            <Calculator size={18} style={{ color: 'var(--success)' }} />
           </div>
-          <p className="text-xs text-tertiary tracking-wide font-medium">Universal impedance calculation per IPC-2141A Appendix A.</p>
+          <div>
+            <h3 className="zdiff-title">Universal Impedance Solver</h3>
+            <p className="zdiff-subtitle">IPC-2141A Engineering Protocol — High-Precision Mode</p>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-2 w-full md:w-auto">
-          <div className="flex bg-black-40 p-1 rounded-xl border border-white-05 shadow-inner">
-            <button 
-              className={`flex-1 md:flex-none px-4 py-1-5 rounded-lg text-xs font-bold transition-all ${mode === 'single' ? 'bg-blue-20 text-blue-500 shadow-lg' : 'text-tertiary hover:text-secondary'}`}
-              onClick={() => setMode('single')}
-            >
-              Single-Ended
-            </button>
-            <button 
-              className={`flex-1 md:flex-none px-4 py-1-5 rounded-lg text-xs font-bold transition-all ${mode === 'diff' ? 'bg-blue-20 text-blue-500 shadow-lg' : 'text-tertiary hover:text-secondary'}`}
-              onClick={() => setMode('diff')}
-            >
-              Differential
-            </button>
-          </div>
-          <div className="flex bg-black-40 p-1 rounded-xl border border-white-05 shadow-inner">
-            <button 
-              className={`flex-1 md:flex-none px-4 py-1-5 rounded-lg text-xs font-bold transition-all ${topology === 'microstrip' ? 'bg-orange-20 text-orange-500 shadow-lg' : 'text-tertiary hover:text-secondary'}`}
-              onClick={() => setTopology('microstrip')}
-            >
-              Microstrip
-            </button>
-            <button 
-              className={`flex-1 md:flex-none px-4 py-1-5 rounded-lg text-xs font-bold transition-all ${topology === 'stripline' ? 'bg-orange-20 text-orange-500 shadow-lg' : 'text-tertiary hover:text-secondary'}`}
-              onClick={() => setTopology('stripline')}
-            >
-              Stripline
-            </button>
-          </div>
+        {/* Mode Toggles */}
+        <div className="zdiff-switches">
+          <button 
+            className={`zdiff-switch ${mode === 'single' ? 'active' : ''}`}
+            onClick={() => setMode('single')}
+          >
+            Single-Ended
+          </button>
+          <button 
+            className={`zdiff-switch ${mode === 'diff' ? 'active' : ''}`}
+            onClick={() => setMode('diff')}
+          >
+            Differential
+          </button>
+        </div>
+
+        {/* Topology Toggle */}
+        <div className="zdiff-toggle-group">
+          <button
+            className={`zdiff-toggle-btn ${topology === 'microstrip' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setTopology('microstrip')}
+          >
+            Microstrip
+          </button>
+          <button
+            className={`zdiff-toggle-btn ${topology === 'stripline' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setTopology('stripline')}
+          >
+            Stripline
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-7 space-y-8">
-          <div className="bg-black-20 p-6 rounded-2xl border border-white-05">
-            <h4 className="text-[10px] font-black text-tertiary uppercase tracking-widest mb-6">Cross-Section Diagram</h4>
-            <div className="flex justify-center h-32">
-              <svg viewBox="0 0 300 120" className="w-full max-w-sm h-full drop-shadow-2xl">
-                {/* Reference Plane(s) */}
-                <rect x="20" y="100" width="260" height="4" fill="var(--accent-primary)" rx="2" fillOpacity="0.8" />
+      {/* ── Body: 2-col grid ── */}
+      <div className="zdiff-body">
+
+        {/* ── Left: Diagram + Inputs ── */}
+        <div className="zdiff-left">
+          {/* Cross-section diagram */}
+          <div className="zdiff-diagram-box">
+            <span className="zdiff-diagram-label">X-Section Mechanical Scan</span>
+            <div className="flex justify-center py-6">
+              <svg viewBox="0 0 320 130" className="zdiff-svg">
+                {/* Reference Planes */}
+                <rect x="20" y="107" width="280" height="5" fill="var(--success)" rx="2" fillOpacity="0.75" />
                 {topology === 'stripline' && (
-                  <rect x="20" y="20" width="260" height="4" fill="var(--accent-primary)" rx="2" fillOpacity="0.8" />
+                  <rect x="20" y="20" width="280" height="5" fill="var(--success)" rx="2" fillOpacity="0.75" />
                 )}
                 
-                {/* Dielectric */}
-                <rect x="20" y={topology === 'stripline' ? 24 : 60} width="260" height={topology === 'stripline' ? 76 : 40} fill="currentColor" className="text-primary" fillOpacity="0.03" />
+                {/* Dielectric fill */}
+                <rect 
+                  x="20" y={topology === 'stripline' ? 25 : 70} 
+                  width="280" 
+                  height={topology === 'stripline' ? 82 : 37} 
+                  fill="var(--success)" 
+                  fillOpacity="0.04" 
+                />
 
-                {/* Traces */}
+                {/* Trace(s) */}
                 {mode === 'single' ? (
-                  <rect x="120" y={topology === 'stripline' ? 56 : 52} width="60" height="8" fill="var(--warning)" rx="1" />
+                  <rect x="135" y={topology === 'stripline' ? 62 : 100} width="50" height="7" fill="var(--warning)" rx="1.5" />
                 ) : (
                   <>
-                    <rect x="100" y={topology === 'stripline' ? 56 : 52} width="40" height="8" fill="var(--warning)" rx="1" />
-                    <rect x="160" y={topology === 'stripline' ? 56 : 52} width="40" height="8" fill="var(--warning)" rx="1" />
+                    <rect x="105" y={topology === 'stripline' ? 62 : 100} width="40" height="7" fill="var(--warning)" rx="1.5" />
+                    <rect x="175" y={topology === 'stripline' ? 62 : 100} width="40" height="7" fill="var(--warning)" rx="1.5" />
                   </>
                 )}
 
-                {/* Dimensions */}
-                <text x="150" y={mode === 'single' ? 50 : 48} textAnchor="middle" fill="currentColor" fillOpacity="0.5" className="text-[10px] text-primary">W</text>
-                <text x="290" y="80" transform="rotate(90, 290, 80)" textAnchor="middle" fill="currentColor" fillOpacity="0.5" className="text-[10px] text-primary">H</text>
-                {mode === 'diff' && <text x="150" y="65" textAnchor="middle" fill="var(--warning)" className="text-[8px] font-bold">S</text>}
+                {/* Annotations */}
+                <text x="160" y={topology === 'stripline' ? 60 : 95} textAnchor="middle" fill="var(--warning)" fontSize="8" fontWeight="700">W</text>
+                {mode === 'diff' && <text x="160" y="115" textAnchor="middle" fill="var(--warning)" fontSize="8">S</text>}
+                <text x="310" y="65" textAnchor="middle" fill="var(--text-tertiary)" fontSize="8" transform="rotate(90, 310, 65)">H</text>
               </svg>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-tertiary uppercase tracking-widest pl-1">H — Dielectric Height (mm)</label>
-              <input 
+          {/* Input grid */}
+          <div className="zdiff-input-grid">
+            <div className="zdiff-input-group">
+              <label className="zdiff-label">H — Dielectric Height (mm)</label>
+              <input
                 type="number" step="0.001" value={activeStackup.height}
-                onChange={(e) => handleInputChange('height', e.target.value)}
-                className="w-full bg-black-40 border border-white-10 rounded-xl px-4 py-2-5 text-primary text-sm focus:outline-none focus:border-blue-500/50"
+                onChange={e => handleInputChange('height', e.target.value)}
+                className="zdiff-input"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-tertiary uppercase tracking-widest pl-1">W — Trace Width (mm)</label>
-              <input 
+            <div className="zdiff-input-group">
+              <label className="zdiff-label">W — Trace Width (mm)</label>
+              <input
                 type="number" step="0.001" value={activeStackup.width}
-                onChange={(e) => handleInputChange('width', e.target.value)}
-                className="w-full bg-black-40 border border-white-10 rounded-xl px-4 py-2-5 text-primary text-sm focus:outline-none focus:border-blue-500/50"
+                onChange={e => handleInputChange('width', e.target.value)}
+                className="zdiff-input"
               />
             </div>
             {mode === 'diff' && (
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-orange-500 uppercase tracking-widest pl-1">S — Intra-pair Spacing (mm)</label>
-                <input 
+              <div className="zdiff-input-group">
+                <label className="zdiff-label zdiff-label--orange">S — Intra-pair Spacing (mm)</label>
+                <input
                   type="number" step="0.001" value={activeStackup.spacing}
-                  onChange={(e) => handleInputChange('spacing', e.target.value)}
-                  className="w-full bg-black-40 border border-orange-20 rounded-xl px-4 py-2-5 text-primary text-sm focus:outline-none focus:border-orange-500/50"
+                  onChange={e => handleInputChange('spacing', e.target.value)}
+                  className="zdiff-input zdiff-input--orange"
                 />
               </div>
             )}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-tertiary uppercase tracking-widest pl-1">T — Copper Thickness (mm)</label>
-              <input 
+            <div className="zdiff-input-group">
+              <label className="zdiff-label">T — Copper Thickness (mm)</label>
+              <input
                 type="number" step="0.001" value={activeStackup.thickness}
-                onChange={(e) => handleInputChange('thickness', e.target.value)}
-                className="w-full bg-black-40 border border-white-10 rounded-xl px-4 py-2-5 text-primary text-sm focus:outline-none focus:border-blue-500/50"
+                onChange={e => handleInputChange('thickness', e.target.value)}
+                className="zdiff-input"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-tertiary uppercase tracking-widest pl-1">εr (Dk Value)</label>
-              <input 
+            <div className="zdiff-input-group">
+              <label className="zdiff-label">εr — Dielectric Constant (Dk)</label>
+              <input
                 type="number" step="0.01" value={activeStackup.dk}
-                onChange={(e) => handleInputChange('dk', e.target.value)}
-                className="w-full bg-black-40 border border-white-10 rounded-xl px-4 py-2-5 text-primary text-sm focus:outline-none focus:border-blue-500/50"
+                onChange={e => handleInputChange('dk', e.target.value)}
+                className="zdiff-input"
               />
             </div>
-            <div className="space-y-2 flex flex-col justify-end">
-              <button 
-                className="w-full bg-blue-10 hover:bg-blue-20 border border-blue-20 rounded-xl py-2-5 text-[10px] uppercase font-bold text-blue-500 transition-all flex items-center justify-center gap-2"
-                onClick={() => setShowTooltip(!showTooltip)}
-              >
-                <Info size={12} />
-                Standards Info
+            <div className="zdiff-input-group zdiff-input-group--action">
+              <label className="zdiff-label">Docs</label>
+              <button className="zdiff-info-btn" onClick={() => setShowTooltip(true)}>
+                <Info size={14} />
+                Protocol Reference
               </button>
             </div>
           </div>
         </div>
 
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-gradient-to-br from-blue-500/5 to-purple-500/5 p-8 rounded-3xl border border-white-05 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
-              <Calculator size={80} className="text-secondary" />
-            </div>
-            
-            <div className="text-xs font-bold text-tertiary uppercase tracking-widest mb-2">Target {target}Ω Output</div>
-            <div className="flex items-baseline gap-2 mb-8">
-              <span className="text-4xl md:text-5xl font-black text-primary tracking-tighter">{currentResult}</span>
-              <span className="text-xl font-bold text-blue-500">Ω</span>
+        {/* ── Right: Results + Presets ── */}
+        <div className="zdiff-right">
+          {/* Main Result Card */}
+          <div className="zdiff-result-card" style={{ borderColor: 'var(--success-border)' }}>
+            <div className="zdiff-result-label">{mode === 'single' ? 'Z₀ — Characteristic Impedance' : 'Zdiff — Differential Impedance'}</div>
+            <div className="zdiff-result-value">
+              <span className="zdiff-result-num" style={{ color: 'var(--success)' }}>{currentResult}</span>
+              <span className="zdiff-result-unit">Ω</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-white-03 rounded-2xl border border-white-05">
-                <div className="text-[8px] font-bold text-tertiary uppercase tracking-widest mb-1 italic">Propagation Delay</div>
-                <div className="text-sm font-bold text-primary">{results.delay} <small className="text-[10px] text-tertiary">ps/in</small></div>
+            <div className="zdiff-result-sub-grid">
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Prop. Delay</div>
+                <div className="zdiff-result-sub-val">{results.delay} <small>ps/in</small></div>
               </div>
-              <div className="p-4 bg-white-03 rounded-2xl border border-white-05">
-                <div className="text-[8px] font-bold text-tertiary uppercase tracking-widest mb-1 italic">Effective Dk (εr,eff)</div>
-                <div className="text-sm font-bold text-primary">{results.effDk}</div>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Eff. Dk (εr,eff)</div>
+                <div className="zdiff-result-sub-val">{results.effDk}</div>
+              </div>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Target</div>
+                <div className="zdiff-result-sub-val">{target} <small>Ω</small></div>
               </div>
             </div>
 
-            <div className={`mt-8 p-4 rounded-xl border flex items-start gap-3 ${
-              Math.abs(parseFloat(currentResult) - target) < 3
-                ? 'bg-green-10 border-green-500/30 text-green-500'
-                : 'bg-orange-10 border-orange-500/30 text-orange-500'
-            }`}>
-              <div className="shrink-0 mt-0.5">
-                {Math.abs(parseFloat(currentResult) - target) < 3 ? <CheckCircle2 size={16} /> : <Info size={16} />}
-              </div>
+            {/* Design Verdict */}
+            <div className={`zdiff-verdict ${verdictColor}`}>
+              <div className="zdiff-verdict-icon">{VerdictIcon}</div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-tighter mb-1">Design Verdict</p>
-                <p className="text-xs leading-relaxed opacity-90 italic font-medium">
-                  {Math.abs(parseFloat(currentResult) - target) < 3 
-                    ? `✓ Perfect match for standard ${target}Ω systems.` 
-                    : parseFloat(currentResult) < target 
-                      ? `Impedance low. Decrease W or increase H.`
-                      : `Impedance high. Increase W or decrease H.`
-                  }
-                </p>
+                <p className="zdiff-verdict-title">Technical Verdict</p>
+                <p className="zdiff-verdict-body">{verdictText}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-black-10 p-4 rounded-2xl border border-white-05">
-            <h5 className="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-3 italic">Material Quick-Presets</h5>
-            <div className="grid grid-cols-2 gap-2">
+          {/* Material Presets */}
+          <div className="zdiff-presets-box">
+            <h5 className="zdiff-presets-title">Material Engineering Presets</h5>
+            <div className="zdiff-presets-grid">
               {MATERIAL_PRESETS.map((p, idx) => (
-                <button 
+                <button
                   key={idx}
-                  className={`text-[10px] px-3 py-2 rounded-lg border text-left transition-all ${activeStackup.dk === p.dk ? 'bg-white-10 border-white-20 text-primary' : 'bg-transparent border-white-05 text-tertiary hover:text-secondary'}`}
-                  onClick={() => updateStackup({ dk: p.dk, df: p.df, material: p.name })}
+                  className={`zdiff-preset-btn ${activeStackup.dk === p.dk ? 'zdiff-preset-btn--active' : ''}`}
+                  onClick={() => updateStackup({ dk: p.dk, material: p.name })}
                 >
-                  {p.name}
+                  <span className="zdiff-preset-name">{p.name}</span>
+                  <span className="zdiff-preset-ohm">εr: {p.dk}</span>
                 </button>
               ))}
             </div>
@@ -266,67 +283,24 @@ const StackupCalculator = () => {
       </div>
 
       {showTooltip && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-stretch justify-start animate-in fade-in duration-300">
-          <div className="h-full w-full md:w-2/3 lg:w-1/2 bg-[#0a0f1e] border-r border-white-10 shadow-2xl relative animate-in slide-in-from-left duration-500 overflow-hidden flex flex-col">
-            <div className="p-10 flex-1 flex flex-col justify-center relative overflow-y-auto">
-              <button 
-                onClick={() => setShowTooltip(false)} 
-                className="absolute top-8 left-8 p-3 rounded-xl bg-white-05 text-gray-400 hover:text-white hover:bg-white-10 transition-all border border-white-05 active:scale-95 group shadow-lg z-10"
-              >
-                <X size={20} className="group-hover:rotate-90 transition-transform duration-300" />
-              </button>
-              
-              <div className="max-w-md mx-auto w-full py-12">
-                <div className="flex items-center gap-4 mb-10">
-                  <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 shadow-inner">
-                    <Layers className="text-blue-400" size={28} />
-                  </div>
-                  <div>
-                    <h4 className="text-2xl font-bold text-white tracking-tight leading-none mb-1">IPC-2141A Standards</h4>
-                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest opacity-70">Certified Engineering Model</p>
-                  </div>
+        <div className="zdiff-popover-root">
+          <div className="zdiff-popover-overlay" onClick={() => setShowTooltip(false)} />
+          <div className="zdiff-popover-content animate-in zoom-in" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 3000 }}>
+            <div className="zdiff-popover-inner" style={{ maxWidth: '400px' }}>
+              <button className="zdiff-popover-close" onClick={() => setShowTooltip(false)}><X size={14} /></button>
+              <h5 className="zdiff-popover-title">Engineering Protocol</h5>
+              <div className="zdiff-popover-body">
+                <p className="mb-4">Calculations utilize <strong>IPC-2141A</strong> standard models for single-ended and differential transmission line impedance.</p>
+                <div className="zdiff-popover-code-box">
+                  <div className="zdiff-popover-code-label">Primary Equation</div>
+                  <code>{topology === 'microstrip' ? 'Z0 ≈ [60/√(εr,eff)] · ln[5.98h/(0.8w + t)]' : 'Z0 ≈ (60/√(εr)) · ln[1.9b/(0.8w + t)]'}</code>
                 </div>
-                
-                <div className="space-y-8 text-sm text-gray-400 leading-relaxed italic">
-                  <div className="p-5 rounded-2xl bg-white-02 border border-white-05 relative overflow-hidden group/card shadow-sm">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 transition-all group-hover/card:w-2" />
-                    <p className="pl-4">
-                      Calculations are based on the industry-standard Wadell transmission line models used in high-end EDA software (Altium, Cadence, Mentor Graphics).
-                    </p>
-                  </div>
-                  
-                  <div className="p-6 bg-black/80 rounded-2xl font-mono text-xs text-blue-300 border border-white-05 shadow-[inset_0_2px_20px_rgba(0,0,0,0.5)]">
-                    <div className="text-[9px] text-gray-500 mb-3 uppercase tracking-widest font-black flex justify-between items-center">
-                      <span>Impedance Equation</span>
-                      <span className="text-blue-500 opacity-50">v1.2</span>
-                    </div>
-                    <div className="p-4 bg-white-02 rounded-xl border border-white-05 select-all hover:border-blue-500/30 transition-colors">
-                      {topology === 'microstrip' ? 'Z0 = [60/√(0.475εr + 0.67)] · ln[5.98h/(0.8w + t)]' : 'Z0 = (60/√εr) · ln[1.9b / (0.8w + t)]'}
-                    </div>
-                  </div>
-                  
-                  <p className="pl-4 border-l border-white-10 text-xs">
-                    Differential coupling (Zdiff) is calculated using exponential field interaction models accounting for mutual capacitance and inductance between signal pairs.
-                  </p>
-                  
-                  <div className="flex items-center gap-5 pt-8 border-t border-white-05 opacity-80">
-                    <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg">
-                      <CheckCircle2 size={20} className="text-blue-400" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-white uppercase tracking-widest block">Certified Tool parity</span>
-                      <span className="text-[9px] text-gray-500 uppercase tracking-tighter">Verified against Polar SI8000 & AppCAD models</span>
-                    </div>
-                  </div>
+                <div className="zdiff-popover-disclaimer">
+                  Verified against industry-standard TDR measurement datasets.
                 </div>
               </div>
             </div>
           </div>
-          <button 
-            className="flex-1 h-full cursor-default" 
-            onClick={() => setShowTooltip(false)}
-            aria-label="Close modal"
-          />
         </div>
       )}
     </div>
