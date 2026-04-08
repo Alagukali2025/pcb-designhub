@@ -1,103 +1,150 @@
 import React, { useState, useMemo } from 'react';
-import { Activity, Zap, ShieldAlert, Info, Layers } from 'lucide-react';
+import { Activity, Zap, ShieldAlert, Info, Layers, CheckCircle2 } from 'lucide-react';
+
+const MM_TO_MIL = 39.3701;
 
 const ViaResonanceCalculator = () => {
-  const [stubMil, setStubMil] = useState(40); // 40 mil is a typical short stub
-  const [er, setEr] = useState(4.2);        // FR-4 default
+  const [unitSystem, setUnitSystem] = useState('mil');
+  const [stub, setStub] = useState(40); // Internal in MILS
+  const [er, setEr] = useState(4.2);
 
   const stats = useMemo(() => {
-    // fres = c / (4 * L * sqrt(Er))
-    // c ≈ 11802.8 mil/ps (rounded for eng. use to 11800)
-    // fres (GHz) = 11800 / (4 * stubMil * sqrt(er)) * 1000? 
-    // Wait, let's use units:
-    // f = 1 / (4 * (L_mil / 11.8 mil/ps) * sqrt(Er)) 
-    // f (THz) if L is mil and c is mil/ps.
-    // f (GHz) = 11800 / (4 * stubMil * Math.sqrt(er))
-    
-    const fres = 11800 / (4 * stubMil * Math.sqrt(er));
+    // fres (GHz) = 11800 / (4 * stubMil * sqrt(er))
+    const fres = 11800 / (4 * stub * Math.sqrt(er));
 
     let status = 'Safe';
     let statusColor = 'var(--success)';
-    
     if (fres < 10) {
-      status = 'Critical High-Speed Risk (Backdrilling Mandatory)';
+      status = 'Critical';
       statusColor = 'var(--danger)';
     } else if (fres < 25) {
-      status = 'Warning (Simulation Advised)';
+      status = 'Warning';
       statusColor = 'var(--warning)';
     }
 
     return { fres, status, statusColor };
-  }, [stubMil, er]);
+  }, [stub, er]);
+
+  const handleInputChange = (value) => {
+    const rawValue = parseFloat(value) || 0;
+    const milValue = unitSystem === 'mm' ? rawValue * MM_TO_MIL : rawValue;
+    setStub(milValue);
+  };
+
+  const convertValue = (milVal) => {
+    return unitSystem === 'mm' ? (milVal / MM_TO_MIL).toFixed(2) : milVal.toFixed(1);
+  };
 
   return (
-    <div className="si-tool-card" style={{
-      background: 'var(--bg-secondary)',
-      border: '1px solid var(--border-medium)',
-      borderRadius: 'var(--radius-xl)',
-      padding: 'var(--space-6)',
-      margin: 'var(--space-6) 0',
-      boxShadow: 'var(--shadow-lg)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
-        <div style={{ padding: 'var(--space-2)', background: 'rgba(212, 150, 58, 0.1)', borderRadius: 'var(--radius-md)', color: '#D4963A' }}>
-          <Layers size={24} />
+    <div className="zdiff-calc slide-up" id="via-resonance-solver">
+      {/* ── Header ── */}
+      <div className="zdiff-header">
+        <div className="zdiff-header-left">
+          <div className="zdiff-header-icon" style={{ backgroundColor: 'rgba(212, 150, 58, 0.1)' }}>
+            <Layers size={18} style={{ color: '#D4963A' }} />
+          </div>
+          <div>
+            <h3 className="zdiff-title">Via Stub Resonance Solver</h3>
+            <p className="zdiff-subtitle">Stub Length to Resonant Null Analysis — Quarter-Wave Focus</p>
+          </div>
         </div>
-        <div>
-          <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>Via Stub Resonance Solver</h3>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>Stub Length to Resonant Null Analysis</p>
+
+        <div className="zdiff-toggle-group">
+          <button
+            className={`zdiff-toggle-btn ${unitSystem === 'mm' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setUnitSystem('mm')}
+          >
+            mm
+          </button>
+          <button
+            className={`zdiff-toggle-btn ${unitSystem === 'mil' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setUnitSystem('mil')}
+          >
+            mil
+          </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
-        {/* Stub Length Input */}
-        <div className="input-group">
-          <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-            Stub Length (mil)
-          </label>
-          <input 
-            type="number" step="1" value={stubMil}
-            onChange={(e) => setStubMil(parseFloat(e.target.value) || 0)}
-            style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2) var(--space-3)', color: 'var(--text-primary)' }}
-          />
-          <small style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '4px', display: 'block' }}>Unused via barrel length</small>
+      <div className="zdiff-body">
+        {/* ── Left Side: Inputs ── */}
+        <div className="zdiff-left">
+          <div className="zdiff-diagram-box">
+             <span className="zdiff-diagram-label">Vertical Via Stub Animation</span>
+             <div className="flex justify-center py-6">
+                <svg viewBox="0 0 100 120" className="w-full max-w-[120px]">
+                   <rect x="30" y="20" width="40" height="80" fill="var(--success)" fillOpacity="0.05" rx="4" />
+                   <rect x="45" y="20" width="10" height="20" fill="var(--warning)" fillOpacity="1" />
+                   <rect x="45" y="40" width="10" height="60" fill="var(--warning)" fillOpacity="0.2" stroke="var(--warning)" strokeWidth="1" />
+                   <text x="50" y="118" textAnchor="middle" fill="var(--text-tertiary)" fontSize="9">Resonance: {stats.fres.toFixed(1)} GHz</text>
+                </svg>
+             </div>
+          </div>
+
+          <div className="zdiff-input-grid">
+            <div className="zdiff-input-group" style={{ gridColumn: 'span 2' }}>
+              <label className="zdiff-label">Unused Stub Length ({unitSystem})</label>
+              <input 
+                type="number" step="0.1" value={convertValue(stub)}
+                onChange={e => handleInputChange(e.target.value)}
+                className="zdiff-input"
+              />
+            </div>
+            <div className="zdiff-input-group" style={{ gridColumn: 'span 2' }}>
+              <label className="zdiff-label">εr (Dk)</label>
+              <input 
+                type="number" step="0.1" value={er}
+                onChange={e => setEr(parseFloat(e.target.value) || 1)}
+                className="zdiff-input"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Er Input */}
-        <div className="input-group">
-          <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-            Dielectric Constant (εr)
-          </label>
-          <input 
-            type="number" step="0.1" value={er}
-            onChange={(e) => setEr(parseFloat(e.target.value) || 0)}
-            style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2) var(--space-3)', color: 'var(--text-primary)' }}
-          />
-        </div>
-      </div>
+        {/* ── Right Side: Analytical Results ── */}
+        <div className="zdiff-right">
+          <div className="zdiff-result-card" style={{ borderColor: stats.statusColor + '44' }}>
+            <div className="zdiff-result-label">Quarter-Wave Null (f₀)</div>
+            <div className="zdiff-result-value">
+              <span className="zdiff-result-num" style={{ color: stats.statusColor }}>
+                {stats.fres.toFixed(1)}
+              </span>
+              <span className="zdiff-result-unit">GHz</span>
+            </div>
 
-      {/* Result Card */}
-      <div style={{ 
-        background: 'var(--bg-primary)', 
-        borderRadius: 'var(--radius-lg)', 
-        padding: 'var(--space-5)',
-        border: stats.fres < 10 ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid var(--border-light)',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
-          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Quarter-Wave Resonance Null (f_res)</span>
-          <span style={{ color: stats.statusColor, fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>{stats.status}</span>
-        </div>
+            <div className="zdiff-result-sub-grid">
+               <div className="zdiff-result-sub">
+                 <div className="zdiff-result-sub-label">λ/4 Marker</div>
+                 <div className="zdiff-result-sub-val" style={{ color: 'var(--warning)' }}>Full Reflection</div>
+               </div>
+               <div className="zdiff-result-sub">
+                 <div className="zdiff-result-sub-label">Domain Status</div>
+                 <div className="zdiff-result-sub-val" style={{ color: stats.statusColor }}>{stats.status}</div>
+               </div>
+            </div>
 
-        <div style={{ padding: 'var(--space-4)', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>{stats.fres.toFixed(1)} <small style={{ fontSize: '1rem', color: 'var(--text-tertiary)' }}>GHz</small></div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '4px' }}>Deep Resonant Absorption Point</div>
-        </div>
+            {/* Verdict */}
+            <div className={`zdiff-verdict ${stats.fres < 15 ? 'zdiff-verdict--danger' : 'zdiff-verdict--ok'}`}>
+              <div className="zdiff-verdict-icon">{stats.fres < 15 ? <ShieldAlert size={16} /> : <CheckCircle2 size={16} />}</div>
+              <div>
+                <p className="zdiff-verdict-title">Signal Absorption Verdict</p>
+                <p className="zdiff-verdict-body">
+                   {stats.fres < 15 
+                     ? `Resonance null at ${stats.fres.toFixed(1)} GHz is too high. Back-drilling required for Gen4/5 links.` 
+                     : 'Resonant null is outside the target operating bandwidth.'}
+                </p>
+              </div>
+            </div>
+          </div>
 
-        <div style={{ marginTop: 'var(--space-5)', padding: 'var(--space-4)', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', display: 'flex', gap: 'var(--space-3)' }}>
-          <div style={{ color: '#D4963A', marginTop: '3px' }}><Info size={16} /></div>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-            At <strong>{stats.fres.toFixed(1)} GHz</strong>, the via stub acts as a shorted quarter-wave (1/4 wavelength) transmission line, effectively shorting the signal to ground. For interfaces like PCIe Gen 3/4 or DDR5, ensure f_res is significantly above the 3rd harmonic of your Nyquist frequency.
-          </p>
+          <div className="zdiff-presets-box">
+             <h5 className="zdiff-presets-title">Mitigation Rules</h5>
+             <div className="p-3 bg-white/5 rounded-lg border border-white/10 text-[0.7rem] text-tertiary">
+                <ul className="m-0 p-0 pl-4 list-disc space-y-1">
+                   <li>Unused stubs behave as an open-circuited transmission line.</li>
+                   <li>Resonance nulls create deep "dips" in S21 insertion loss.</li>
+                </ul>
+             </div>
+          </div>
         </div>
       </div>
     </div>

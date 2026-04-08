@@ -1,229 +1,157 @@
-import React, { useState } from 'react';
-import { AlertTriangle, CheckCircle2, Zap, BookOpen } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { AlertTriangle, CheckCircle2, Zap, BookOpen, ShieldCheck, Waves } from 'lucide-react';
 
-// Glass style data
+const MM_TO_MIL = 39.3701;
+
 const GLASS_STYLES = [
-  { style: '1067', warp: '1067/1067', threads: '68×68', resinPct: 85, skewRisk: 'Very Low', rating: 5, rec: true,
-    desc: 'Tightest weave. Maximum resin content. Best for high-speed differential pairs (>25Gbps).' },
-  { style: '1078', warp: '1078/1078', threads: '54×54', resinPct: 75, skewRisk: 'Low', rating: 4, rec: true,
-    desc: 'Excellent skew performance. Common choice for PCIe Gen5 and 100GbE.' },
-  { style: '1080', warp: '1080/1080', threads: '60×47', resinPct: 72, skewRisk: 'Low', rating: 4, rec: false,
-    desc: 'Good skew control. Widely available. Suitable for DDR4/5 and USB 3.x.' },
-  { style: '2116', warp: '2116/2116', threads: '60×58', resinPct: 52, skewRisk: 'Medium', rating: 2, rec: false,
-    desc: 'Standard prepreg. Higher glass content creates Dk variation. Avoid for >10Gbps differential pairs.' },
-  { style: '7628', warp: '7628/7628', threads: '44×32', resinPct: 44, skewRisk: 'High', rating: 1, rec: false,
-    desc: 'Heaviest weave. Lowest resin. Significant periodic Dk variation. Not suitable for high-speed signals.' },
+  { style: '1067', warp: '1067/1067', threads: '68×68', resin: 85, risk: 'Very Low', rating: 5, rec: true,
+    desc: 'Tightest weave. Maximum resin content. Best for >25Gbps.' },
+  { style: '1078', warp: '1078/1078', threads: '54×54', resin: 75, risk: 'Low', rating: 4, rec: true,
+    desc: 'Excellent skew performance. Common for PCIe Gen5.' },
+  { style: '1080', warp: '1080/1080', threads: '60×47', resin: 72, risk: 'Low', rating: 4, rec: false,
+    desc: 'Good skew control. Available for DDR4/5.' },
+  { style: '2116', warp: '2116/2116', threads: '60×58', resin: 52, risk: 'Medium', rating: 2, rec: false,
+    desc: 'Standard prepreg. Avoid for >10Gbps pairs.' },
+  { style: '7628', warp: '7628/7628', threads: '44×32', resin: 44, risk: 'High', rating: 1, rec: false,
+    desc: 'Heaviest weave. Significant focal Dk variation.' },
 ];
 
-const ratingStars = (n) => Array.from({ length: 5 }, (_, i) => i < n ? '★' : '☆').join('');
-
-export default function FiberWeaveSkew() {
+const FiberWeaveSkew = () => {
+  const [unitSystem, setUnitSystem] = useState('mil');
   const [activeStyle, setActiveStyle] = useState('1067');
   const selected = GLASS_STYLES.find(g => g.style === activeStyle);
 
+  const stats = useMemo(() => {
+    // Heuristic skew for 5 inches of track (standard test)
+    // 1067: ~2ps, 7628: ~20ps
+    const baseSkew = selected.style === '1067' ? 2 : selected.style === '1078' ? 4 : selected.style === '1080' ? 6 : selected.style === '2116' ? 12 : 25;
+    return { baseSkew };
+  }, [activeStyle]);
+
   return (
-    <div className="fws-card slide-up">
-      {/* Header */}
-      <div className="fws-header">
-        <div className="fws-icon-wrap">
-          <Zap size={20} className="fws-icon" />
-        </div>
-        <div>
-          <h4 className="fws-title">Fiber Weave Skew — Signal Integrity Risk</h4>
-          <p className="fws-subtitle">Glass Bundle vs. Resin-Rich Dk Variation · Differential Pair Routing</p>
-        </div>
-      </div>
-
-      {/* Explanation */}
-      <p className="fws-intro">
-        PCB dielectrics are not homogeneous. Glass fibers have a higher Dk (~6.0) than the surrounding resin (~3.2).
-        A trace routed over a glass bundle experiences a different propagation speed than its pair running over a resin-rich zone,
-        causing <strong>intra-pair phase skew</strong> — destroying the eye diagram at high data rates.
-      </p>
-
-      {/* SVG Illustration */}
-      <div className="fws-svg-container">
-        <svg viewBox="0 0 700 260" className="fws-svg" aria-label="Fiber weave skew illustration">
-
-          {/* Background zones */}
-          {/* Resin-rich left zone */}
-          <rect x="0" y="50" width="160" height="160" rx="0" fill="#1e293b" opacity="0.7" />
-          <text x="80" y="40" textAnchor="middle" className="fws-svg-zone-label" fill="#94a3b8">Resin-Rich Zone</text>
-          <text x="80" y="228" textAnchor="middle" className="fws-svg-zone-sub" fill="#64748b">Dk ≈ 3.2–3.5</text>
-
-          {/* Glass bundle center zone */}
-          <rect x="160" y="50" width="380" height="160" rx="0" fill="#0f2240" opacity="0.9" />
-          <text x="350" y="40" textAnchor="middle" className="fws-svg-zone-label" fill="#38bdf8">Glass Bundle Zone</text>
-          <text x="350" y="228" textAnchor="middle" className="fws-svg-zone-sub" fill="#0ea5e9">Dk ≈ 5.8–6.2</text>
-
-          {/* Resin-rich right zone */}
-          <rect x="540" y="50" width="160" height="160" rx="0" fill="#1e293b" opacity="0.7" />
-          <text x="620" y="40" textAnchor="middle" className="fws-svg-zone-label" fill="#94a3b8">Resin-Rich Zone</text>
-          <text x="620" y="228" textAnchor="middle" className="fws-svg-zone-sub" fill="#64748b">Dk ≈ 3.2–3.5</text>
-
-          {/* Glass fiber grid pattern */}
-          {[180,220,260,300,340,380,420,460,500].map(x => (
-            <line key={`v${x}`} x1={x} y1="50" x2={x} y2="210" stroke="#1e40af" strokeWidth="12" strokeOpacity="0.6" />
-          ))}
-          {[65,90,115,140,165,190].map(y => (
-            <line key={`h${y}`} x1="160" y1={y} x2="540" y2={y} stroke="#1e40af" strokeWidth="8" strokeOpacity="0.4" />
-          ))}
-
-          {/* Trace P (positive) — rides over glass (Slower) */}
-          <path
-            d="M 10 110 L 690 110"
-            stroke="#f59e0b" strokeWidth="4" strokeLinecap="round"
-            fill="none"
-          />
-          {/* Signal Pulse P */}
-          <circle r="5" fill="#f59e0b" style={{ filter: 'drop-shadow(0 0 6px #f59e0b)' }}>
-            <animateMotion dur="3s" repeatCount="indefinite" path="M 10 110 L 690 110" />
-            <animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite" />
-          </circle>
-          <text x="15" y="103" className="fws-svg-trace-label" fill="#f59e0b" fontSize="10" fontWeight="900">P+ (Slow / Low Vp)</text>
-          <text x="655" y="103" className="fws-svg-trace-label" fill="#f59e0b" fontSize="10" fontWeight="900">P+</text>
-
-          {/* Trace N (negative) — rides over resin (Faster) */}
-          <path
-            d="M 10 150 L 690 150"
-            stroke="#06b6d4" strokeWidth="4" strokeLinecap="round"
-            fill="none" strokeDasharray="none"
-          />
-          {/* Signal Pulse N (Faster animation) */}
-          <circle r="5" fill="#06b6d4" style={{ filter: 'drop-shadow(0 0 6px #06b6d4)' }}>
-            <animateMotion dur="2.4s" repeatCount="indefinite" path="M 10 150 L 690 150" />
-            <animate attributeName="opacity" values="0;1;0" dur="2.4s" repeatCount="indefinite" />
-          </circle>
-          <text x="15" y="163" className="fws-svg-trace-label" fill="#06b6d4" fontSize="10" fontWeight="900">N- (Fast / High Vp)</text>
-          <text x="655" y="163" className="fws-svg-trace-label" fill="#06b6d4" fontSize="10" fontWeight="900">N-</text>
-
-          {/* Skew arrow annotation */}
-          <line x1="350" y1="115" x2="350" y2="145" stroke="#f43f5e" strokeWidth="1.5" markerEnd="url(#arrowRed)" />
-          <text x="360" y="132" fill="#f43f5e" fontSize="9" fontWeight="700">ΔTpd Skew</text>
-
-          {/* Arrow marker */}
-          <defs>
-            <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
-              <path d="M0,0 L0,8 L8,4 Z" fill="#f43f5e" />
-            </marker>
-          </defs>
-
-          {/* Dk delta label */}
-          <text x="350" y="80" textAnchor="middle" fill="#38bdf8" fontSize="11" fontWeight="800">ΔDk ≈ 2.7 (36% variation)</text>
-
-          {/* Rotation hint */}
-          <text x="350" y="195" textAnchor="middle" fill="#16a34a" fontSize="9" fontWeight="700">
-            Mitigation: Rotate PCB 10° or use 1067/1078 glass style
-          </text>
-        </svg>
-      </div>
-
-      {/* Alerts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <div className="fws-alert">
-          <AlertTriangle size={24} className="fws-alert-icon" />
+    <div className="zdiff-calc slide-up" id="fiber-weave-analyzer">
+      {/* ── Header ── */}
+      <div className="zdiff-header">
+        <div className="zdiff-header-left">
+          <div className="zdiff-header-icon" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
+            <Zap size={18} style={{ color: '#ef4444' }} />
+          </div>
           <div>
-            <h5 className="font-bold text-amber-500 mb-1">Timing Budget Critical</h5>
-            <p className="text-[11px] leading-relaxed opacity-80">
-              At 56 Gbps (PAM4), even 1–2ps of intra-pair skew degrades BER significantly. Fiber weave skew is the
-              primary limiting factor for routing differential pairs over standard 2116/7628 glass.
-            </p>
+            <h3 className="zdiff-title">Fiber Weave Skew Solver</h3>
+            <p className="zdiff-subtitle">Material-induced Dk Variation — Intra-pair Phase Skew</p>
           </div>
         </div>
-        <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-6 flex gap-4 hover:border-indigo-500/40 transition-all">
-          <Zap size={24} className="text-indigo-400 shrink-0" />
-          <div>
-            <h5 className="font-bold text-indigo-400 mb-1">SI Expert Insight</h5>
-            <p className="text-[11px] leading-relaxed opacity-70">
-              To mitigate Skew: Use <strong>Spread-Glass</strong> (1067/1078) prepreg and route at a <strong>Zig-Zag angle (10°)</strong> 
-              relative to the weave. This averages out the Dk variations across both legs of the pair.
-            </p>
-          </div>
+
+        <div className="zdiff-toggle-group">
+          <button
+            className={`zdiff-toggle-btn ${unitSystem === 'mm' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setUnitSystem('mm')}
+          >
+            mm
+          </button>
+          <button
+            className={`zdiff-toggle-btn ${unitSystem === 'mil' ? 'zdiff-toggle-btn--active-green' : ''}`}
+            onClick={() => setUnitSystem('mil')}
+          >
+            mil
+          </button>
         </div>
       </div>
 
-      {/* Glass style selector */}
-      <div className="fws-styles-section">
-        <div className="fws-styles-header">
-          <BookOpen size={14} className="fws-styles-icon" />
-          <span>Glass Style Selector — Compare Weave Performance</span>
+      <div className="zdiff-body">
+        {/* ── Left Side: Weave Illustration ── */}
+        <div className="zdiff-left">
+          <div className="zdiff-diagram-box">
+             <span className="zdiff-diagram-label">Glass Bundle vs Resin Dk Map</span>
+             <div className="flex justify-center py-4">
+                <svg viewBox="0 0 200 120" className="w-full max-w-[200px]">
+                   {/* Background Resin */}
+                   <rect x="0" y="20" width="200" height="80" fill="var(--success)" fillOpacity="0.05" />
+                   {/* Glass Bundles */}
+                   {[40, 80, 120, 160].map(x => (
+                     <rect key={x} x={x-10} y="20" width="20" height="80" fill="var(--warning)" fillOpacity="0.15" />
+                   ))}
+                   {/* Traces */}
+                   <line x1="0" y1="45" x2="200" y2="45" stroke="var(--warning)" strokeWidth="1.5" strokeDasharray="3" />
+                   <line x1="0" y1="75" x2="200" y2="75" stroke="#06b6d4" strokeWidth="1.5" />
+                   <text x="100" y="112" textAnchor="middle" fill="var(--text-tertiary)" fontSize="8">Intra-pair ΔDk ≈ 2.7 (Glass vs Resin)</text>
+                </svg>
+             </div>
+          </div>
+
+          <div className="zdiff-presets-box mt-4">
+             <h5 className="zdiff-presets-title">Glass Style Selector</h5>
+             <div className="fws-style-tabs" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px', background: 'var(--bg-primary)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                {GLASS_STYLES.map(g => (
+                  <button 
+                    key={g.style} 
+                    className={`text-[10px] py-2 rounded font-black transition-colors ${activeStyle === g.style ? 'bg-accent-primary text-white' : 'text-tertiary hover:bg-white/5'}`}
+                    onClick={() => setActiveStyle(g.style)}
+                  >
+                    {g.style}
+                  </button>
+                ))}
+             </div>
+          </div>
+
+          <div className="p-4 bg-white/5 rounded-lg border border-white/10 mt-4">
+             <p className="text-[0.7rem] text-tertiary italic leading-relaxed m-0">
+               "Traces over glass bundles (Dk ~6.0) are slower than traces over resin-rich zones (Dk ~3.2). This creates deterministic jitter."
+             </p>
+          </div>
         </div>
 
-        <div className="fws-style-tabs">
-          {GLASS_STYLES.map(g => (
-            <button
-              key={g.style}
-              className={`fws-style-tab ${activeStyle === g.style ? 'fws-style-active' : ''} ${g.rec ? 'fws-style-rec' : ''}`}
-              onClick={() => setActiveStyle(g.style)}
-            >
-              {g.style}
-              {g.rec && <span className="fws-rec-dot" />}
-            </button>
-          ))}
-        </div>
+        {/* ── Right Side: Analytical Results ── */}
+        <div className="zdiff-right">
+          <div className="zdiff-result-card" style={{ borderColor: selected.rating < 3 ? 'var(--danger-border)' : 'var(--success-border)' }}>
+            <div className="zdiff-result-label">Intra-pair Skew Profile</div>
+            <div className="zdiff-result-value">
+              <span className="zdiff-result-num" style={{ color: selected.rating < 3 ? 'var(--danger)' : 'var(--success)' }}>
+                {selected.risk}
+              </span>
+            </div>
 
-        {selected && (
-          <div className="fws-style-detail">
-            <div className="fws-detail-grid">
-              <div className="fws-detail-item">
-                <span className="fws-detail-label">Warp × Fill</span>
-                <span className="fws-detail-value">{selected.warp}</span>
+            <div className="zdiff-result-sub-grid">
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">HS Rating</div>
+                <div className="zdiff-result-sub-val" style={{ color: 'var(--success)' }}>{'★'.repeat(selected.rating)}</div>
               </div>
-              <div className="fws-detail-item">
-                <span className="fws-detail-label">Thread Count</span>
-                <span className="fws-detail-value">{selected.threads} per inch</span>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Resin %</div>
+                <div className="zdiff-result-sub-val">{selected.resin}%</div>
               </div>
-              <div className="fws-detail-item">
-                <span className="fws-detail-label">Resin Content</span>
-                <span className="fws-detail-value">{selected.resinPct}%</span>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Skew / 5in</div>
+                <div className="zdiff-result-sub-val" style={{ color: 'var(--warning)' }}>~{stats.baseSkew} ps</div>
               </div>
-              <div className="fws-detail-item">
-                <span className="fws-detail-label">Skew Risk</span>
-                <span className={`fws-risk-badge fws-risk-${selected.skewRisk.toLowerCase().replace(' ', '-')}`}>
-                  {selected.skewRisk}
-                </span>
-              </div>
-              <div className="fws-detail-item fws-detail-full">
-                <span className="fws-detail-label">HS Rating</span>
-                <span className="fws-stars">{ratingStars(selected.rating)}</span>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">Warp/Fill</div>
+                <div className="zdiff-result-sub-val">{selected.warp}</div>
               </div>
             </div>
-            <p className="fws-detail-desc">{selected.desc}</p>
-            {selected.rec
-              ? <div className="fws-rec-tag"><CheckCircle2 size={12} /> Recommended for differential pairs at &gt;10Gbps</div>
-              : <div className="fws-norec-tag"><AlertTriangle size={12} /> Not recommended for high-speed differential routing</div>
-            }
-          </div>
-        )}
-      </div>
 
-      {/* Table */}
-      <div className="fws-table-wrap">
-        <table className="fws-table">
-          <thead>
-            <tr>
-              <th>Glass Style</th>
-              <th>Threads/in</th>
-              <th>Resin %</th>
-              <th>Skew Risk</th>
-              <th>HS Rating</th>
-              <th>Recommended For</th>
-            </tr>
-          </thead>
-          <tbody>
-            {GLASS_STYLES.map(g => (
-              <tr key={g.style} className={`fws-tr ${g.rec ? 'fws-tr-rec' : ''}`}>
-                <td className="fws-td-style">{g.style}{g.rec && <span className="fws-td-rec-dot" />}</td>
-                <td>{g.threads}</td>
-                <td>{g.resinPct}%</td>
-                <td><span className={`fws-risk-badge fws-risk-${g.skewRisk.toLowerCase().replace(' ', '-')}`}>{g.skewRisk}</span></td>
-                <td className="fws-stars-small">{ratingStars(g.rating)}</td>
-                <td className="fws-td-desc">{g.desc.split('.')[0]}.</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            {/* Verdict */}
+            <div className={`zdiff-verdict ${selected.rating < 3 ? 'zdiff-verdict--danger' : 'zdiff-verdict--ok'}`}>
+              <div className="zdiff-verdict-icon">{selected.rating < 3 ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}</div>
+              <div>
+                <p className="zdiff-verdict-title">SI Domain Verdict</p>
+                <p className="zdiff-verdict-body">{selected.desc}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 p-4 bg-indigo-500/5 rounded-xl border border-indigo-500/20">
+             <h5 className="text-[0.65rem] uppercase font-bold text-indigo-400 mb-1">Mitigation Strategy</h5>
+             <ul className="m-0 p-0 pl-4 list-disc text-[0.7rem] text-tertiary space-y-1">
+                <li>Rotate PCB layout by <strong>10° relative to glass weave</strong>.</li>
+                <li>Use <strong>spread-glass</strong> fabrics (1067/1078).</li>
+                <li>Zig-zag route tracks across glass bundles.</li>
+             </ul>
+          </div>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default FiberWeaveSkew;
