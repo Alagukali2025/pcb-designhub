@@ -285,76 +285,51 @@ export default function ZdiffCalculator() {
   return (
     <div className="zdiff-calc slide-up" id="zdiff-calculator">
       {/* ── Header ── */}
-      <div className="zdiff-header">
-        <div className="zdiff-header-left">
+      <div className="zdiff-header" style={{ flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+        <div className="zdiff-header-left" style={{ minWidth: '200px' }}>
           <div className="zdiff-header-icon">
             <Zap size={18} />
           </div>
           <div>
             <h3 className="zdiff-title">Zdiff Engine</h3>
-            <p className="zdiff-subtitle">Industrial Signal Integrity Solver — Refined Analytical Mode</p>
+            <p className="zdiff-subtitle">Industrial Signal Integrity Solver</p>
           </div>
         </div>
 
-        {/* Feature Switches */}
-        <div className="zdiff-switches">
-          <button 
-            className={`zdiff-switch ${refinedMode ? 'active' : ''}`}
-            onClick={() => setRefinedMode(!refinedMode)}
-            title="Hammerstad 2nd-Order Refinement"
-          >
-            Refined Math
-          </button>
-          <button 
-            className={`zdiff-switch ${showFields ? 'active' : ''}`}
-            onClick={() => setShowFields(!showFields)}
-            title="Toggle E-Field Visualization"
-          >
-            Show E-Fields
-          </button>
-        </div>
+        {/* Feature Switches & Toggles */}
+        <div className="flex flex-row flex-wrap gap-2 items-center" style={{ flex: 1, justifyContent: 'flex-end', minWidth: '300px' }}>
+          <div className="zdiff-switches">
+            <button 
+              className={`zdiff-switch ${refinedMode ? 'active' : ''}`}
+              onClick={() => setRefinedMode(!refinedMode)}
+            >
+              Refined
+            </button>
+            <button 
+              className={`zdiff-switch ${showFields ? 'active' : ''}`}
+              onClick={() => setShowFields(!showFields)}
+            >
+              Fields
+            </button>
+          </div>
 
-        {/* Unit Selection Toggle */}
-        <div className="zdiff-toggle-group" style={{ margin: '0 12px' }}>
-          <button
-            className={`zdiff-toggle-btn ${unitSystem === 'mm' ? 'zdiff-toggle-btn--active-orange' : ''}`}
-            onClick={() => setUnitSystem('mm')}
-          >
-            mm
-          </button>
-          <button
-            className={`zdiff-toggle-btn ${unitSystem === 'mil' ? 'zdiff-toggle-btn--active-orange' : ''}`}
-            onClick={() => setUnitSystem('mil')}
-          >
-            mil
-          </button>
-        </div>
+          <div className="zdiff-toggle-group">
+            <button className={`zdiff-toggle-btn ${unitSystem === 'mm' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setUnitSystem('mm')}>mm</button>
+            <button className={`zdiff-toggle-btn ${unitSystem === 'mil' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setUnitSystem('mil')}>mil</button>
+          </div>
 
-        {/* Topology Toggle */}
-        <div className="zdiff-toggle-group">
-          <button
-            id="zdiff-toggle-microstrip"
-            className={`zdiff-toggle-btn ${topology === 'microstrip' ? 'zdiff-toggle-btn--active-orange' : ''}`}
-            onClick={() => setTopology('microstrip')}
-          >
-            Microstrip
-          </button>
-          <button
-            id="zdiff-toggle-stripline"
-            className={`zdiff-toggle-btn ${topology === 'stripline' ? 'zdiff-toggle-btn--active-orange' : ''}`}
-            onClick={() => setTopology('stripline')}
-          >
-            Stripline
-          </button>
+          <div className="zdiff-toggle-group">
+            <button className={`zdiff-toggle-btn ${topology === 'microstrip' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setTopology('microstrip')}>Microstrip</button>
+            <button className={`zdiff-toggle-btn ${topology === 'stripline' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setTopology('stripline')}>Stripline</button>
+          </div>
         </div>
       </div>
 
-      {/* ── Body: 2-col grid ── */}
+      {/* ── Body: Now responsive via global CSS ── */}
       <div className="zdiff-body">
 
         {/* ── Left: Diagram + Inputs ── */}
-        <div className="zdiff-left">
-          {/* Cross-section diagram */}
+        <div className="zdiff-panel">
           <div className="zdiff-diagram-box">
             <span className="zdiff-diagram-label">Interactive SI Visualization</span>
             <CrossSection 
@@ -365,24 +340,20 @@ export default function ZdiffCalculator() {
             />
           </div>
 
-          {/* Input grid */}
           <div className="zdiff-input-grid">
             <EngineeringInput
-              id="zdiff-h"
               label="H — Height"
               unit={unitSystem}
               value={convertValue(activeStackup.height)}
               onChange={e => handleChange('height', e.target.value)}
             />
             <EngineeringInput
-              id="zdiff-w"
               label="W — Width"
               unit={unitSystem}
               value={convertValue(activeStackup.width)}
               onChange={e => handleChange('width', e.target.value)}
             />
             <EngineeringInput
-              id="zdiff-s"
               label="S — Spacing"
               unit={unitSystem}
               value={convertValue(activeStackup.spacing)}
@@ -390,26 +361,22 @@ export default function ZdiffCalculator() {
               className="zdiff-input-group--orange"
             />
             <EngineeringInput
-              id="zdiff-t"
               label="T — Thickness"
               unit={unitSystem}
               value={convertValue(activeStackup.thickness)}
               onChange={e => handleChange('thickness', e.target.value)}
             />
             <EngineeringInput
-              id="zdiff-dk"
-              label="εr — Dielectric Constant"
+              label="εr — Dk"
               unit="Dk"
               step="0.01"
-              min="1"
               value={activeStackup.dk}
               onChange={e => handleChange('dk', e.target.value)}
             />
-            <div className="zdiff-input-group zdiff-input-group--action">
-              <label className="engineering-label">Standards Info</label>
+            <div className="zdiff-input-group--full">
               <button 
                 ref={infoBtnRef}
-                className="zdiff-info-btn" 
+                className="zdiff-info-btn w-full" 
                 onClick={() => setShowInfo(true)}
               >
                 <ShieldCheck size={14} />
@@ -420,8 +387,7 @@ export default function ZdiffCalculator() {
         </div>
 
         {/* ── Right: Results + Presets ── */}
-        <div className="zdiff-right">
-          {/* Main Result Card */}
+        <div className="zdiff-panel">
           <div className="zdiff-result-card">
             <div className="zdiff-result-label">Zdiff — Differential Impedance</div>
             <div className="zdiff-result-value">

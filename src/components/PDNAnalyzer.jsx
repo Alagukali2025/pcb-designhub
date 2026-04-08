@@ -35,27 +35,24 @@ const PDNAnalyzer = () => {
   }, [voltage, ripple, current]);
 
   return (
-    <div className="zdiff-calc slide-up" id="pdn-target-analyzer">
-      {/* ── Header ── */}
-      <div className="zdiff-header">
-        <div className="zdiff-header-left">
-          <div className="zdiff-header-icon" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
-            <TrendingDown size={18} style={{ color: '#3b82f6' }} />
-          </div>
-          <div>
-            <h3 className="zdiff-title">PDN Target Impedance Solver</h3>
-            <p className="zdiff-subtitle">Power Integrity & Noise Strategy — Rail Stability Domain</p>
-          </div>
+    <div className="si-tool-card fade-in" id="pdn-target-analyzer">
+      <div className="si-tool-header">
+        <div className="si-tool-icon-box" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+          <TrendingDown size={24} />
+        </div>
+        <div>
+          <h3 className="zdiff-title">PDN Target Impedance Solver</h3>
+          <p className="zdiff-subtitle">Power Integrity & Noise Strategy — Rail Stability Domain</p>
         </div>
       </div>
 
-      <div className="zdiff-body">
-        {/* ── Left Side: Power Specs ── */}
-        <div className="zdiff-left">
+      <div className="si-tool-grid">
+        {/* Left Side: Power Specs */}
+        <div className="zdiff-panel">
           <div className="zdiff-diagram-box">
              <span className="zdiff-diagram-label">DC Rail Stability Visualization</span>
-             <div className="flex justify-center py-6">
-                <svg viewBox="0 0 200 80" className="w-full max-w-[240px]">
+             <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0' }}>
+                <svg viewBox="0 0 200 80" style={{ width: '100%', maxWidth: '240px' }}>
                    <path d="M20 40 L180 40" stroke="var(--border-light)" strokeWidth="1" strokeDasharray="4" />
                    <path d="M20 40 L40 30 L60 50 L80 35 L100 45 L120 38 L140 42 L180 40" stroke="var(--accent-primary)" strokeWidth="2" fill="none" />
                    <rect x="20" y="30" width="160" height="20" fill="var(--accent-primary)" fillOpacity="0.05" />
@@ -87,30 +84,31 @@ const PDNAnalyzer = () => {
               }}
               step="1"
             />
-            <EngineeringInput
-              label="Transient Current Load"
-              unit="A"
-              value={current}
-              onChange={e => {
-                const val = e.target.value;
-                if (val === "" || isNaN(parseFloat(val))) return;
-                setCurrent(parseFloat(val));
-              }}
-              step="1"
-              className="zdiff-input-group--orange"
-              style={{ gridColumn: 'span 2' }}
-            />
-            <div className="zdiff-input-group zdiff-input-group--action" style={{ gridColumn: 'span 2' }}>
+            <div className="zdiff-input-group--full">
+              <EngineeringInput
+                label="Transient Current Load"
+                unit="A"
+                value={current}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === "" || isNaN(parseFloat(val))) return;
+                  setCurrent(parseFloat(val));
+                }}
+                step="1"
+                className="zdiff-input-group--orange"
+              />
+            </div>
+            <div className="zdiff-input-group--full">
                <label className="engineering-label">Engineering Rule</label>
-               <div className="p-3 bg-white/5 rounded-lg text-[0.7rem] text-tertiary">
+               <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md)', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
                  "Z_target = (Voltage × Ripple%) / Current_Transient"
                </div>
             </div>
           </div>
         </div>
 
-        {/* ── Right Side: Analytical Results ── */}
-        <div className="zdiff-right">
+        {/* Right Side: Analytical Results */}
+        <div className="zdiff-panel">
           <div className="zdiff-result-card" style={{ borderColor: stats.statusColor + '44' }}>
             <div className="zdiff-result-label">Z_target — Impedance Boundary</div>
             <div className="zdiff-result-value">
@@ -144,24 +142,24 @@ const PDNAnalyzer = () => {
                 <p className="zdiff-verdict-title">Power Stability Verdict</p>
                 <p className="zdiff-verdict-body">
                   Target is {stats.zTarget.toFixed(1)} mΩ. 
-                  {stats.zTarget < 15 ? ' Use ultra-low ESR polymer caps and multiple stitching vias to minimize inductance.' : ' Standard decoupling density is sufficient for this rail.'}
+                  {stats.zTarget < 15 ? ' Use ultra-low ESR polymer caps and multiple stitching vias.' : ' Standard decoupling density is sufficient.'}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="zdiff-presets-box">
+          <div className="zdiff-presets-box" style={{ marginTop: 'var(--space-6)' }}>
              <h5 className="zdiff-presets-title">Decoupling Strategy Stack</h5>
-             <div className="zdiff-presets-grid" style={{ gridTemplateColumns: '1fr' }}>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
                 {stats.recommendations.map((rec, i) => (
-                  <div key={i} className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10">
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-lg)', border: '1px solid rgba(255,255,255,0.1)' }}>
                     <div>
-                      <div className="text-[0.65rem] uppercase font-bold text-tertiary">{rec.type}</div>
-                      <div className="text-sm font-bold">{rec.range}</div>
+                      <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-tertiary)' }}>{rec.type}</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{rec.range}</div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-[0.6rem] bg-accent-primary/20 text-accent-primary px-2 py-0.5 rounded-full inline-block mb-1">QTY: {rec.qty}</div>
-                      <div className="text-[0.65rem] text-tertiary">{rec.note}</div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.6rem', background: 'rgba(26, 107, 58, 0.2)', color: 'var(--accent-primary)', padding: '2px 8px', borderRadius: '999px', display: 'inline-block', marginBottom: '4px' }}>QTY: {rec.qty}</div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>{rec.note}</div>
                     </div>
                   </div>
                 ))}

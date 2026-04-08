@@ -45,16 +45,9 @@ const ThermalAnalysisTool = () => {
   }, [thicknessMil, drillMil, platingUm, padMil, spokeWidthMil, spokeCount]);
 
   return (
-    <div className="si-tool-card" style={{
-      background: 'var(--bg-secondary)',
-      border: '1px solid var(--border-medium)',
-      borderRadius: 'var(--radius-xl)',
-      padding: 'var(--space-6)',
-      margin: 'var(--space-6) 0',
-      boxShadow: 'var(--shadow-lg)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
-        <div style={{ padding: 'var(--space-2)', background: 'rgba(239, 68, 68, 0.1)', borderRadius: 'var(--radius-md)', color: '#EF4444' }}>
+    <div className="si-tool-card fade-in">
+      <div className="si-tool-header">
+        <div className="si-tool-icon-box" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' }}>
           <Thermometer size={24} />
         </div>
         <div>
@@ -63,13 +56,13 @@ const ThermalAnalysisTool = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
+      <div className="si-tool-grid">
         {/* Via Thermal Path Panel */}
-        <div style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-5)', border: '1px solid var(--border-light)' }}>
-          <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="zdiff-panel">
+          <h4 className="zdiff-panel-title">
             <Layers size={16} /> Via Thermal Resistance
           </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <div className="flex flex-col gap-4">
             <EngineeringInput
               label="Plating Thickness"
               unit="µm"
@@ -81,23 +74,25 @@ const ThermalAnalysisTool = () => {
               }}
               step="1"
             />
-            <div style={{ padding: 'var(--space-4)', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-light)' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 900, color: '#EF4444' }}>{stats.rThVia.toFixed(1)} <small style={{ fontSize: '0.8rem' }}>°C/W</small></div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginTop: '4px' }}>Thermal Resistance (R_θja)</div>
+            <div className="zdiff-result-main-grid" style={{ marginTop: 'var(--space-2)' }}>
+              <div className="zdiff-result-card text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                <div className="zdiff-result-num" style={{ color: '#EF4444' }}>{stats.rThVia.toFixed(1)} <small style={{ fontSize: '0.8rem', opacity: 0.6 }}>°C/W</small></div>
+                <div className="zdiff-result-label" style={{ fontSize: '0.65rem' }}>Thermal Resistance (R_θja)</div>
+              </div>
             </div>
-            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+            <p className="section-text" style={{ fontSize: '0.75rem', marginTop: 'var(--space-2)' }}>
               Note: A thermal via array (4x4) will reduce this to ~{ (stats.rThVia / 16).toFixed(1) } °C/W.
             </p>
           </div>
         </div>
 
         {/* Copper Relief Panel */}
-        <div style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-5)', border: '1px solid var(--border-light)' }}>
-          <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="zdiff-panel">
+          <h4 className="zdiff-panel-title">
             <Wind size={16} /> Thermal Relief Logic
           </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+          <div className="flex flex-col gap-4">
+            <div className="zdiff-input-grid">
               <EngineeringInput
                 label="Spoke Width"
                 unit="mil"
@@ -120,21 +115,23 @@ const ThermalAnalysisTool = () => {
                 step="1"
               />
             </div>
-            <div style={{ padding: 'var(--space-4)', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', textAlign: 'center', border: `1px solid ${stats.reliefColor}33` }}>
-              <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--text-primary)' }}>{stats.reliefEfficiency.toFixed(1)}%</div>
-              <div style={{ fontSize: '0.7rem', fontWeight: 800, color: stats.reliefColor, textTransform: 'uppercase', marginTop: '4px' }}>{stats.reliefStatus}</div>
+            <div className="zdiff-result-main-grid" style={{ marginTop: 'var(--space-2)' }}>
+              <div className="zdiff-result-card text-center" style={{ border: `1px solid ${stats.reliefColor}44` }}>
+                <div className="zdiff-result-num">{stats.reliefEfficiency.toFixed(1)}%</div>
+                <div className="zdiff-result-label" style={{ color: stats.reliefColor }}>{stats.reliefStatus}</div>
+              </div>
             </div>
-            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-tertiary)', lineHeight: '1.4' }}>
-              Relief efficiency &gt; 60% leads to "cold solder joints" due to excessive heat sinking. Ensure spokes balance manufacturability vs current capacity.
+            <p className="section-text" style={{ fontSize: '0.75rem', marginTop: 'var(--space-2)' }}>
+              Relief efficiency &gt; 60% leads to "cold solder joints". Balance manufacturability vs current capacity.
             </p>
           </div>
         </div>
       </div>
 
-      <div style={{ padding: 'var(--space-4)', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', display: 'flex', gap: 'var(--space-3)', border: '1px solid var(--border-light)' }}>
-        <div style={{ color: '#EF4444', marginTop: '3px' }}><ShieldAlert size={18} /></div>
-        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-          <strong>Thermal Recommendation:</strong> 1oz Copper (35µm) has a heat dissipation coefficient of ~0.5 W/in² for a 20°C rise. For high-power Switch-Mode regulators, use multi-layer thermal via stitching to reference planes (min. 0.3mm drill, 1.0mm pitch).
+      <div className="zdiff-verdict zdiff-verdict--warn" style={{ marginTop: 'var(--space-4)' }}>
+        <div className="zdiff-verdict-icon"><ShieldAlert size={18} /></div>
+        <div style={{ fontSize: '0.8rem', lineHeight: '1.5' }}>
+          <strong>Recommendation:</strong> 1oz Copper (35µm) dissipates ~0.5 W/in² for a 20°C rise. For high-power regulators, use multi-layer thermal via stitching (min. 0.3mm drill).
         </div>
       </div>
     </div>

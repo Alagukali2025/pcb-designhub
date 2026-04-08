@@ -29,44 +29,26 @@ const FiberWeaveSkew = () => {
   }, [activeStyle]);
 
   return (
-    <div className="zdiff-calc slide-up" id="fiber-weave-analyzer">
-      {/* ── Header ── */}
-      <div className="zdiff-header">
-        <div className="zdiff-header-left">
-          <div className="zdiff-header-icon" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
-            <Zap size={18} style={{ color: '#ef4444' }} />
-          </div>
-          <div>
-            <h3 className="zdiff-title">Fiber Weave Skew Solver</h3>
-            <p className="zdiff-subtitle">Material-induced Dk Variation — Intra-pair Phase Skew</p>
-          </div>
+    <div className="si-tool-card fade-in" id="fiber-weave-analyzer">
+      <div className="si-tool-header">
+        <div className="si-tool-icon-box" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+          <Zap size={24} />
         </div>
-
-        <div className="zdiff-toggle-group">
-          <button
-            className={`zdiff-toggle-btn ${unitSystem === 'mm' ? 'zdiff-toggle-btn--active-green' : ''}`}
-            onClick={() => setUnitSystem('mm')}
-          >
-            mm
-          </button>
-          <button
-            className={`zdiff-toggle-btn ${unitSystem === 'mil' ? 'zdiff-toggle-btn--active-green' : ''}`}
-            onClick={() => setUnitSystem('mil')}
-          >
-            mil
-          </button>
+        <div>
+          <h3 className="zdiff-title">Fiber Weave Skew Solver</h3>
+          <p className="zdiff-subtitle">Material-induced Dk Variation — Intra-pair Phase Skew</p>
         </div>
       </div>
 
-      <div className="zdiff-body">
-        {/* ── Left Side: Weave Illustration ── */}
-        <div className="zdiff-left">
+      <div className="si-tool-grid">
+        {/* Left Side: Weave Illustration */}
+        <div className="zdiff-panel">
           <div className="zdiff-diagram-box">
              <span className="zdiff-diagram-label">Glass Bundle vs Resin Dk Map</span>
-             <div className="flex justify-center py-4">
-                <svg viewBox="0 0 200 120" className="w-full max-w-[200px]">
+             <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem 0' }}>
+                <svg viewBox="0 0 200 120" style={{ width: '100%', maxWidth: '200px' }}>
                    {/* Background Resin */}
-                   <rect x="0" y="20" width="200" height="80" fill="var(--success)" fillOpacity="0.05" />
+                   <rect x="0" y="20" width="200" height="80" fill="var(--success)" fillOpacity="0.05" stroke="var(--border-light)" />
                    {/* Glass Bundles */}
                    {[40, 80, 120, 160].map(x => (
                      <rect key={x} x={x-10} y="20" width="20" height="80" fill="var(--warning)" fillOpacity="0.15" />
@@ -79,13 +61,22 @@ const FiberWeaveSkew = () => {
              </div>
           </div>
 
-          <div className="zdiff-presets-box mt-4">
+          <div className="zdiff-presets-box" style={{ marginTop: 'var(--space-4)' }}>
              <h5 className="zdiff-presets-title">Glass Style Selector</h5>
-             <div className="fws-style-tabs" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px', background: 'var(--bg-primary)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+             <div className="fws-style-tabs" style={{ 
+               display: 'grid', 
+               gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', 
+               gap: '4px', 
+               background: 'var(--bg-primary)', 
+               padding: '4px', 
+               borderRadius: 'var(--radius-md)', 
+               border: '1px solid var(--border-light)' 
+             }}>
                 {GLASS_STYLES.map(g => (
                   <button 
                     key={g.style} 
                     className={`text-[10px] py-2 rounded font-black transition-colors ${activeStyle === g.style ? 'bg-accent-primary text-white' : 'text-tertiary hover:bg-white/5'}`}
+                    style={{ border: 'none', cursor: 'pointer' }}
                     onClick={() => setActiveStyle(g.style)}
                   >
                     {g.style}
@@ -94,16 +85,16 @@ const FiberWeaveSkew = () => {
              </div>
           </div>
 
-          <div className="p-4 bg-white/5 rounded-lg border border-white/10 mt-4">
-             <p className="text-[0.7rem] text-tertiary italic leading-relaxed m-0">
+          <div style={{ padding: 'var(--space-4)', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)', marginTop: 'var(--space-4)' }}>
+             <p className="section-text" style={{ fontSize: '0.7rem', fontStyle: 'italic', margin: 0 }}>
                "Traces over glass bundles (Dk ~6.0) are slower than traces over resin-rich zones (Dk ~3.2). This creates deterministic jitter."
              </p>
           </div>
         </div>
 
-        {/* ── Right Side: Analytical Results ── */}
-        <div className="zdiff-right">
-          <div className="zdiff-result-card" style={{ borderColor: selected.rating < 3 ? 'var(--danger-border)' : 'var(--success-border)' }}>
+        {/* Right Side: Analytical Results */}
+        <div className="zdiff-panel">
+          <div className="zdiff-result-card" style={{ borderColor: selected.rating < 3 ? 'var(--danger)' : 'var(--success)' }}>
             <div className="zdiff-result-label">Intra-pair Skew Profile</div>
             <div className="zdiff-result-value">
               <span className="zdiff-result-num" style={{ color: selected.rating < 3 ? 'var(--danger)' : 'var(--success)' }}>
@@ -140,9 +131,9 @@ const FiberWeaveSkew = () => {
             </div>
           </div>
 
-          <div className="mt-4 p-4 bg-indigo-500/5 rounded-xl border border-indigo-500/20">
-             <h5 className="text-[0.65rem] uppercase font-bold text-indigo-400 mb-1">Mitigation Strategy</h5>
-             <ul className="m-0 p-0 pl-4 list-disc text-[0.7rem] text-tertiary space-y-1">
+          <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-4)', background: 'rgba(99, 102, 241, 0.05)', borderRadius: 'var(--radius-xl)', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+             <h5 style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: '#818cf8', marginBottom: 'var(--space-1)' }}>Mitigation Strategy</h5>
+             <ul className="body-list" style={{ margin: 0, paddingLeft: 'var(--space-4)', listStyle: 'disc', fontSize: '0.7rem' }}>
                 <li>Rotate PCB layout by <strong>10° relative to glass weave</strong>.</li>
                 <li>Use <strong>spread-glass</strong> fabrics (1067/1078).</li>
                 <li>Zig-zag route tracks across glass bundles.</li>

@@ -59,16 +59,9 @@ const EMIChecklist = () => {
   };
 
   return (
-    <div className="emi-checklist-card" style={{
-      background: 'var(--bg-secondary)',
-      border: '1px solid var(--border-medium)',
-      borderRadius: 'var(--radius-xl)',
-      padding: 'var(--space-6)',
-      margin: 'var(--space-6) 0',
-      boxShadow: 'var(--shadow-lg)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
-        <div style={{ padding: 'var(--space-2)', background: 'rgba(55, 138, 221, 0.1)', borderRadius: 'var(--radius-md)', color: '#378ADD' }}>
+    <div className="si-tool-card fade-in">
+      <div className="si-tool-header">
+        <div className="si-tool-icon-box" style={{ background: 'rgba(55, 138, 221, 0.1)', color: '#378ADD' }}>
           <ShieldCheck size={24} />
         </div>
         <div>
@@ -77,12 +70,12 @@ const EMIChecklist = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--space-6)' }}>
+      <div className="si-tool-grid">
         {categories.map(cat => (
-          <div key={cat.id} style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-5)', border: '1px solid var(--border-light)' }}>
-            <h4 style={{ margin: '0 0 var(--space-4) 0', fontSize: '0.9rem', color: 'var(--text-primary)', borderBottom: '1px solid var(--border-light)', paddingBottom: '8px' }}>{cat.title}</h4>
+          <div key={cat.id} className="zdiff-panel" style={{ padding: 'var(--space-4)' }}>
+            <h4 className="zdiff-panel-title" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '8px', marginBottom: 'var(--space-4)' }}>{cat.title}</h4>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
               {cat.items.map(item => (
                 <div 
                   key={item.id} 
@@ -92,20 +85,20 @@ const EMIChecklist = () => {
                     gap: '12px', 
                     cursor: 'pointer', 
                     padding: '8px', 
-                    borderRadius: '6px',
+                    borderRadius: 'var(--radius-md)',
                     background: checkedItems[item.id] ? 'rgba(34, 197, 94, 0.05)' : 'transparent',
-                    transition: 'all 0.2s ease-in-out'
+                    transition: 'all var(--transition-fast) ease-in-out'
                   }}
                 >
                   <div style={{ marginTop: '2px', color: checkedItems[item.id] ? 'var(--success)' : 'var(--text-tertiary)' }}>
                     {checkedItems[item.id] ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.85rem', color: checkedItems[item.id] ? 'var(--text-secondary)' : 'var(--text-primary)', textDecoration: checkedItems[item.id] ? 'line-through' : 'none' }}>
+                    <div style={{ fontSize: '0.85rem', color: checkedItems[item.id] ? 'var(--text-secondary)' : 'var(--text-primary)', textDecoration: checkedItems[item.id] ? 'line-through' : 'none', lineHeight: '1.4' }}>
                       {item.text}
                     </div>
                     <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                      <span style={{ fontSize: '0.65rem', color: getSeverityColor(item.severity), textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>{item.severity}</span>
+                      <span style={{ fontSize: '0.6rem', color: getSeverityColor(item.severity), textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em' }}>{item.severity}</span>
                       {item.severity === 'critical' && <ShieldAlert size={10} style={{ color: '#EF4444' }} />}
                     </div>
                   </div>
@@ -116,15 +109,15 @@ const EMIChecklist = () => {
         ))}
       </div>
 
-      <div style={{ marginTop: 'var(--space-8)', padding: 'var(--space-5)', background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="zdiff-verdict zdiff-verdict--warn" style={{ marginTop: 'var(--space-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <div style={{ color: '#F59E0B' }}><TriangleAlert size={20} /></div>
           <div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600 }}>Regulatory Compliance Warning</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Failing any 'Critical' item typically results in a &gt;10dB overshoot in CISPR 32 testing.</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Failing 'Critical' items typically results in &gt;10dB overshoot in CISPR testing.</div>
           </div>
         </div>
-        <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '4px' }}>
+        <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--border-light)' }}>
           J-STD-001 Compliant Audit
         </div>
       </div>

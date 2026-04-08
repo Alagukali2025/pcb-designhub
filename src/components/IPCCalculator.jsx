@@ -162,14 +162,14 @@ const IPCCalculator = () => {
           </div>
 
           <div className="zdiff-input-grid">
-            <div className="zdiff-input-group" style={{ gridColumn: 'span 2' }}>
+            <div className="zdiff-input-group zdiff-input-group--full">
               <div className="zdiff-toggle-group w-full">
                 <button className={`zdiff-toggle-btn flex-1 ${packageType === 'CHIP' ? 'zdiff-toggle-btn--active-green' : ''}`} onClick={() => setPackageType('CHIP')}>Passive/Chip</button>
                 <button className={`zdiff-toggle-btn flex-1 ${packageType === 'GULL_WING' ? 'zdiff-toggle-btn--active-green' : ''}`} onClick={() => setPackageType('GULL_WING')}>Leaded IC</button>
               </div>
             </div>
 
-            <div className="zdiff-input-group" style={{ gridColumn: 'span 2' }}>
+            <div className="zdiff-input-group zdiff-input-group--full">
               <div className="zdiff-toggle-group w-full">
                 {['A', 'B', 'C'].map(level => (
                   <button key={level} className={`zdiff-toggle-btn flex-1 ${densityLevel === level ? 'zdiff-toggle-btn--active-green' : ''}`} onClick={() => setDensityLevel(level)}>Density {level}</button>
@@ -211,7 +211,7 @@ const IPCCalculator = () => {
         {/* ── Right Side: Standard Pad Results ── */}
         <div className="zdiff-right">
           <div className="zdiff-result-card">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+            <div className="zdiff-result-main-grid">
               <div>
                 <div className="zdiff-result-label">Pad Width (X)</div>
                 <div className="zdiff-result-value">

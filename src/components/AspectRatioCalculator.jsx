@@ -43,50 +43,31 @@ const AspectRatioCalculator = () => {
   const isHighRiskStub = stats.resonantFreq < 15;
 
   return (
-    <div className="zdiff-calc slide-up" id="via-technology-center">
-      {/* ── Header ── */}
-      <div className="zdiff-header">
-        <div className="zdiff-header-left">
-          <div className="zdiff-header-icon" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
-            {mode === 'aspect' ? <Ruler size={18} style={{ color: '#3b82f6' }} /> : <Activity size={18} style={{ color: '#f97316' }} />}
-          </div>
-          <div>
-            <h3 className="zdiff-title">Via Technology Center</h3>
-            <p className="zdiff-subtitle">Advanced Drill Aspect Ratio & Signal Integrity Stub Center</p>
-          </div>
+    <div className="si-tool-card fade-in" id="via-technology-center">
+      <div className="si-tool-header">
+        <div className="si-tool-icon-box" style={{ background: 'rgba(59, 130, 246, 0.1)', color: mode === 'aspect' ? '#3b82f6' : '#f97316' }}>
+          {mode === 'aspect' ? <Ruler size={24} /> : <Activity size={24} />}
         </div>
-
-        <div className="zdiff-toggle-group">
-          <button
-            className={`zdiff-toggle-btn ${unitSystem === 'mm' ? 'zdiff-toggle-btn--active-green' : ''}`}
-            onClick={() => setUnitSystem('mm')}
-          >
-            mm
-          </button>
-          <button
-            className={`zdiff-toggle-btn ${unitSystem === 'mil' ? 'zdiff-toggle-btn--active-green' : ''}`}
-            onClick={() => setUnitSystem('mil')}
-          >
-            mil
-          </button>
+        <div>
+          <h3 className="zdiff-title">Via Technology Center</h3>
+          <p className="zdiff-subtitle">Advanced Drill Aspect Ratio & Signal Integrity Stub Center</p>
         </div>
       </div>
 
-      <div className="zdiff-body">
-        {/* ── Left Side: Visualization & Core Mode ── */}
-        <div className="zdiff-left">
+      <div className="si-tool-grid">
+        {/* Left Side: Visualization & Core Mode */}
+        <div className="zdiff-panel">
           <div className="zdiff-diagram-box">
              <span className="zdiff-diagram-label">{mode === 'aspect' ? 'Mechanical Aspect Ratio Scale' : 'Resonant Null Propagation'}</span>
-             <div className="flex justify-center py-6">
+             <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0' }}>
                 {mode === 'aspect' ? (
-                  <svg viewBox="0 0 100 120" className="w-full max-w-[120px]">
+                  <svg viewBox="0 0 100 120" style={{ width: '100%', maxWidth: '120px' }}>
                      <rect x="30" y="10" width="40" height="100" fill="var(--success)" fillOpacity="0.05" stroke="var(--border-light)" />
-                     {/* Drill Hole */}
                      <rect x="45" y="10" width="10" height="100" fill="var(--bg-primary)" stroke="var(--warning)" strokeWidth="1" />
                      <text x="50" y="118" textAnchor="middle" fill="var(--text-tertiary)" fontSize="9">Ratio {stats.aspect}:1</text>
                   </svg>
                 ) : (
-                  <svg viewBox="0 0 200 100" className="w-full max-w-[200px]">
+                  <svg viewBox="0 0 200 100" style={{ width: '100%', maxWidth: '200px' }}>
                     <path d="M0,50 Q25,0 50,50 T100,50 T150,50 T200,50" fill="none" stroke="var(--warning)" strokeWidth="1" strokeOpacity="0.6" />
                     <rect x="90" y="20" width="20" height="60" fill="var(--warning)" fillOpacity="0.1" />
                   </svg>
@@ -95,7 +76,7 @@ const AspectRatioCalculator = () => {
           </div>
 
           <div className="zdiff-input-grid">
-            <div className="zdiff-input-group" style={{ gridColumn: 'span 2' }}>
+            <div className="zdiff-input-group--full">
               <div className="zdiff-toggle-group w-full">
                 <button className={`zdiff-toggle-btn flex-1 ${mode === 'aspect' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setMode('aspect')}>Aspect Ratio</button>
                 <button className={`zdiff-toggle-btn flex-1 ${mode === 'stub' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setMode('stub')}>Stub Resonance</button>
@@ -130,7 +111,7 @@ const AspectRatioCalculator = () => {
                   step="0.1"
                 />
                 <EngineeringInput
-                  label="εr (Dielectric Constant)"
+                  label="εr (Dk)"
                   unit="Dk"
                   value={dk}
                   onChange={e => {
@@ -145,9 +126,9 @@ const AspectRatioCalculator = () => {
           </div>
         </div>
 
-        {/* ── Right Side: Analytical Results ── */}
-        <div className="zdiff-right">
-          <div className="zdiff-result-card" style={{ borderColor: (mode === 'aspect' ? isHighRiskAspect : isHighRiskStub) ? 'var(--danger-border)' : 'var(--success-border)' }}>
+        {/* Right Side: Analytical Results */}
+        <div className="zdiff-panel">
+          <div className="zdiff-result-card" style={{ borderColor: (mode === 'aspect' ? isHighRiskAspect : isHighRiskStub) ? 'var(--danger)' : 'var(--success)' }}>
             <div className="zdiff-result-label">{mode === 'aspect' ? 'Calculated Drill Ratio' : 'Resonant Null (f₀)'}</div>
             <div className="zdiff-result-value">
               <span className="zdiff-result-num" style={{ color: (mode === 'aspect' ? isHighRiskAspect : isHighRiskStub) ? 'var(--danger)' : 'var(--success)' }}>
@@ -176,16 +157,16 @@ const AspectRatioCalculator = () => {
                 <p className="zdiff-verdict-title">{mode === 'aspect' ? 'Manufacturing Verdict' : 'SI Domain Verdict'}</p>
                 <p className="zdiff-verdict-body">
                   {mode === 'aspect' 
-                    ? (isHighRiskAspect ? 'Aspect ratio exceeds 10:1. Excessive risk of barrel copper plating voiding.' : 'Safe for standard volume mechanical drilling.')
-                    : (isHighRiskStub ? `High attenuation at ${stats.resonantFreq}GHz. Controlled depth back-drilling required.` : 'Stub is electrically transparent for current bandwidth.')}
+                    ? (isHighRiskAspect ? 'Aspect ratio exceeds 10:1. Risk of plating voiding.' : 'Safe for volume mechanical drilling.')
+                    : (isHighRiskStub ? `High attenuation at ${stats.resonantFreq}GHz. Back-drilling recommended.` : 'Electrically transparent.')}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="zdiff-presets-box">
+          <div className="zdiff-presets-box" style={{ marginTop: 'var(--space-6)' }}>
              <h5 className="zdiff-presets-title">Quick Geometry Injection</h5>
-             <div className="zdiff-presets-grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)' }}>
+             <div className="zdiff-presets-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
                 <button className="zdiff-preset-btn" onClick={() => { setThickness(1.6); setDrill(0.2); }}>1.6mm@0.2mm</button>
                 <button className="zdiff-preset-btn" onClick={() => { setThickness(2.4); setDrill(0.25); }}>2.4mm@0.25mm</button>
              </div>
