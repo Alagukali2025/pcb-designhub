@@ -189,17 +189,24 @@ const IPCCalculator = () => {
         {/* ── Right Side: Standard Pad Results ── */}
         <div className="zdiff-right">
           <div className="zdiff-result-card">
-            <div className="zdiff-result-label">IPC Calculated Pad Width (X)</div>
-            <div className="zdiff-result-value">
-              <span className="zdiff-result-num">{convertValue(results.x)}</span>
-              <span className="zdiff-result-unit">{unitSystem}</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+              <div>
+                <div className="zdiff-result-label">Pad Width (X)</div>
+                <div className="zdiff-result-value">
+                  <span className="zdiff-result-num">{convertValue(results.x)}</span>
+                  <span className="zdiff-result-unit">{unitSystem}</span>
+                </div>
+              </div>
+              <div>
+                <div className="zdiff-result-label">Pad Length (Y)</div>
+                <div className="zdiff-result-value">
+                  <span className="zdiff-result-num" style={{ color: 'var(--accent-secondary)' }}>{convertValue(results.padLength)}</span>
+                  <span className="zdiff-result-unit">{unitSystem}</span>
+                </div>
+              </div>
             </div>
 
             <div className="zdiff-result-sub-grid">
-              <div className="zdiff-result-sub">
-                <div className="zdiff-result-sub-label">Pad Length (Y)</div>
-                <div className="zdiff-result-sub-val">{convertValue(results.padLength)} <small>{unitSystem}</small></div>
-              </div>
               <div className="zdiff-result-sub">
                 <div className="zdiff-result-sub-label">Outer Boundary (Z)</div>
                 <div className="zdiff-result-sub-val">{convertValue(results.z)} <small>{unitSystem}</small></div>
@@ -211,6 +218,10 @@ const IPCCalculator = () => {
               <div className="zdiff-result-sub">
                 <div className="zdiff-result-sub-label">Inner Gap (G)</div>
                 <div className="zdiff-result-sub-val" style={{ color: 'var(--warning)' }}>{convertValue(results.g)} <small>{unitSystem}</small></div>
+              </div>
+              <div className="zdiff-result-sub">
+                <div className="zdiff-result-sub-label">RMS Tolerance</div>
+                <div className="zdiff-result-sub-val">{results.rms.toFixed(3)} <small>mm</small></div>
               </div>
             </div>
 
@@ -235,17 +246,19 @@ const IPCCalculator = () => {
           </div>
 
           <div className="zdiff-presets-box">
-             <h5 className="zdiff-presets-title">Solder Fillet Goals</h5>
-             <div className="zdiff-presets-grid" style={{ gridTemplateColumns: '1fr' }}>
-                <div className="grid grid-cols-3 gap-2 text-center text-[0.65rem] text-tertiary uppercase font-bold mb-1">
-                   <span>Toe (Jt)</span>
-                   <span>Heel (Jh)</span>
-                   <span>Side (Js)</span>
+             <h5 className="zdiff-presets-title">Solder Fillet Goals (mm)</h5>
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-2)' }}>
+                <div className="zdiff-metric-badge">
+                   <div className="zdiff-metric-label">Toe (Jt)</div>
+                   <div className="zdiff-metric-value">{results.jt.toFixed(2)}</div>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-center bg-white/5 p-2 rounded border border-white/10 text-xs font-bold font-mono">
-                   <span>{results.jt}mm</span>
-                   <span>{results.jh}mm</span>
-                   <span>{results.js}mm</span>
+                <div className="zdiff-metric-badge">
+                   <div className="zdiff-metric-label">Heel (Jh)</div>
+                   <div className="zdiff-metric-value">{results.jh.toFixed(2)}</div>
+                </div>
+                <div className="zdiff-metric-badge">
+                   <div className="zdiff-metric-label">Side (Js)</div>
+                   <div className="zdiff-metric-value">{results.js.toFixed(2)}</div>
                 </div>
              </div>
           </div>
