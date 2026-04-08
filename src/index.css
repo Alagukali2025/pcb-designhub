@@ -5937,3 +5937,47 @@ a:hover {
   border-color: rgba(239, 68, 68, 0.3);
   color: #ef4444;
 }
+
+/* ──────────────────────────────────────────────────────────
+   ZDIFF TOGGLE SYSTEM - VISUAL FIX
+   ────────────────────────────────────────────────────────── */
+
+.zdiff-toggle-group {
+  display: flex;
+  background: var(--bg-primary);
+  padding: 4px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
+  gap: 4px;
+}
+
+.zdiff-toggle-btn {
+  padding: 8px 24px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  background: transparent;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.zdiff-toggle-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.zdiff-toggle-btn--active-green {
+  color: var(--success) !important;
+  background: var(--success-bg) !important;
+  border-color: rgba(26, 107, 58, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(26, 107, 58, 0.1);
+}
+
+.zdiff-toggle-btn--active-orange {
+  color: var(--warning) !important;
+  background: rgba(245, 158, 11, 0.1) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+}
