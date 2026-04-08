@@ -22,6 +22,7 @@ import PDNAnalyzer from './PDNAnalyzer';
 import ThermalAnalysisTool from './ThermalAnalysisTool';
 import IPC2152Calculator from './IPC2152Calculator';
 import EMIChecklist from './EMIChecklist';
+import PITargetCalculator from './PITargetCalculator';
 import ReleaseSimulator from './OutputSystem/ReleaseSimulator';
 
 
@@ -327,6 +328,8 @@ export default function ContentViewer() {
                   {sec.type === 'via-advanced-calc' && <ViaAdvancedCalculator />}
 
                   {sec.type === 'pdn-analyzer' && <PDNAnalyzer />}
+
+                  {sec.type === 'pi-target-calc' && <PITargetCalculator />}
 
                   {sec.type === 'thermal-tool' && <ThermalAnalysisTool />}
 

@@ -1201,9 +1201,14 @@ export const modulesData = [
           ]
         },
         {
-          heading: "Via Design & Stitching",
+          heading: "Via Parasitics (Advanced Modeling)",
           content: "Vias introduce parasitic inductance and capacitance. Optimization is non-negotiable above 5 Gbps.",
           type: "via-advanced-calc"
+        },
+        {
+          heading: "Via Stub Resonance",
+          content: "Calculate the quarter-wave resonant frequency of via stubs to identify potential signal absorption nulls.",
+          type: "via-resonance-calc"
         },
         {
           heading: "EMI / EMC Compliance",
@@ -1634,6 +1639,11 @@ export const modulesData = [
           }
         },
         {
+          heading: "EMI Bandwidth & Critical Length Solver",
+          content: "Determine the significant frequency bandwidth and critical edge-rate propagation limits for your design.",
+          type: "emi-calculator"
+        },
+        {
           heading: "EMI Design Compliance Checklist",
           content: "A systematic, engineering-accurate checklist for ensuring electromagnetic compatibility. Based on industrial shielding, grounding, and filtering best practices.",
           type: "emi-checklist-tool"
@@ -1880,6 +1890,11 @@ export const modulesData = [
           heading: "PI Core: Target Impedance & PDN",
           content: "The Power Distribution Network (PDN) must maintain an impedance (Ztarget) below the threshold from DC to the bandwidth of the switching current.",
           type: 'pdn-analyzer'
+        },
+        {
+          heading: "PDN Target Impedance Solver",
+          content: "Calculate the maximum allowable impedance for a power rail based on voltage, ripple budget, and transient current.",
+          type: 'pi-target-calc'
         },
         {
           heading: "Decoupling Hierarchy & Via Physics",
