@@ -48,9 +48,11 @@ export default function DFMRuleChecker() {
   const [thickness, setThickness] = useState(1.6);
   const [drill, setDrill]         = useState(0.2);
   const [copperOz, setCopperOz]   = useState(1);
+  const [isManualOz, setIsManualOz] = useState(false);
   const [traceWidth, setTraceWidth] = useState(5); // mil
   const [topCopper, setTopCopper] = useState(60); // %
   const [padDia, setPadDia]       = useState(0.5); // mm
+  const [isManualTrace, setIsManualTrace] = useState(false);
 
   // 2. SSOT Synchronizers
   useEffect(() => {
@@ -58,13 +60,17 @@ export default function DFMRuleChecker() {
   }, [activeStackup.height]);
 
   useEffect(() => {
-    const widthMil = parseFloat((activeStackup.width * 39.37).toFixed(1));
-    setTraceWidth(widthMil);
+    if (!isManualTrace) {
+      const widthMil = parseFloat((activeStackup.width * 39.37).toFixed(1));
+      setTraceWidth(widthMil);
+    }
     
-    if (activeStackup.thickness >= 0.07) setCopperOz(2);
-    else if (activeStackup.thickness >= 0.03) setCopperOz(1);
-    else setCopperOz(0.5);
-  }, [activeStackup.width, activeStackup.thickness]);
+    if (!isManualOz) {
+      if (activeStackup.thickness >= 0.07) setCopperOz(2);
+      else if (activeStackup.thickness >= 0.03) setCopperOz(1);
+      else setCopperOz(0.5);
+    }
+  }, [activeStackup.width, activeStackup.thickness, isManualOz, isManualTrace]);
 
   // 3. Derived Engineering Variables
   const bottomCopper = 100 - topCopper;
@@ -192,19 +198,47 @@ export default function DFMRuleChecker() {
 
         {/* Rule 2: Copper vs Trace */}
         <RulePanel title="Rule 2 — Copper Weight vs. Trace Width" icon={Zap} accentClass="dfm-accent-amber" status={traceStatus} result={`${traceWidth} mil / ${copperOz}oz Cu`}>
-          <p className="text-[10px] text-blue-500 font-bold mb-3 italic">⚡ Auto-synced from Stackup Engine</p>
+          <div className="flex items-center justify-between mb-3">
+             <p className={`text-[10px] font-bold italic flex items-center gap-1 ${isManualOz || isManualTrace ? 'text-orange-500' : 'text-blue-500'}`}>
+              {isManualOz || isManualTrace ? (
+                <>🚧 Manual "What-if" Mode active</>
+              ) : (
+                <>⚡ Auto-synced from Stackup Engine</>
+              )}
+            </p>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => { setIsManualOz(!isManualOz); setIsManualTrace(!isManualTrace); }}
+                className={`px-2 py-0.5 rounded-md text-[9px] font-black border transition-all ${isManualOz ? 'bg-orange-500 text-white border-orange-600' : 'bg-black-40 text-tertiary border-white-10'}`}
+              >
+                {isManualOz ? 'SYNC TO LIVE' : 'ENABLE MANUAL'}
+              </button>
+            </div>
+          </div>
+          
           <div className="dfm-inputs-row">
             <div className="dfm-input-group">
               <label className="dfm-input-label">Copper Weight</label>
               <div className="dfm-select-group">
                 {[0.5, 1, 2].map(oz => (
-                  <button key={oz} className={`dfm-oz-btn ${copperOz === oz ? 'dfm-oz-active' : ''}`} disabled> {oz} oz </button>
+                  <button 
+                    key={oz} 
+                    className={`dfm-oz-btn ${copperOz === oz ? 'dfm-oz-active' : ''}`} 
+                    disabled={!isManualOz}
+                    onClick={() => setCopperOz(oz)}
+                  > 
+                    {oz} oz 
+                  </button>
                 ))}
               </div>
             </div>
             <div className="dfm-input-group">
-              <label className="dfm-input-label">Current Width</label>
-              <div className="dfm-input-wrap"><div className="dfm-input opacity-60 bg-transparent">{traceWidth} mil</div></div>
+              <EngineeringInput 
+                label="Trace Width" unit="mil" value={traceWidth} 
+                onChange={e => { if (isManualTrace) setTraceWidth(Number(e.target.value)); }}
+                step="0.5" min="1" max="50"
+                disabled={!isManualTrace}
+              />
             </div>
           </div>
           <div className="dfm-etch-guide">
