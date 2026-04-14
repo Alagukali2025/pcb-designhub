@@ -7229,6 +7229,29 @@ input[type=number] {
   }
 }
 
+/* Universal Fix for interactive tools exceeding mobile viewport */
+.zdiff-calc,
+.ipc-calculator,
+.exp-card,
+.ops-card,
+.via-technology-card,
+.emi-calc,
+.si-tool-card,
+.module-card,
+.vtc-card,
+.pdn-calc,
+.terminal-card,
+.thermal-wrapper,
+.dfm-checker-card,
+[class*="-calculator"],
+[class*="-analyzer"],
+[class*="-tool"] {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
 
 
 
