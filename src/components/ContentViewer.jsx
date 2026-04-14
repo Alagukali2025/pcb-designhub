@@ -2,7 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { modulesData } from '../data/modules';
 import { ArrowLeft, Check, AlertTriangle, Info, List, Clock, Zap, Calculator, ShieldAlert } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import ToolLock from './ToolLock';
 import IPCCalculator from './IPCCalculator';
+
 import StackupCalculator from './StackupCalculator';
 import StackupLayerToggle from './StackupLayerToggle';
 import AspectRatioCalculator from './AspectRatioCalculator';
@@ -30,7 +33,9 @@ import ReleaseSimulator from './OutputSystem/ReleaseSimulator';
 export default function ContentViewer() {
   const { id } = useParams();
   const location = useLocation();
+  const { isLoggedIn } = useAuth();
   const moduleData = modulesData.find(m => m.id === id);
+
   const [activeSection, setActiveSection] = useState(0);
 
   // Handle auto-scroll from search
@@ -326,7 +331,9 @@ export default function ContentViewer() {
                     </div>
                   )}
 
-                  {sec.type && COMPONENTS[sec.type] && COMPONENTS[sec.type](id)}
+                  {sec.type && COMPONENTS[sec.type] && (
+                    isLoggedIn ? COMPONENTS[sec.type](id) : <ToolLock toolName={sec.heading} />
+                  )}
 
                   {sec.ruleCards && (
                     <div className="rule-cards-grid slide-up">

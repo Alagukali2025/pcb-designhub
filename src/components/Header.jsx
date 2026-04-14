@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, Sun, Moon, Menu, X, BookOpen, Hash, ArrowRight } from 'lucide-react';
+import { Search, User, Sun, Moon, Menu, X, BookOpen, Hash, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { modulesData } from '../data/modules';
+import { useAuth } from '../context/AuthContext';
+
 
 export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpen }) {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -11,6 +13,8 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
   const navigate = useNavigate();
   const searchRef = useRef(null);
   const location = useLocation();
+  const { isLoggedIn, userData, logout } = useAuth();
+
 
   // Close results when clicking outside
   useEffect(() => {
@@ -166,19 +170,39 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
         </button>
       </div>
       
-      <div className="header-actions">
-        <button 
-          className="icon-btn theme-toggle" 
-          onClick={toggleTheme}
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        >
-          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
+        <div className="header-actions">
+          <button 
+            className="icon-btn theme-toggle" 
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
 
-        <div className="user-avatar">
-          <User size={20} />
+          {isLoggedIn ? (
+            <div className="user-profile-nav">
+              <div 
+                className={`user-avatar ${userData?.isOwner ? 'owner-avatar' : ''}`} 
+                title={`Logged in as ${userData?.name || 'Engineer'}`}
+              >
+                {userData?.isOwner ? <ShieldCheck size={20} className="owner-badge-icon" /> : (userData?.initials || <User size={20} />)}
+              </div>
+              <button 
+                className="logout-btn-minimal" 
+                onClick={logout}
+                title="Secure Logout"
+              >
+                LOGOUT
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className="login-btn-header">
+              <User size={16} />
+              <span>SIGN IN</span>
+            </Link>
+          )}
         </div>
-      </div>
+
     </header>
   );
 }

@@ -5,7 +5,10 @@ import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import ContentViewer from './components/ContentViewer';
 import LoadingScreen from './components/LoadingScreen';
+import Login from './components/Login';
 import { DesignProvider } from './context/DesignContext';
+import { useAuth } from './context/AuthContext';
+
 
 function App() {
   const [theme, setTheme] = useState(() => {
@@ -19,6 +22,8 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const { isLoggedIn, loading: authLoading } = useAuth();
+
 
   useEffect(() => {
     // Simulate engine bootstrapping / loading models
@@ -61,7 +66,8 @@ function App() {
 
   return (
     <DesignProvider>
-      {isLoading && <LoadingScreen isFadingOut={isFadingOut} />}
+      {(isLoading || authLoading) && <LoadingScreen isFadingOut={isFadingOut} />}
+      
       <div className={`app-layout ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
         <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
         <div className="main-content">
@@ -74,6 +80,7 @@ function App() {
           <main className="page-content">
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/login" element={<Login />} />
               <Route path="/module/:id" element={<ContentViewer />} />
             </Routes>
           </main>
@@ -86,5 +93,6 @@ function App() {
     </DesignProvider>
   );
 }
+
 
 export default App;
