@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
@@ -7,6 +7,9 @@ import ContentViewer from './components/ContentViewer';
 import LoadingScreen from './components/LoadingScreen';
 import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
+import CreatePassword from './components/CreatePassword';
+import Profile from './components/Profile';
+import OnboardingModal from './components/OnboardingModal';
 import { DesignProvider } from './context/DesignContext';
 import { useAuth } from './context/AuthContext';
 
@@ -23,6 +26,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const { isLoggedIn, userData, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
 
   useEffect(() => {
@@ -56,6 +61,8 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Handled via Profile Dashboard voluntarily now
+
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
@@ -69,6 +76,7 @@ function App() {
       {(isLoading || authLoading) && <LoadingScreen isFadingOut={isFadingOut} />}
       
       <div className={`app-layout ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+        {isLoggedIn && !userData?.isOwner && !userData?.industry && <OnboardingModal />}
         <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
         <div className="main-content">
           <Header 
@@ -82,6 +90,8 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/login" element={<Login />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/create-password" element={<CreatePassword />} />
+              <Route path="/profile" element={<Profile />} />
 
               <Route path="/module/:id" element={<ContentViewer />} />
             </Routes>

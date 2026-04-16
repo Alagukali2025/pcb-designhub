@@ -3,6 +3,7 @@ import { Search, User, Sun, Moon, Menu, X, BookOpen, Hash, ArrowRight, ShieldChe
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { modulesData } from '../data/modules';
 import { useAuth } from '../context/AuthContext';
+import ProfileMenu from './ProfileMenu';
 
 
 export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpen }) {
@@ -12,8 +13,10 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
   const [isResultsVisible, setIsResultsVisible] = useState(false);
   const navigate = useNavigate();
   const searchRef = useRef(null);
+  const profileRef = useRef(null);
   const location = useLocation();
   const { isLoggedIn, userData, logout } = useAuth();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
 
   // Close results when clicking outside
@@ -21,6 +24,9 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setIsResultsVisible(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -171,22 +177,26 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
       </div>
       
         <div className="header-actions">
-          <button 
-            className="icon-btn theme-toggle" 
-            onClick={toggleTheme}
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+          {/* Theme toggle removed from here - moved into Profile Menu for logged in users */}
+          {!isLoggedIn && (
+            <button 
+              className="icon-btn theme-toggle" 
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          )}
 
           {isLoggedIn ? (
-            <div className="user-profile-nav">
+            <div className="user-profile-nav" ref={profileRef}>
               <div 
-                className={`user-avatar ${userData?.isOwner ? 'owner-avatar' : ''}`} 
-                title={`Logged in as ${userData?.name || 'Engineer'}`}
+                className={`user-avatar ${userData?.isOwner ? 'owner-avatar' : ''} clickable`} 
+                title={`Account: ${userData?.name}`}
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
               >
                 {userData?.picture ? (
-                  <img src={userData.picture} alt={userData.name} className="user-avatar-img" />
+                  <img src={userData.picture} alt="" className="user-avatar-img" />
                 ) : (
                   userData?.initials || <User size={20} />
                 )}
@@ -197,13 +207,16 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
                   </div>
                 )}
               </div>
-              <button 
-                className="logout-btn-minimal" 
-                onClick={logout}
-                title="Secure Logout"
-              >
-                LOGOUT
-              </button>
+              
+              {isProfileOpen && (
+                <ProfileMenu 
+                  userData={userData}
+                  logout={logout}
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                  onClose={() => setIsProfileOpen(false)}
+                />
+              )}
             </div>
           ) : (
             <Link to="/login" className="login-btn-header">

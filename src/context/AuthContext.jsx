@@ -43,7 +43,10 @@ export const AuthProvider = ({ children }) => {
       picture: avatarUrl,
       loginTime: new Date().toISOString(),
       isOwner: isOwner,
-      authMethod: 'google'
+      authMethod: supabaseUser.app_metadata?.provider || 'email',
+      hasPassword: supabaseUser.identities?.some(id => id.provider === 'email') || false,
+      industry: metadata.industry || null,
+      phone: metadata.phone || null
     };
   };
 
@@ -51,7 +54,11 @@ export const AuthProvider = ({ children }) => {
     if (!supabaseUser) return;
     
     try {
-      const { error } = await supabase
+      const hasPassword = supabaseUser.identities?.some(id => id.provider === 'email') || false;
+      const provider = supabaseUser.app_metadata?.provider || 'email';
+      
+      // Upsert to ensure record exists
+      const { data: upsertedData, error: upsertError } = await supabase
         .from('profiles')
         .upsert({
           id: supabaseUser.id,
@@ -59,11 +66,25 @@ export const AuthProvider = ({ children }) => {
           full_name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name,
           avatar_url: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture,
           last_login: new Date().toISOString(),
-        }, { onConflict: 'id' });
+          auth_method: provider,
+          has_password: hasPassword
+        }, { onConflict: 'id' })
+        .select()
+        .single();
 
-      if (error) console.error('Auth Sync Warning:', error.message);
+      if (upsertError) throw upsertError;
+
+      // Update local state with DB fields (like industry)
+      if (upsertedData) {
+        setUserData(prev => ({
+          ...(prev || {}),
+          industry: upsertedData.industry,
+          phone: upsertedData.phone,
+          name: upsertedData.full_name || prev?.name
+        }));
+      }
     } catch (e) {
-      console.warn('Silent sync error:', e);
+      console.error('Auth Sync Error:', e.message);
     }
   };
 
@@ -111,6 +132,7 @@ export const AuthProvider = ({ children }) => {
           const mapped = mapSupabaseUser(session.user);
           setIsLoggedIn(true);
           setUserData(mapped);
+          
           syncUserProfile(session.user);
         }
         console.groupEnd();
@@ -128,8 +150,10 @@ export const AuthProvider = ({ children }) => {
       console.log(`🔑 AUTH_EVENT: ${event}`, session ? 'SESSION_EXISTS' : 'NO_SESSION');
       if (mounted) {
         if (session?.user) {
+          const mapped = mapSupabaseUser(session.user);
           setIsLoggedIn(true);
-          setUserData(mapSupabaseUser(session.user));
+          setUserData(mapped);
+          
           syncUserProfile(session.user);
         } else {
           setIsLoggedIn(false);
@@ -177,6 +201,74 @@ export const AuthProvider = ({ children }) => {
     console.warn('Manual registration not fully implemented with Supabase. Please use Google Login.');
   };
 
+  const checkEmailStatus = async (email) => {
+    if (!email) return null;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('auth_method, has_password')
+        .eq('email', email.toLowerCase().trim())
+        .single();
+      
+      if (error) return null;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const completePasswordSetup = async (password) => {
+    try {
+      const { data, error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      
+      // Update local profile flag
+      const userId = userData?.id;
+      if (userId) {
+        await supabase
+          .from('profiles')
+          .update({ has_password: true, auth_method: 'hybrid' })
+          .eq('id', userId);
+      }
+      
+      
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  const updateProfileData = async (newData) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: newData.full_name,
+          phone: newData.phone,
+          industry: newData.industry,
+          updated_at: new Date()
+        })
+        .eq('id', userData.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Sync local state
+      setUserData(prev => ({
+        ...prev,
+        name: data.full_name,
+        phone: data.phone,
+        industry: data.industry
+      }));
+
+      return { success: true };
+    } catch (error) {
+      console.error('Profile update error:', error.message);
+      return { success: false, error: error.message };
+    }
+  };
+
   const value = {
     isLoggedIn,
     userData,
@@ -184,7 +276,9 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     loginWithGoogle,
-    logout
+    logout,
+    checkEmailStatus,
+    updateProfileData
   };
 
   return (

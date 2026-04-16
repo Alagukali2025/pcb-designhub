@@ -17,13 +17,24 @@ export default function Login() {
     industry: 'Aerospace'
   });
 
-  const { login, register, loginWithGoogle } = useAuth();
+  const [authStatus, setAuthStatus] = useState('checking'); // 'idle', 'checking', 'google_transition', 'ready'
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const { login, register, loginWithGoogle, checkEmailStatus } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleAuthSubmit = (e) => {
+  const handleEmailBlur = async () => {
+    if (!email || !email.includes('@')) return;
+    
+    setAuthStatus('checking');
+    const status = await checkEmailStatus(email);
+    setAuthStatus('ready');
+  };
+
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
-    alert('Direct login is currently disabled for maintenance. Please use "GOOGLE ACCOUNT" to sign in securely.');
+    alert('Direct login (Email/Password) is currently disabled for maintenance. Please use "GOOGLE ACCOUNT" to sign in securely.');
   };
 
   const handleGoogleLogin = async () => {
@@ -77,14 +88,18 @@ export default function Login() {
                         type="email"
                         placeholder="Enter your email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (authStatus !== 'idle') setAuthStatus('idle');
+                        }}
+                        onBlur={handleEmailBlur}
                         required
                         autoFocus
                       />
                     </div>
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group slide-up">
                     <label>PASSWORD</label>
                     <div className="input-field">
                       <Lock size={18} className="field-icon" />
@@ -109,7 +124,11 @@ export default function Login() {
                     <a href="#">FORGOT PASSWORD?</a>
                   </div>
 
-                  <button type="submit" className="auth-main-btn">
+                  <button 
+                    type="submit" 
+                    className="auth-main-btn"
+                    disabled={authStatus === 'checking'}
+                  >
                     <span>SIGN IN</span>
                     <LogIn size={20} />
                   </button>
