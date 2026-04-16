@@ -8,7 +8,7 @@ const generateExportData = (format) => {
     format,
     export_date: new Date().toISOString(),
     board: {
-      id: 'MASTERCLASS_STACKUP_DEMO',
+      id: 'DESIGNHUB_STACKUP_DEMO',
       revision: 'REV_A',
       total_thickness_mm: 1.6,
       layer_count: 8,

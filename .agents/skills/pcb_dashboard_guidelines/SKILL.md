@@ -1,11 +1,11 @@
 ---
 name: pcb_dashboard_guidelines
-description: Core guidelines and project standards for the PCB Masterclass Dashboard
+description: Core guidelines and project standards for the PCB Design Hub Dashboard
 ---
 
 # PCB Dashboard Professional Guidelines
 
-This document outlines the core principles and standards that MUST be followed when working on the PCB Masterclass Dashboard project.
+This document outlines the core principles and standards that MUST be followed when working on the PCB Design Hub Dashboard project.
 
 ## 1. Git Workflow & Branch Management
 - **Branch Restriction**: ALWAYS work only in the current git branch.

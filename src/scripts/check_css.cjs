@@ -1,5 +1,6 @@
 const fs = require('fs');
-const content = fs.readFileSync('c:/Users/z/Documents/AK/AI/PCB Masterclass/pcb-masterclass-dashboard/src/index.css', 'utf8');
+const path = require('path');
+const content = fs.readFileSync(path.join(__dirname, '../index.css'), 'utf8');
 let open = 0;
 let close = 0;
 let line = 1;

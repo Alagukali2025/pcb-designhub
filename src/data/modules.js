@@ -583,7 +583,7 @@ export const modulesData = [
           heading: "IPC Standards Compliance",
           content: "Specify laminates by IPC slash-sheet designators in your SSOT — never by brand name alone — to prevent unauthorized substitutions.",
           table: {
-            headers: ["Standard", "Title", "Masterclass Application"],
+            headers: ["Standard", "Title", "Design Hub Application"],
             rows: [
               ["IPC-2221B", "Generic PWB Design", "Electrical clearances, via aspect ratios"],
               ["IPC-2222", "Sectional Standard for Rigid", "Rigid organic board requirements"],
