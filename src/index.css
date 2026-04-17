@@ -8863,6 +8863,15 @@ input[type=number] {
   50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
 }
 
+.aibot-fab.pulse {
+  animation: fabPulse 2s infinite;
+}
+@keyframes fabPulse {
+  0% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.7); }
+  70% { box-shadow: 0 0 0 15px rgba(var(--accent-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); }
+}
+
 /* Chat Panel */
 .aibot-panel {
   position: fixed;
@@ -9049,6 +9058,44 @@ input[type=number] {
 .bot-msg-line { margin: 0; line-height: 1.55; }
 .bot-msg-line strong { color: var(--accent-hover); font-weight: 700; }
 
+.aibot-action-card {
+  margin-top: 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+  border-left: 3px solid var(--accent-primary);
+  border-radius: 10px;
+  padding: 10px 12px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  color: var(--text-primary);
+}
+.aibot-action-card:hover {
+  background: var(--accent-light);
+  border-color: var(--accent-border);
+  transform: translateX(4px);
+}
+.action-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.action-card-label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--accent-hover);
+  letter-spacing: 0.05em;
+}
+.action-card-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 /* Typing indicator */
 .aibot-typing {
   padding: 12px 16px;
@@ -9069,44 +9116,6 @@ input[type=number] {
   40% { transform: translateY(-6px); }
 }
 
-/* Quick Actions */
-.aibot-quick-actions {
-  padding: 8px 12px;
-  border-top: 1px solid var(--glass-border);
-  background: var(--bg-secondary);
-  flex-shrink: 0;
-}
-.aibot-quick-label {
-  font-size: 0.6rem;
-  font-weight: 800;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 6px;
-}
-.aibot-quick-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-.aibot-quick-btn {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--glass-border);
-  color: var(--text-secondary);
-  font-size: 0.68rem;
-  font-weight: 600;
-  padding: 4px 9px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-}
-.aibot-quick-btn:hover {
-  background: var(--accent-light);
-  border-color: var(--accent-border);
-  color: var(--accent-primary);
-  transform: translateY(-1px);
-}
 
 /* Input Area */
 .aibot-input-area {

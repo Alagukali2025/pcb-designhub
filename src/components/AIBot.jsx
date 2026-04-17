@@ -1,134 +1,253 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Sparkles, X, Send, Cpu, RotateCcw, ChevronDown, Layers, Zap,
-  AlertCircle, CheckCircle2, BookOpen
+  AlertCircle, CheckCircle2, BookOpen, ArrowRight, Info
 } from 'lucide-react';
+import { useDesign } from '../context/DesignContext';
 
-// ── PCB Knowledge Base (smart mock engine) ───────────────────────────────────
-// Each entry: { keywords: [], response: string }
+// ── NLP & Intent Engine Configuration ────────────────────────────────────────
+
+const INTENTS = {
+  GREETING: 'greeting',
+  TECHNICAL: 'technical',
+  ACTION: 'action',
+  STATUS: 'status',
+  NAV: 'navigation',
+  UNKNOWN: 'unknown'
+};
+
 const PCB_KB = [
   {
-    keywords: ['trace width', 'current', 'ampere', 'amp', 'ipc-2152', '2152'],
-    response: `**Trace Width & Current Capacity (IPC-2152)**\n
-For external copper traces at 1 oz/ft² (35µm):\n
-• **1A** → ~0.3mm (12 mil)\n• **2A** → ~0.5mm (20 mil)\n• **3A** → ~0.8mm (31 mil)\n• **5A** → ~1.5mm (59 mil)\n
-📐 *Use the IPC Trace Width Calculator in the app for precision values.*\n\nKey factors: copper weight, temperature rise (ΔT), and ambient temperature.`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['stackup', 'stack-up', 'layer', 'layers', 'buildup'],
+    synonyms: ['construction', 'lamination', 'dielectric', 'prepreg', 'core'],
+    response: `A PCB stackup defines the vertical arrangement of copper and dielectric layers. Maintaining **mechanical symmetry** and balanced copper distribution is critical to prevent board warpage.`,
+    action: { label: 'Stackup Design Module', moduleId: 'stackup' }
   },
   {
-    keywords: ['impedance', 'ohm', 'controlled impedance', '50 ohm', '100 ohm', 'differential'],
-    response: `**Controlled Impedance — Key Rules**\n
-• **Single-ended:** Target 50Ω (RF/high-speed digital)\n• **Differential pair:** Target 100Ω (USB, HDMI, PCIe)\n• **Microstrip formula (approx):** Z₀ ≈ 87/√(εr+1.41) × ln(5.98H / (0.8W + T))\n
-📐 *Use the Zdiff Calculator tool to get exact values for your stackup.*\n\n🔑 Inform your PCB fabricator of target impedance — most control to ±10%.`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['emi', 'emc', 'interference', 'noise', 'shielding'],
+    synonyms: ['electromagnetic', 'radiation', 'emission', 'coupling'],
+    response: `EMI (Electromagnetic Interference) control requires maintaining short return paths, avoiding plane splits under high-speed traces, and effective placement of decoupling capacitors.`,
+    action: { label: 'EMI / EMC Masterclass', moduleId: 'emi_emc' }
   },
   {
-    keywords: ['via', 'through hole', 'blind via', 'buried via', 'via stub', 'annular ring'],
-    response: `**Via Design Guidelines (IPC-2221)**\n
-• **Drill diameter:** Min 0.15mm (6 mil) for standard fab\n• **Annular ring:** Min 0.125mm (5 mil) around pad\n• **Aspect ratio:** Max 10:1 (drill dia : board thickness)\n• **Via stubs** cause resonance — use back-drilling or blind vias for >3 GHz\n
-📐 *Use the Via Calculator in the app for current capacity and resistance.*`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['si', 'pi', 'signal integrity', 'power integrity', 'eye diagram'],
+    synonyms: ['jitter', 'reflection', 'ringing', 'crosstalk'],
+    response: `Signal Integrity (SI) ensures your pulses remain clean. Minimize reflections via termination (series/parallel) and control crosstalk by maintaining a spacing of **3W** between traces.`,
+    action: { label: 'SI / PI Engineering', moduleId: 'si_pi' }
   },
   {
-    keywords: ['dfm', 'design for manufacturing', 'manufacture', 'fab', 'fabrication'],
-    response: `**DFM Checklist — Top 10 Rules**\n
-1. Min trace/space: 0.1mm/0.1mm (standard), 0.075mm (advanced)\n2. Drill-to-copper: ≥0.125mm\n3. Board edge clearance: ≥0.3mm for traces\n4. Solder mask expansion: 0.05mm per side\n5. Silkscreen: Do not overlap solder pads\n6. Fiducials: Min 3 on each assembly side\n7. Aspect ratio: ≤10:1 for vias\n8. BGA pitch: ≥0.4mm for standard SMT\n9. Annular ring: ≥0.125mm for inner layers\n10. Copper balance: Keep pour coverage symmetric\n\n📐 *Run the DFM Rule Checker tool in the app for automated checks.*`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['footprint', 'land pattern', 'pad', 'component', 'symbol'],
+    synonyms: ['library', 'package', 'smd', 'tht', 'ipc-7351'],
+    response: `Master footprint creation using **IPC-7351B standards**. Ensure toe, heel, and side fillets meet density levels (A/B/C) for your target assembly process.`,
+    action: { label: 'Footprint Creation Tool', moduleId: 'footprint' }
   },
   {
-    keywords: ['stackup', 'stack-up', 'layer', '4 layer', '6 layer', '8 layer', 'prepreg', 'core'],
-    response: `**Standard Layer Stackups**\n
-**4-Layer (Standard):**\n
-L1 Signal | Prepreg | L2 Ground | Core | L3 Power | Prepreg | L4 Signal\n
-• Total: 1.6mm | Impedance reference: L1/L4 to L2/L3\n
-**6-Layer (High-Speed):**\n
-L1 Sig | GND | L3 Sig | L4 Sig | PWR | L6 Sig\n
-• Better EMI shielding, tighter impedance control\n
-📐 *Use the Stackup Calculator for Dk/Df-based impedance calculation.*`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['thermal', 'heat', 'temperature', 'cooling', 'heatsink'],
+    synonyms: ['thermal via', 'dissipation', 'conductivity', 'ipc-2152'],
+    response: `Thermal management relies on copper spreading and thermal via arrays. Use **0.2-0.3mm vias** under thermal pads to conduct heat to internal ground planes.`,
+    action: { label: 'Thermal Analysis Tool', moduleId: 'thermal' }
   },
   {
-    keywords: ['emi', 'emc', 'emission', 'noise', 'decoupling', 'bypass capacitor'],
-    response: `**EMI/EMC Best Practices**\n
-• Place decoupling caps as close to IC VCC pins as possible (<2mm)\n• Use 100nF ceramic + 10µF bulk cap in parallel\n• Route high-speed signals over continuous ground planes\n• Avoid slotted planes — they break return current path\n• 3W rule: trace spacing ≥ 3× trace width to reduce crosstalk\n• Place crystal oscillator close to IC, guard with ground stitching vias\n\n📐 *Run the EMI Checklist tool in the app.*`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['ddr', 'ddr4', 'ddr5', 'memory', 'timing'],
+    synonyms: ['matching', 'skew', 'propagation', 'fly-by'],
+    response: `DDR routing requires precise length matching (typically **±5-10 mil**) within byte lanes and tight impedance control (usually 40Ω single-ended).`,
+    action: { label: 'DDR Architecture Module', moduleId: 'ddr' }
   },
   {
-    keywords: ['bga', 'ball grid array', 'escape routing', 'via-in-pad'],
-    response: `**BGA Routing & Escape Strategies**\n
-• **0.8mm pitch BGA:** Use 0.3mm drill, 0.45mm pad, dog-bone routing\n• **0.5mm pitch BGA:** Via-in-pad (VIP) required — use filled & covered vias\n• **0.4mm pitch BGA:** Stacked micro-vias in HDI technology\n• Channel routing: use shortest escape path, maintain impedance\n• Ground and power balls: connect with short, wide traces to planes\n\n🔑 Always confirm min pad size with your assembly house.`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['aspect ratio', 'aspect-ratio', 'drill aspect'],
+    synonyms: ['drilling ratio', 'vias ratio', 'drill depth'],
+    response: `Standard via aspect ratio should be kept within **8:1 to 10:1** for reliable manufacturing. Higher ratios (e.g., 12:1) require specialized drilling and plating processes.`,
+    action: { label: 'Calculate Aspect Ratio', moduleId: 'stackup' }
   },
   {
-    keywords: ['copper weight', 'copper thickness', '1oz', '2oz', 'oz/ft'],
-    response: `**Copper Weight Reference**\n
-| Copper Weight | Thickness | Best For |\n|---|---|---|\n| 0.5 oz/ft² | 17.5µm | Fine pitch HDI |\n| 1 oz/ft² | 35µm | Standard digital |\n| 2 oz/ft² | 70µm | Power boards |\n| 3 oz/ft² | 105µm | High-current designs |\n\nHeavier copper = wider min spacing requirements. Check with your fab.`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['trace width', 'current', 'ampere', 'amp', 'ipc-2152'],
+    synonyms: ['track width', 'conductor size', 'carrying capacity', 'ampacity'],
+    response: `For 1oz copper and 1A current, a width of **0.3mm (12 mil)** is typical for a 10°C temperature rise. Heavier current or internal layers require wider traces.`,
+    action: { label: 'Trace Width & Current Tool', moduleId: 'thermal' }
   },
   {
-    keywords: ['ddr', 'ddr4', 'ddr5', 'memory', 'skew', 'fly-by', 'topology'],
-    response: `**DDR Memory Routing Rules**\n
-• **Topology:** Fly-by daisy chain (DDR3+), point-to-point for < 2 slots\n• **Trace length matching:** ±25 mil within byte lane, ±100 mil between byte lanes\n• **Clock-to-data skew:** Max 25 mil at board level\n• **Impedance:** 40Ω single-ended, 80Ω differential (adjust for your stackup)\n• **Termination:** On-die termination (ODT) for DDR3/4 — check JEDEC spec\n\n📐 *Use the DDR Timing Calculator in the app.*`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['impedance', 'ohm', 'controlled impedance', '50 ohm', '100 ohm'],
+    synonyms: ['z0', 'zdiff', 'matching', 'signal integrity'],
+    response: `Standard targets are **50Ω for single-ended** and **100Ω for differential pairs**. These are determined by your trace width, dielectric height, and material Dk.`,
+    action: { label: 'Controlled Impedance Solver', moduleId: 'diff_pair' }
   },
   {
-    keywords: ['thermal', 'heat', 'temperature', 'thermal via', 'thermal relief', 'heatsink', 'pad'],
-    response: `**Thermal Management Guidelines**\n
-• **Thermal vias:** Array of 0.2–0.3mm drilled vias under thermal pads, filled preferred\n• **Copper pours:** Solid pour on inner layers dissipates heat better than hatched\n• **Thermal relief:** Use for hand-soldered joints; omit for reflow/thermal pad components\n• **Copper spreading:** 2–4x IC footprint area for adequate spreading\n• **θJA rule of thumb:** Each 1oz inner copper layer ≈ 1°C/W reduction\n\n📐 *Use the Thermal Analysis tool in the app.*`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['via', 'blind via', 'buried via', 'annular ring'],
+    synonyms: ['hole', 'drill', 'ring size', 'pad size'],
+    response: `Minimum annular ring should be **0.125mm (5 mil)** for IPC Class 2. Micro-vias and high-density boards may go down to 0.05mm with specialized FAB.`,
+    action: { label: 'Via Design Standards', moduleId: 'stackup' }
   },
   {
-    keywords: ['clearance', 'creepage', 'high voltage', 'isolation', 'ipc-2221'],
-    response: `**High-Voltage Clearance & Creepage (IPC-2221)**\n
-At 250V AC, Pollution Degree 2:\n
-• **Clearance** (through air): Min 1.5mm\n• **Creepage** (along surface): Min 3.2mm\n\nAt 1000V AC:\n• Clearance: 3mm | Creepage: 8mm\n\n🔑 Always add safety margin (1.5-2×) for certified products.\n📌 Standards: IEC 60950-1 (IT equipment), IEC 60601 (medical).`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['dfm', 'design for manufacturing', 'clearance', 'creepage'],
+    synonyms: ['drc', 'spacing', 'gap', 'manufacturability', 'high voltage'],
+    response: `Minimum clearance is voltage-dependent; for low voltage digital, **0.1mm (4 mil)** is a common fab limit. High voltage requires increased creepage per IPC-2221.`,
+    action: { label: 'Run DFM Rule Checker', moduleId: 'dfm_dft' }
   },
   {
-    keywords: ['hello', 'hi', 'hey', 'help', 'start', 'how are you'],
-    response: `**Hello, Engineer! 👋**\n
-I'm your **PCB AI Assistant**. I can help you with:\n
-• Trace width & current calculations\n• Controlled impedance design\n• Layer stackup selection\n• Via design guidelines\n• DFM/DFT rules\n• EMI/EMC best practices\n• BGA routing strategies\n• DDR memory routing\n• Thermal management\n• High-voltage clearance\n\nJust type your question and I'll get you the specs!`
+    intent: INTENTS.TECHNICAL,
+    keywords: ['copper balance', 'warpage', 'copper weight', 'resin starvation'],
+    synonyms: ['thieving', 'pouring', 'balancing', 'oz/ft'],
+    response: `Maintain copper density within **±10% across symmetric layer pairs** to prevent board warpage during lamination and reflow cycles.`,
+    action: { label: 'View DFM Strategy', moduleId: 'dfm_dft' }
   },
+  {
+    intent: INTENTS.TECHNICAL,
+    keywords: ['output', 'gerber', 'manufacturing data', 'release'],
+    synonyms: ['ipc-2581', 'odb++', 'bom', 'pick and place'],
+    response: `Final fabrication output must include copper, solder mask, silkscreen, and drill drawings. Use **IPC-2581** for the highest level of data integrity.`,
+    action: { label: 'PCB Output System', moduleId: 'pcb_output_system' }
+  },
+  {
+    intent: INTENTS.STATUS,
+    keywords: ['my stackup', 'current dk', 'target', 'current setting'],
+    synonyms: ['current design', 'what is my', 'settings'],
+    response: `You are in the **{phase}** phase. Current Stackup: **{material}** (Dk: {dk}) with a **{target}Ω** target impedance.`,
+    action: { label: 'Open Stackup Manager', moduleId: 'stackup' }
+  },
+  {
+    intent: INTENTS.GREETING,
+    keywords: ['hello', 'hi', 'hey', 'help', 'start'],
+    responses: [
+      "Hello, Engineer! 👋 How can I assist your design today?",
+      "Greetings! Need a quick spec on trace widths or impedance?",
+      "AI Assistant online. Ask me about EMI, DFM, Stackups, or Thermal rules."
+    ]
+  }
 ];
 
-const QUICK_ACTIONS = [
-  { label: 'Trace Width Formula', query: 'What is the trace width for 3A current?' },
-  { label: '50Ω Impedance Rules', query: 'How do I achieve 50 ohm impedance?' },
-  { label: '4-Layer Stackup', query: 'What is the standard 4 layer stackup?' },
-  { label: 'DFM Checklist', query: 'Give me DFM best practices' },
-  { label: 'Via Design Rules', query: 'What are via design guidelines?' },
-  { label: 'EMI Best Practices', query: 'How to reduce EMI on my PCB?' },
-];
+const PROACTIVE_MESSAGES = {
+  'Library': "Entering **Footprint Creation**? 🏢 Don't forget to check the IPC-7351B land pattern calculator for your footprints.",
+  'Stackup': "Designing your **Stackup**? 🥞 Keep your material Dk and thickness symmetric about the center to avoid board warpage.",
+  'Routing': "Active in **Routing**? 🏎\ufe0f For differential pairs, ensure your trace lengths match within 10 mil for high-speed signals.",
+  'DFM': "Running **DFM Rules**? 🛠\ufe0f Ensure your drill-to-copper clearance is at least 0.125mm (5 mil) to satisfy most fab houses.",
+  'Output': "Finalizing **Output Systems**? 📦 Consider using IPC-2581 to embed your stackup intelligence during handover."
+};
 
-function getBotResponse(query) {
+// ── NLP Logic ────────────────────────────────────────────────────────────────
+
+function processQuery(query, context) {
   const q = query.toLowerCase();
-  const hit = PCB_KB.find(entry => entry.keywords.some(kw => q.includes(kw)));
-  if (hit) return hit.response;
-  return `I understand you're asking about **"${query}"**.\n\nThis is the PCB AI Assistant for the **PCB Design Hub**. I currently specialize in:\n\n• Trace geometry & current capacity\n• Impedance & signal integrity\n• Layer stackups & materials\n• Via design & aspect ratios\n• DFM guidelines & EMI rules\n\nTry rephrasing your question using specific terms like *"trace width"*, *"impedance"*, *"via"*, or *"DFM"* — and I'll have detailed answers for you!`;
+  
+  // 1. Status Check
+  const statusEntry = PCB_KB.find(e => e.intent === INTENTS.STATUS);
+  if (statusEntry.keywords.some(kw => q.includes(kw)) || statusEntry.synonyms.some(s => q.includes(s))) {
+    const response = statusEntry.response
+      .replace('{phase}', context.activePhase || 'N/A')
+      .replace('{material}', context.activeStackup?.material || 'N/A')
+      .replace('{dk}', context.activeStackup?.dk || 'N/A')
+      .replace('{target}', context.activeStackup?.targetImpedance || 'N/A');
+    return { text: response, action: statusEntry.action };
+  }
+
+  // 2. Technical / Greeting Matching
+  let bestMatch = null;
+  let maxScore = 0;
+
+  PCB_KB.forEach(entry => {
+    let score = 0;
+    entry.keywords.forEach(kw => { if (q.includes(kw)) score += 3; });
+    entry.synonyms?.forEach(s => { if (q.includes(s)) score += 1; });
+    
+    if (score > maxScore) {
+      maxScore = score;
+      bestMatch = entry;
+    }
+  });
+
+  if (bestMatch) {
+    if (bestMatch.intent === INTENTS.GREETING) {
+      const idx = Math.floor(Math.random() * bestMatch.responses.length);
+      return { text: bestMatch.responses[idx] };
+    }
+    return { text: bestMatch.response, action: bestMatch.action };
+  }
+
+  // 3. Fallback
+  return { 
+    text: `I'm tracking your question on **"${query}"**. 
+    
+I can give direct answers on:
+• **EMI / EMC** & **SI / PI**
+• **Stackup Design & Layers**
+• **Footprint Standards (IPC-7351B)**
+• **Thermal Analysis & Power (IPC-2152)**
+• **DDR Memory & High-Speed Routing**
+• **DFM Spacing & Copper Balance**
+
+Just drop a term or ask about a specific module!`,
+    isFallback: true
+  };
 }
 
-// Renders basic markdown: **bold** and bullet points
-function BotMessage({ text }) {
-  const lines = text.split('\n');
+// ── Components ───────────────────────────────────────────────────────────────
+
+function BotMessage({ msg, onAction }) {
+  const lines = msg.text.split('\n');
   return (
     <div className="bot-msg-text">
       {lines.map((line, i) => {
         if (!line.trim()) return <br key={i} />;
-        // Bold + inline formatting
-        const parts = line.split(/(\*\*[^*]+\*\*)/g).map((p, j) => {
-          if (p.startsWith('**') && p.endsWith('**'))
-            return <strong key={j}>{p.slice(2, -2)}</strong>;
+        const parts = line.split(/(\*\*[^*]+\*\*|_[^_]+_)/g).map((p, k) => {
+          if (p.startsWith('**') && p.endsWith('**')) return <strong key={k}>{p.slice(2, -2)}</strong>;
+          if (p.startsWith('_') && p.endsWith('_')) return <em key={k}>{p.slice(1, -1)}</em>;
           return p;
         });
         return <p key={i} className="bot-msg-line">{parts}</p>;
       })}
+      
+      {msg.action && (
+        <button className="aibot-action-card" onClick={() => onAction(msg.action)}>
+          <div className="action-card-info">
+            <span className="action-card-label">Expert Recommendation</span>
+            <span className="action-card-title">{msg.action.label}</span>
+          </div>
+          <ArrowRight size={14} />
+        </button>
+      )}
     </div>
   );
 }
 
 export default function AIBot() {
+  const navigate = useNavigate();
+  const { activePhase, activeStackup } = useDesign();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1, from: 'bot',
-      text: `Hello, Engineer! 👋 I'm your **PCB AI Assistant**.\n\nAsk me anything about trace widths, impedance, stackups, DFM rules, via design, EMI, or any PCB engineering topic.\n\nOr pick a quick action below!`
+      text: `Expert PCB Assistant Online. ⚡\n\nI monitor your design context and provide direct technical specs. Ask about EMI, SI, Stackup, or any design standard.`
     }
   ]);
   const [inputVal, setInputVal] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [hasNew, setHasNew] = useState(false);
+  const lastPhase = useRef(activePhase);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (activePhase !== lastPhase.current) {
+      const msgText = PROACTIVE_MESSAGES[activePhase];
+      if (msgText) {
+        setMessages(prev => [...prev, { id: Date.now(), from: 'bot', text: msgText }]);
+        setHasNew(true);
+        setIsOpen(true);
+      }
+      lastPhase.current = activePhase;
+    }
+  }, [activePhase]);
 
   useEffect(() => {
     if (isOpen) {
@@ -141,88 +260,64 @@ export default function AIBot() {
   const sendMessage = async (text) => {
     const query = text.trim();
     if (!query) return;
-    const userMsg = { id: Date.now(), from: 'user', text: query };
-    setMessages(prev => [...prev, userMsg]);
+    setMessages(prev => [...prev, { id: Date.now(), from: 'user', text: query }]);
     setInputVal('');
     setIsTyping(true);
 
-    // Simulate typing delay
-    await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
-    const response = getBotResponse(query);
+    await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
+    const response = processQuery(query, { activePhase, activeStackup });
     setIsTyping(false);
-    const botMsg = { id: Date.now() + 1, from: 'bot', text: response };
+    
+    const botMsg = { id: Date.now() + 1, from: 'bot', ...response };
     setMessages(prev => [...prev, botMsg]);
     if (!isOpen) setHasNew(true);
+  };
+
+  const handleAction = (action) => {
+    if (action.moduleId) {
+      navigate(`/module/${action.moduleId}`);
+      setIsOpen(false);
+    }
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(inputVal); }
   };
 
-  const clearChat = () => {
-    setMessages([{
-      id: 1, from: 'bot',
-      text: `Chat cleared! I'm ready when you are. Ask me about trace widths, impedance, stackups, DFM, or any PCB topic.`
-    }]);
-  };
-
   return (
     <>
-      {/* ── Floating Action Button ─────────────────────────── */}
       <button
-        className={`aibot-fab ${isOpen ? 'open' : ''}`}
+        className={`aibot-fab ${isOpen ? 'open' : ''} ${hasNew ? 'pulse' : ''}`}
         onClick={() => setIsOpen(v => !v)}
-        title="PCB AI Assistant"
-        aria-label="Open PCB AI Assistant"
+        title="PCB Expert AI"
       >
         {isOpen ? <ChevronDown size={22} /> : <Sparkles size={22} />}
         {hasNew && <span className="aibot-fab-badge" />}
       </button>
 
-      {/* ── Chat Panel ────────────────────────────────────── */}
       {isOpen && (
-        <div className="aibot-panel fade-in">
-          {/* Header */}
+        <div className="aibot-panel slide-up">
           <div className="aibot-header">
             <div className="aibot-header-info">
-              <div className="aibot-avatar">
-                <Cpu size={18} />
-              </div>
+              <div className="aibot-avatar"><Cpu size={18} /></div>
               <div>
-                <p className="aibot-title">PCB AI Assistant</p>
-                <p className="aibot-subtitle">
-                  <span className="aibot-dot" />Online
-                </p>
+                <p className="aibot-title">PCB Technical Assistant</p>
+                <p className="aibot-subtitle"><span className="aibot-dot" />Monitoring: {activePhase}</p>
               </div>
             </div>
             <div className="aibot-header-actions">
-              <button className="aibot-icon-btn" onClick={clearChat} title="Clear chat">
-                <RotateCcw size={14} />
-              </button>
-              <button className="aibot-icon-btn" onClick={() => setIsOpen(false)} title="Close">
-                <X size={14} />
-              </button>
+              <button className="aibot-icon-btn" onClick={() => setMessages([{ id: 1, from: 'bot', text: "Chat history reset. How can I help?" }])}><RotateCcw size={14} /></button>
+              <button className="aibot-icon-btn" onClick={() => setIsOpen(false)}><X size={14} /></button>
             </div>
           </div>
 
-          {/* Capability pills */}
-          <div className="aibot-caps">
-            <span><Layers size={11} /> Stackups</span>
-            <span><Zap size={11} /> SI/PI</span>
-            <span><CheckCircle2 size={11} /> DFM</span>
-            <span><BookOpen size={11} /> IPC Standards</span>
-          </div>
-
-          {/* Messages */}
           <div className="aibot-messages">
             {messages.map(msg => (
               <div key={msg.id} className={`aibot-msg-row ${msg.from}`}>
-                {msg.from === 'bot' && (
-                  <div className="aibot-msg-avatar"><Cpu size={12} /></div>
-                )}
+                {msg.from === 'bot' && <div className="aibot-msg-avatar"><Cpu size={12} /></div>}
                 <div className={`aibot-bubble ${msg.from}`}>
-                  {msg.from === 'bot'
-                    ? <BotMessage text={msg.text} />
+                  {msg.from === 'bot' 
+                    ? <BotMessage msg={msg} onAction={handleAction} /> 
                     : <span>{msg.text}</span>}
                 </div>
               </div>
@@ -238,31 +333,18 @@ export default function AIBot() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Actions */}
-          <div className="aibot-quick-actions">
-            <p className="aibot-quick-label">Quick Questions</p>
-            <div className="aibot-quick-grid">
-              {QUICK_ACTIONS.map((qa, i) => (
-                <button key={i} className="aibot-quick-btn" onClick={() => sendMessage(qa.query)}>
-                  {qa.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Input */}
           <div className="aibot-input-area">
             <div className="aibot-input-wrap">
               <input
                 ref={inputRef}
                 type="text"
                 className="aibot-input"
-                placeholder="Ask about trace width, impedance, DFM…"
+                placeholder="Ask technical specs (EMI, SI, Stackup…)"
                 value={inputVal}
                 onChange={e => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
-              <button
+              <button 
                 className={`aibot-send-btn ${!inputVal.trim() ? 'disabled' : ''}`}
                 onClick={() => sendMessage(inputVal)}
                 disabled={!inputVal.trim() || isTyping}
