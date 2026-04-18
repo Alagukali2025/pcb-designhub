@@ -48,6 +48,15 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // 🛡️ GLOBAL AUTH GUARD: Protect every page except /login
+  useEffect(() => {
+    // Only redirect if loading is finished
+    if (!authLoading && !isLoggedIn && location.pathname !== '/login') {
+      console.log('🛡️ Auth Guard: Unauthorized access to', location.pathname, '- Redirecting to Login');
+      navigate('/login', { replace: true });
+    }
+  }, [isLoggedIn, authLoading, location.pathname, navigate]);
+
 
   useEffect(() => {
     // Simulate engine bootstrapping / loading models
@@ -90,43 +99,55 @@ function App() {
     setIsSidebarOpen(prev => !prev);
   };
 
+  const isLoginPage = location.pathname === '/login';
+  const showDashboard = isLoggedIn && !isLoginPage;
+
   return (
     <DesignProvider>
       {(isLoading || authLoading) && <LoadingScreen isFadingOut={isFadingOut} />}
       
-      <div className={`app-layout ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-        {isLoggedIn && !userData?.isOwner && !userData?.industry && <OnboardingModal />}
-        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-        <div className="main-content">
-          <Header 
-            theme={theme} 
-            toggleTheme={toggleTheme} 
-            toggleSidebar={toggleSidebar}
-            isSidebarOpen={isSidebarOpen}
-          />
-          <main className="page-content">
-            <Suspense fallback={<RouteFallback />}>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/create-password" element={<CreatePassword />} />
-                <Route path="/profile" element={<Profile />} />
-
-                <Route path="/module/:id" element={<ContentViewer />} />
-              </Routes>
-            </Suspense>
-          </main>
+      {showDashboard ? (
+        <div className={`app-layout ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+          {isLoggedIn && !userData?.isOwner && !userData?.industry && <OnboardingModal />}
+          <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+          <div className="main-content">
+            <Header 
+              theme={theme} 
+              toggleTheme={toggleTheme} 
+              toggleSidebar={toggleSidebar}
+              isSidebarOpen={isSidebarOpen}
+            />
+            <main className="page-content">
+              <Suspense fallback={<RouteFallback />}>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/create-password" element={<CreatePassword />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/module/:id" element={<ContentViewer />} />
+                </Routes>
+              </Suspense>
+            </main>
+          </div>
+          {/* Mobile Overlay */}
+          {isSidebarOpen && (
+            <div className="sidebar-overlay" onClick={toggleSidebar}></div>
+          )}
+          {/* Global AI Bot — floats on every page */}
+          <AIBot />
         </div>
-        {/* Mobile Overlay */}
-        {isSidebarOpen && (
-          <div className="sidebar-overlay" onClick={toggleSidebar}></div>
-        )}
-        {/* Global AI Bot — floats on every page */}
-        <AIBot />
-      </div>
+      ) : (
+        <div className="auth-fullscreen-layout">
+          <Suspense fallback={<LoadingScreen isFadingOut={false} />}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              {/* Catch-all for unauthenticated users at / or other routes */}
+              <Route path="*" element={<Login />} />
+            </Routes>
+          </Suspense>
+        </div>
+      )}
     </DesignProvider>
-
   );
 }
 
