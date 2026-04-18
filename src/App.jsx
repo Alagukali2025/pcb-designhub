@@ -48,14 +48,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 🛡️ GLOBAL AUTH GUARD: Protect every page except /login
-  useEffect(() => {
-    // Only redirect if loading is finished
-    if (!authLoading && !isLoggedIn && location.pathname !== '/login') {
-      console.log('🛡️ Auth Guard: Unauthorized access to', location.pathname, '- Redirecting to Login');
-      navigate('/login', { replace: true });
-    }
-  }, [isLoggedIn, authLoading, location.pathname, navigate]);
+
 
 
   useEffect(() => {
@@ -100,7 +93,7 @@ function App() {
   };
 
   const isLoginPage = location.pathname === '/login';
-  const showDashboard = isLoggedIn && !isLoginPage;
+  const showDashboard = !isLoginPage;
 
   return (
     <DesignProvider>
