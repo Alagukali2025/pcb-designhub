@@ -138,8 +138,9 @@ export const AuthProvider = ({ children }) => {
         console.log('Session metadata:', session ? 'SESSION_EXISTS' : 'NO_SESSION');
         
         if (mounted && session?.user) {
-          console.log('User detected:', session.user.email);
           const mapped = mapSupabaseUser(session.user);
+          console.log('✅ AUTH_CONTEXT: Session confirmed for', mapped.email);
+          console.log('👑 AUTH_CONTEXT: Owner Status:', mapped.isOwner);
           setIsLoggedIn(true);
           setUserData(mapped);
           

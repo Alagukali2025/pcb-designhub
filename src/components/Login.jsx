@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Cpu, ShieldCheck, Lock, ChevronRight, Mail, Phone, User as UserIcon, Factory, Eye, EyeOff, LogIn, ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export default function Login() {
   const [mode, setMode] = useState('login'); // 'login', 'register'
@@ -15,22 +16,33 @@ export default function Login() {
     email: '',
     phone: '',
     password: '',
+    confirmPassword: '',
     industry: 'Aerospace'
   });
 
-  const [authStatus, setAuthStatus] = useState('checking'); // 'idle', 'checking', 'google_transition', 'ready'
+  const [authStatus, setAuthStatus] = useState('idle'); // 'idle', 'checking', 'google_transition', 'ready'
   const [errorMessage, setErrorMessage] = useState('');
 
-  const { login, register, loginWithGoogle, checkEmailStatus } = useAuth();
+  const { isLoggedIn, login, register, loginWithGoogle, checkEmailStatus } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
+  // 🚨 AUTO-REDIRECT: If user is already logged in, push them to dashboard
+  useEffect(() => {
+    if (isLoggedIn) {
+      console.log('✅ User is already logged in, redirecting to dashboard...');
+      navigate('/');
+    }
+  }, [isLoggedIn, navigate]);
+
   const handleEmailBlur = async () => {
-    if (!email || !email.includes('@')) return;
+    if (!email || !email.includes('@')) {
+      if (authStatus !== 'idle') setAuthStatus('idle');
+      return;
+    }
     
-    setAuthStatus('checking');
-    const status = await checkEmailStatus(email);
-    setAuthStatus('ready');
+    // Non-blocking check
+    checkEmailStatus(email);
   };
 
   const handleAuthSubmit = async (e) => {
@@ -45,17 +57,24 @@ export default function Login() {
           setErrorMessage(result.error || 'Invalid credentials');
           setAuthStatus('ready');
         } else {
-          // Success: AuthContext listener handles the redirect
+          // Success: AuthContext listener handles state, but we force navigate
           navigate('/');
         }
       } else {
+        // Validation: Passwords must match
+        if (regData.password !== regData.confirmPassword) {
+          setErrorMessage('Passwords do not match. Please verify.');
+          setAuthStatus('ready');
+          return;
+        }
+
         const result = await register(regData);
         if (!result.success) {
           setErrorMessage(result.error || 'Registration failed');
           setAuthStatus('ready');
         } else {
           // Success
-          alert('Registration successful! Please check your email for verification if required.');
+          alert('Registration successful! Please check your email for verification. You must click the link in your email before you can sign in.');
           setMode('login');
           setAuthStatus('ready');
         }
@@ -232,6 +251,21 @@ export default function Login() {
                       >
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>CONFIRM PASSWORD</label>
+                    <div className="input-field">
+                      <Lock size={18} className="field-icon" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Repeat security password"
+                        value={regData.confirmPassword}
+                        onChange={(e) => setRegData({...regData, confirmPassword: e.target.value})}
+                        required
+                        minLength={6}
+                      />
                     </div>
                   </div>
 
