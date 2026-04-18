@@ -211,7 +211,11 @@ export const content = {
     {
       heading: "Fiber Weave Effect Mitigation",
       content: "For DDR4-3200 and DDR5-6400, the periodic variation in dielectric constant (Dk) caused by the glass weave can introduce deterministic skew that ruins timing margins.",
-      type: "fiber-weave",
+      type: "cross-ref",
+      refModuleId: "stackup",
+      refTargetHeading: "High-Speed Signal Integrity: Fiber Weave Skew",
+      refLabel: "Open Fiber Weave Analyzer → Stackup Design",
+      refDesc: "Interactive glass weave simulation and Dk variation calculators are canonically located in the Stackup Design module to ensure alignment with material laminate specifications.",
       alerts: [
         { type: "warning", text: "If using standard FR4 (e.g., 7628 weave), you must rotate the entire DDR layout by 10° or use zig-zag routing to ensure both signals in a pair 'see' the same average Dk." }
       ]

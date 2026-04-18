@@ -144,6 +144,7 @@ export const content = {
       ],
       type: 'cross-ref',
       refModuleId: 'stackup',
+      refTargetHeading: 'High-Speed Signal Integrity: Fiber Weave Skew',
       refLabel: 'Open Interactive Fiber Weave Analyzer → Stackup Design',
       refDesc: 'The full interactive Fiber Weave Skew tool with glass weave pattern simulation and Dk variation calculator is canonically located in the Stackup Design module under “High-Speed Signal Integrity: Fiber Weave Skew”.'
     },
@@ -283,8 +284,12 @@ export const content = {
     },
     {
       heading: "Via Stub Resonance",
-      content: "Calculate the quarter-wave resonant frequency of via stubs to identify potential signal absorption nulls.",
-      type: "via-resonance-calc"
+      content: "Calculate the quarter-wave resonant frequency of via stubs to identify potential signal absorption nulls. At rates >10 Gbps, any remaining stub length becomes a parasitic 'antennna' that absorbs energy from the primary signal.",
+      type: 'cross-ref',
+      refModuleId: 'si_pi',
+      refTargetHeading: 'Via Stub Resonance & Back-Drilling',
+      refLabel: 'Open Expert Via Analytics → SI / PI Mastery',
+      refDesc: 'Complex via stub resonance modeling and back-drilling depth calculators are canonically located in the Signal Integrity module for high-fidelity channel analysis.'
     },
     {
       heading: "EMI / EMC Compliance",

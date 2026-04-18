@@ -90,22 +90,33 @@ export default function ContentViewer() {
     return () => { isMounted = false; };
   }, [id, moduleData]);
 
-  // Handle auto-scroll from search
+  // Handle auto-scroll from search or cross-ref
   useEffect(() => {
-    if (location.state && location.state.scrollTo !== undefined && moduleData && content) {
-      const sectionIndex = location.state.scrollTo;
+    if (location.state && moduleData && content) {
+      let targetIndex = -1;
+      
+      if (location.state.scrollTo !== undefined) {
+        targetIndex = location.state.scrollTo;
+      } else if (location.state.scrollToHeading !== undefined && content.sections) {
+        targetIndex = content.sections.findIndex(s => s.heading === location.state.scrollToHeading);
+      }
 
-      // Small delay to ensure refs are populated and DOM is ready
-      const timer = setTimeout(() => {
-        scrollToSection(sectionIndex);
-      }, 300);
-      return () => clearTimeout(timer);
+      if (targetIndex !== -1) {
+        // Small delay to ensure refs are populated and DOM is ready
+        const timer = setTimeout(() => {
+          scrollToSection(targetIndex);
+        }, 300);
+        return () => clearTimeout(timer);
+      }
     }
   }, [id, location.state, moduleData, content]);
 
   const [scrollProgress, setScrollProgress] = useState(0);
   const [checkedItems, setCheckedItems] = useState({});
   const sectionRefs = useRef([]);
+  const visibleSections = useRef(new Set());
+  const isManualScrolling = useRef(false);
+  const scrollTimeout = useRef(null);
 
   // Handle scroll progress
   useEffect(() => {
@@ -133,20 +144,27 @@ export default function ContentViewer() {
   useEffect(() => {
     if (!content) return;
 
+    visibleSections.current.clear();
+
     const observer = new IntersectionObserver((entries) => {
-      let activeIndex = -1;
+      if (isManualScrolling.current) return;
+
       entries.forEach((entry) => {
+        const index = Number(entry.target.dataset.index);
         if (entry.isIntersecting) {
-          // Extract index from dataset
-          activeIndex = Number(entry.target.dataset.index);
+          visibleSections.current.add(index);
+        } else {
+          visibleSections.current.delete(index);
         }
       });
-      if (activeIndex !== -1) {
-        setActiveSection(activeIndex);
+
+      if (visibleSections.current.size > 0) {
+        const minIndex = Math.min(...Array.from(visibleSections.current));
+        setActiveSection(minIndex);
       }
     }, {
       root: document.querySelector('.page-content'),
-      rootMargin: '-20% 0px -80% 0px', // Trigger when section is near top
+      rootMargin: '-10% 0px -60% 0px', // Trigger when section is in top 40%
       threshold: 0
     });
 
@@ -208,9 +226,17 @@ export default function ContentViewer() {
   };
 
   const scrollToSection = (index) => {
+    isManualScrolling.current = true;
+    setActiveSection(index);
+    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+
     if (sectionRefs.current[index]) {
       sectionRefs.current[index].scrollIntoView({ behavior: 'smooth' });
     }
+
+    scrollTimeout.current = setTimeout(() => {
+      isManualScrolling.current = false;
+    }, 800);
   };
 
   const renderAlert = (alert, idx) => {
@@ -417,6 +443,11 @@ export default function ContentViewer() {
                   {sec.type === 'cross-ref' && (() => {
                     const refMod = modulesData.find(m => m.id === sec.refModuleId);
                     const RefIcon = refMod?.icon;
+                    
+                    const linkState = sec.refTargetHeading 
+                      ? { scrollToHeading: sec.refTargetHeading } 
+                      : {};
+
                     return (
                       <div className="cross-ref-card slide-up">
                         <div className="cross-ref-icon-wrap">
@@ -425,7 +456,7 @@ export default function ContentViewer() {
                         <div className="cross-ref-body">
                           <span className="cross-ref-badge">Related Module</span>
                           <p className="cross-ref-desc">{sec.refDesc}</p>
-                          <Link to={`/module/${sec.refModuleId}`} className="cross-ref-btn">
+                          <Link to={`/module/${sec.refModuleId}`} state={linkState} className="cross-ref-btn">
                             {sec.refLabel} <ArrowRight size={14} />
                           </Link>
                         </div>

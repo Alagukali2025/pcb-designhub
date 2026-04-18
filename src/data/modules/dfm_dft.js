@@ -61,8 +61,11 @@ export const content = {
     },
     {
       heading: "Thermal Relief Engineering",
-      content: "Direct copper plane connections act as heatsinks during soldering, causing 'cold solder joints' or tombstoning. Thermal relief isolates the pad while providing a path for current.",
-      type: "thermal-tool"
+      type: "cross-ref",
+      refModuleId: "thermal",
+      refTargetHeading: "Via Gardening & Thermal Stitching",
+      refLabel: "Open Thermal Gardening Solver → Thermal Mastery",
+      refDesc: "The interactive Thermal Gardening and via-stitching optimization suite is canonically located in the Thermal & Power Mastery module."
     },
     {
       heading: "DFT Architecture: ICT vs. JTAG",
