@@ -298,10 +298,10 @@ a:hover {
 /* Global Progress Bar */
 .reading-progress-container {
   position: fixed;
-  top: 80px;
+  top: 64px;
   left: 280px;
   width: calc(100% - 280px);
-  height: 3px;
+  height: 4px; /* Increased from 2px for better visibility */
   background: transparent;
   z-index: 100;
   transition: all var(--transition-normal);
@@ -309,6 +309,7 @@ a:hover {
 
 @media (max-width: 1024px) {
   .reading-progress-container {
+    top: 64px;
     left: 0;
     width: 100%;
   }
@@ -1105,25 +1106,13 @@ a:hover {
 
 .back-link-wrapper {
   grid-column: 1 / -1;
-  position: sticky;
-  top: -32px;
-  margin-top: -32px;
-  padding-top: 32px;
-  padding-bottom: 12px;
   margin-bottom: var(--space-4);
-  background: var(--bg-primary);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   z-index: 40;
 }
 
 @media (max-width: 600px) {
   .back-link-wrapper {
-    top: -16px;
-    margin-top: -16px;
-    padding-top: 16px;
-    padding-bottom: 8px;
-    background: transparent;
+    margin-bottom: var(--space-2);
   }
   
   .back-link {
@@ -1229,7 +1218,7 @@ a:hover {
 }
 
 .content-section {
-  scroll-margin-top: 100px; /* Offset for sticky header */
+  scroll-margin-top: 80px; /* Offset for Header(64px) + Gap */
 }
 
 .section-heading {
