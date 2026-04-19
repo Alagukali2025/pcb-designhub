@@ -127,6 +127,10 @@ export const content = {
     },
     {
       heading: "Universal Impedance Solver",
+      standard: {
+        title: "IPC-2141A (2004)",
+        note: "✅ Industry standard for controlled impedance modeling."
+      },
       content: "Calculate characteristic impedance (Z₀) for Single-Ended and Differential configurations across Microstrip and Stripline topologies using professional IPC-2141A models.",
       type: 'calculator'
     },
@@ -167,6 +171,10 @@ export const content = {
     },
     {
       heading: "DFM Validation — Key Stackup Rules",
+      standard: {
+        title: "IPC-2221B (2012)",
+        note: "✅ Base standard for generic PCB design rules."
+      },
       content: "Before finalizing your stackup, verify these three critical IPC-2221B manufacturing limits that are directly driven by stackup geometry decisions:",
       list: [
         { label: "Aspect Ratio (IPC-2221B)", text: "Board Thickness ÷ Smallest Drill Diameter must be ≤ 10:1 for standard fab, ≤ 12:1 maximum. A 1.6mm board with a 0.2mm drill = 8:1 — acceptable. With 0.1mm drill = 16:1 — will cause plating failures." },
@@ -252,6 +260,10 @@ export const content = {
     },
     {
       heading: "Electrical Clearance & Creepage (IPC-2221B)",
+      standard: {
+        title: "IPC-2221B (2012)",
+        note: "⚠️ Note: High-voltage creepage is also governed by IEC 62368-1."
+      },
       content: "Minimum conductor spacing is determined by the working voltage difference between conductors and the operating environment. IPC-2221B Table 6-1 defines clearance (through air) while creepage (along surfaces) is governed by pollution degree per IEC 62368-1.",
       table: {
         headers: ["Voltage (DC/AC Peak)", "B1 — Internal (mil)", "B2 — Ext. Uncoated (mil)", "B3 — Coated (mil)", "B4 — >3050m Alt. (mil)"],

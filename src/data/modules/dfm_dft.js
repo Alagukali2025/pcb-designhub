@@ -35,6 +35,10 @@ export const content = {
     },
     {
       heading: "Assembly & Thermal Profiles (J-STD-020)",
+      standard: {
+        title: "J-STD-020E (2014)",
+        note: "✅ Standard for Moisture/Reflow Sensitivity Classification."
+      },
       content: "Your design must survive the heat. Assembly processes like Reflow and Wave Soldering subject the board to temperatures between 235°C and 260°C.",
       table: {
         headers: ["Process Stage", "Temperature Range", "Duration (Time Above Liquidus)"],
@@ -69,6 +73,10 @@ export const content = {
     },
     {
       heading: "DFT Architecture: ICT vs. JTAG",
+      standard: {
+        title: "IEEE 1149.1-2013",
+        note: "✅ Standard for Boundary-Scan Architecture (JTAG)."
+      },
       content: "DFT ensures the board is testable after assembly. A combination of In-Circuit Testing (ICT) and Boundary Scan (JTAG) provides 100% fault coverage.",
       filletGrid: [
         {
@@ -112,6 +120,10 @@ export const content = {
     },
     {
       heading: "Surface Finish Decision Matrix",
+      standard: {
+        title: "IPC-4552B / IPC-4553A",
+        note: "✅ Performance specifications for PCB surface finishes (ENIG/Silver)."
+      },
       content: "Surface finish selection determines shelf life, solderability, and flatness. Modern lead-free processes demand finishes that survive multiple reflow cycles without excessive oxidation.",
       table: {
         headers: ["Finish", "Shelf Life", "Flatness", "Cost", "Best For..."],
@@ -130,6 +142,10 @@ export const content = {
     },
     {
       heading: "Interactive: Real-Time DFM Rule Checker",
+      standard: {
+        title: "IPC-2221B / IPC-6012E",
+        note: "✅ Combined limits for Design and Qualification of Rigid Boards."
+      },
       content: "Validate your design parameters against the IPC-2221B and IPC-6012 industrial limits. This engine provides instant feedback on aspect ratio, annular rings, and solder mask dams.",
       type: 'dfm-checker'
     }

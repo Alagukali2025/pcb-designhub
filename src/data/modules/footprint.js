@@ -3,7 +3,11 @@ export const content = {
   sections: [
     {
       heading: "IPC-7351 Land Pattern Methodology",
-      content: "IPC-7351B/C defines a mathematical framework for calculating copper land patterns based on component body dimensions, lead dimensions, and assembly class. The standard introduces three density levels:",
+      standard: {
+        title: "IPC-7351B (2010)",
+        note: "⚠️ Superseded by IPC-7352 (2022) for modern land pattern modeling."
+      },
+      content: "IPC-7351B defines a mathematical framework for calculating copper land patterns based on component body dimensions, lead dimensions, and assembly class. The standard introduces three density levels:",
       table: {
         headers: ["Density Level", "IPC Designation", "Environment", "Typical Application"],
         rows: [
@@ -18,6 +22,10 @@ export const content = {
     },
     {
       heading: "Land Pattern Calculation — Core Equations",
+      standard: {
+        title: "IPC-7351B (2010)",
+        note: "⚠️ Industry transition to IPC-7352 (2022) for proportional pad modeling."
+      },
       content: "IPC-7351B defines land dimensions through three dimensional extensions. All variables carry tolerance bands from the component datasheet.",
       formula: {
         title: "IPC-7351B Land Calculation Variables",
@@ -39,7 +47,11 @@ export const content = {
     },
     {
       heading: "Interactive Land Pattern Solver",
-      content: "Calculate the precise land pattern dimensions for the Top, Side, and Heel fillets based on the IPC-7351C mathematical model. Select your target Density Level to see how pad size affects yield.",
+      standard: {
+        title: "IPC-7351B (2010)",
+        note: "⚠️ Note: IPC-7351C draft concepts merged into IPC-7352 (2022)."
+      },
+      content: "Calculate the precise land pattern dimensions for the Top, Side, and Heel fillets based on the IPC-7351B mathematical model. Select your target Density Level to see how pad size affects yield.",
       type: 'calculator'
     },
     {

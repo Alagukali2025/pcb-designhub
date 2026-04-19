@@ -57,6 +57,10 @@ export const content = {
     },
     {
       heading: "IPC-2152 Current Capacity Solver",
+      standard: {
+        title: "IPC-2152 (2009)",
+        note: "✅ Current Industry Standard for Trace Design (Replaces legacy IPC-2221)."
+      },
       content: "IPC-2152 is the modern, standards-driven methodology for sizing traces. Unlike the legacy IPC-2221, it accounts for material thermal conductivity and nearby copper planes.",
       type: "calculator"
     },

@@ -320,6 +320,20 @@ export default function ContentViewer() {
                     {sec.heading}
                   </h2>
 
+                  {sec.standard && (
+                    <div className="standard-metadata-strip">
+                      <div className="standard-tag">
+                        <Info size={12} /> Standard
+                      </div>
+                      <div className="standard-value">{sec.standard.title}</div>
+                      {sec.standard.note && (
+                        <div className="superseded-note">
+                          {sec.standard.note}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {sec.content && <p className="section-text">{sec.content}</p>}
 
                   {sec.list && (
