@@ -4778,6 +4778,103 @@ a:hover {
   box-shadow: 0 4px 12px var(--accent-glow);
 }
 
+/* ── Engineering Wizard: Material & Layers ── */
+.zdiff-wizard-bar {
+  display: flex;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.zdiff-wizard-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.zdiff-wizard-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.zdiff-wizard-options {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.zdiff-wizard-btn {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 90px;
+  text-align: left;
+}
+
+.zdiff-wizard-btn:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent-border);
+  transform: translateY(-1px);
+}
+
+.zdiff-wizard-btn.active {
+  background: var(--accent-light);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.zdiff-wizard-btn-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.zdiff-wizard-btn-sub {
+  font-size: 0.62rem;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.zdiff-wizard-btn.active .zdiff-wizard-btn-label {
+  color: var(--accent-hover);
+}
+
+.zdiff-wizard-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--border-light);
+  align-self: center;
+}
+
+@media (max-width: 768px) {
+  .zdiff-wizard-bar {
+    gap: var(--space-4);
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .zdiff-wizard-divider {
+    display: none;
+  }
+}
+
 /* Body layout */
 .zdiff-body {
   display: grid;

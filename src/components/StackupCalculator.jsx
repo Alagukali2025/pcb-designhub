@@ -7,10 +7,18 @@ const MM_TO_MIL = 39.3701;
 const IN_TO_MM = 25.4;
 
 const MATERIAL_PRESETS = [
-  { name: 'Standard FR4', dk: 4.2, df: 0.02 },
-  { name: 'Isola 370HR', dk: 4.17, df: 0.016 },
-  { name: 'Panasonic Megtron 6', dk: 3.1, df: 0.002 },
-  { name: 'Rogers RO4350B', dk: 3.66, df: 0.003 }
+  { name: 'Standard FR4', dk: 4.2, df: 0.02, type: 'Epoxy' },
+  { name: 'High-Tg FR4', dk: 4.4, df: 0.018, type: 'Epoxy' },
+  { name: 'Isola 370HR', dk: 4.17, df: 0.016, type: 'Professional' },
+  { name: 'Megtron 6', dk: 3.1, df: 0.002, type: 'Ultra-Low Loss' },
+  { name: 'Rogers 4350B', dk: 3.66, df: 0.003, type: 'RF/Microwave' }
+];
+
+const LAYER_PRESETS = [
+  { layers: 2, h: 1.5, t: 0.035, label: '2L Standard', thickness: '1.6mm' },
+  { layers: 4, h: 0.20, t: 0.035, label: '4L Multi', thickness: '1.6mm' },
+  { layers: 6, h: 0.15, t: 0.035, label: '6L High-Density', thickness: '1.6mm' },
+  { layers: 8, h: 0.12, t: 0.035, label: '8L HDI', thickness: '1.6mm' }
 ];
 
 const StackupCalculator = () => {
@@ -22,6 +30,15 @@ const StackupCalculator = () => {
   
   // Local overlay for tooltip
   const [showTooltip, setShowTooltip] = useState(false);
+  const [selectedLayers, setSelectedLayers] = useState(4);
+
+  const handleLayerSelect = (preset) => {
+    setSelectedLayers(preset.layers);
+    updateStackup({ 
+      height: preset.h, 
+      thickness: preset.t 
+    });
+  };
 
   const results = useMemo(() => {
     const { height: h, width: w, thickness: t, spacing: s, dk: er } = activeStackup;
@@ -167,6 +184,43 @@ const StackupCalculator = () => {
         </div>
       </div>
 
+      {/* ── Engineering Wizard: Material & Layers ── */}
+      <div className="zdiff-wizard-bar slide-up-delayed">
+        <div className="zdiff-wizard-section">
+          <label className="zdiff-wizard-label"><Layers size={14} /> Layer Stackup Template</label>
+          <div className="zdiff-wizard-options">
+            {LAYER_PRESETS.map((lp) => (
+              <button 
+                key={lp.layers}
+                className={`zdiff-wizard-btn ${selectedLayers === lp.layers ? 'active' : ''}`}
+                onClick={() => handleLayerSelect(lp)}
+              >
+                <span className="zdiff-wizard-btn-label">{lp.label}</span>
+                <span className="zdiff-wizard-btn-sub">{lp.thickness}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div className="zdiff-wizard-divider" />
+
+        <div className="zdiff-wizard-section">
+          <label className="zdiff-wizard-label"><Zap size={14} /> Material Engineering</label>
+          <div className="zdiff-wizard-options">
+            {MATERIAL_PRESETS.map((mp, idx) => (
+              <button 
+                key={idx}
+                className={`zdiff-wizard-btn ${activeStackup.material === mp.name ? 'active' : ''}`}
+                onClick={() => updateStackup({ dk: mp.dk, material: mp.name, df: mp.df })}
+              >
+                <span className="zdiff-wizard-btn-label">{mp.name}</span>
+                <span className="zdiff-wizard-btn-sub">{mp.type}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* ── Body: 2-col grid ── */}
       <div className="zdiff-body">
 
@@ -291,22 +345,6 @@ const StackupCalculator = () => {
             </div>
           </div>
 
-          {/* Material Presets */}
-          <div className="zdiff-presets-box">
-            <h5 className="zdiff-presets-title">Material Engineering Presets</h5>
-            <div className="zdiff-presets-grid">
-              {MATERIAL_PRESETS.map((p, idx) => (
-                <button
-                  key={idx}
-                  className={`zdiff-preset-btn ${activeStackup.dk === p.dk ? 'zdiff-preset-btn--active' : ''}`}
-                  onClick={() => updateStackup({ dk: p.dk, material: p.name })}
-                >
-                  <span className="zdiff-preset-name">{p.name}</span>
-                  <span className="zdiff-preset-ohm">εr: {p.dk}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 
