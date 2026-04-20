@@ -36,23 +36,23 @@ export const content = {
     },
     {
       heading: "The Thermal Resistance Path (Rθ)",
-      content: "Electrical engineers can think of heat flow like a series of resistors. Total thermal resistance (Rθja) determines the final junction temperature of your components.",
+      content: "Electrical engineers can think of heat flow like a series of resistors. While basic models use a linear series (Rθja), experts use parallel paths to account for heat flowing both 'Up' into the heatsink and 'Down' into the PCB copper planes.",
       type: "thermal-resistance-visual",
       formula: {
-        title: "Junction Temperature Calculation",
+        title: "Total Resistance (Dual-Path Model)",
         equations: [
-          "Tj = Ta + (Pd × Rθja)",
-          "Rθja = Rθjc + Rθcs + Rθsa"
+          "1/Rθ_total = 1/Rθ_case + 1/Rθ_board",
+          "Tj = Ta + (Pd × Rθ_total)"
         ],
         variables: [
-          { name: "Tj", desc: "Junction Temperature (°C)", tag: "GOAL" },
-          { name: "Ta", desc: "Ambient Temperature (°C)", tag: "INPUT" },
-          { name: "Pd", desc: "Power Dissipated (Watts)", tag: "INPUT" },
-          { name: "Rθja", desc: "Total Thermal Resistance (Junction to Ambient)", tag: "CALC" }
+          { name: "Rθ_case", desc: "Path to air/heatsink (Rθjc + Rθcs + Rθsa)", tag: "UP" },
+          { name: "Rθ_board", desc: "Path to PCB (Rθjb)", tag: "DOWN" },
+          { name: "Pd", desc: "Power Dissipated (Watts)", tag: "INPUT" }
         ]
       },
       alerts: [
-        { type: 'warning', text: "Exceeding Tj_max (typically 125°C or 150°C) results in immediate performance throttling or permanent silicon damage." }
+        { type: 'warning', text: "Exceeding Tj_max (typically 125°C or 150°C) results in immediate performance throttling or permanent silicon damage." },
+        { type: 'info', text: "Expert Note: Rθja is a JEDEC comparative tool. For real-world prediction, you must account for the PCB acting as a primary heatsink through the Rθjb path." }
       ]
     },
     {

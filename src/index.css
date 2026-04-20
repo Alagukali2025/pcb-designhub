@@ -4760,22 +4760,56 @@ a:hover {
 .zdiff-toggle-btn {
   padding: 7px 18px;
   border-radius: var(--radius-lg);
-  border: none;
+  border: 1px solid transparent; /* Prevent jump on active */
   cursor: pointer;
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--text-tertiary);
   background: transparent;
   transition: all var(--transition-fast);
+  outline: none !important;
 }
 
-.zdiff-toggle-btn:hover { color: var(--text-primary); }
+.zdiff-toggle-btn:hover { 
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root.light-theme .zdiff-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
 
 .zdiff-toggle-btn--active-orange {
-  background: var(--accent-light);
-  color: var(--accent-hover);
-  border: 1px solid var(--accent-primary);
-  box-shadow: 0 4px 12px var(--accent-glow);
+  background: var(--bg-secondary) !important;
+  color: var(--accent-primary) !important;
+  border: 1px solid var(--accent-border) !important;
+  box-shadow: var(--shadow-sm);
+  font-weight: 800;
+}
+
+.zdiff-toggle-btn--active-white {
+  background: #ffffff !important;
+  color: #0d1b2e !important;
+  border: 1px solid #ffffff !important;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+  font-weight: 800;
+}
+
+.bg-pcb-green {
+  background-color: #1a6b3a !important; /* Standard Solder Mask Green */
+}
+
+.text-pcb-green {
+  color: #1a6b3a !important;
+}
+
+.border-pcb-green {
+  border-color: #1a6b3a !important;
+}
+
+:root.light-theme .zdiff-toggle-btn--active-orange {
+  background: white !important;
+  border-color: var(--accent-primary) !important;
 }
 
 /* ── Engineering Wizard: Material & Layers ── */
