@@ -131,7 +131,7 @@ export const content = {
         title: "IPC-2141A (2004)",
         note: "✅ Industry standard for controlled impedance modeling."
       },
-      content: "Calculate characteristic impedance (Z₀) for Single-Ended and Differential configurations across Microstrip and Stripline topologies using professional IPC-2141A models.",
+      content: "Calculate characteristic impedance (Z₀) for Single-Ended and Differential configurations across Microstrip, Stripline, Embedded Microstrip, and GCPW topologies using professional IPC-2141A and Conformal Mapping models.",
       type: 'calculator'
     },
     {

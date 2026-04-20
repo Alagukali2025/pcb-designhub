@@ -68,7 +68,7 @@ const StackupCalculator = () => {
       if (mode === 'diff') {
         zdiff = 2 * z0 * (1 - 0.48 * Math.exp(-0.96 * (s_f / h_f)));
       }
-    } else {
+    } else if (topology === 'stripline') {
       // IPC-2141 Stripline (Symmetric B = 2H + T)
       const b = 2 * h_f + t_f;
       z0 = (60 / Math.sqrt(er_f)) * Math.log((1.9 * b) / (0.8 * w_f + t_f));
@@ -77,6 +77,39 @@ const StackupCalculator = () => {
 
       if (mode === 'diff') {
         zdiff = 2 * z0 * (1 - 0.347 * Math.exp(-2.9 * (s_f / b)));
+      }
+    } else if (topology === 'gcpw') {
+      // Grounded Coplanar Waveguide (RF Conformal Mapping Model)
+      const k = w_f / (w_f + 2 * s_f);
+      const k_prime = Math.sqrt(1 - k * k);
+      
+      effDk = (er_f + 1) / 2 + ((er_f - 1) / 2) * Math.exp(-1.2 * (w_f / h_f));
+      
+      let ratio;
+      if (k <= 0.707) {
+        ratio = Math.PI / Math.log(2 * (1 + Math.sqrt(k_prime)) / (1 - Math.sqrt(k_prime)));
+      } else {
+        ratio = Math.log(2 * (1 + Math.sqrt(k)) / (1 - Math.sqrt(k))) / Math.PI;
+      }
+      
+      z0 = (30 * Math.PI) / (Math.sqrt(effDk) * ratio);
+      
+      // Secondary adjustment for ground backing
+      const z0_ms = (60 / Math.sqrt(0.475 * er_f + 0.67)) * Math.log((5.98 * h_f) / (0.8 * w_f + t_f));
+      z0 = (z0 * z0_ms) / (z0 + z0_ms) * 1.55; 
+      
+      delay = 84.75 * Math.sqrt(effDk);
+      if (mode === 'diff') zdiff = z0 * 1.92;
+    } else if (topology === 'embedded') {
+      // IPC-2141 Embedded Microstrip
+      const h1 = h_f * 0.2; 
+      effDk = er_f * (1 - Math.exp(-1.55 * (h_f / (h_f + h1))));
+      const term1 = 60 / Math.sqrt(effDk);
+      const term2 = Math.log((5.98 * h_f) / (0.8 * w_f + t_f));
+      z0 = term1 * term2 * 0.95;
+      delay = 84.75 * Math.sqrt(effDk);
+      if (mode === 'diff') {
+        zdiff = 2 * z0 * (1 - 0.48 * Math.exp(-0.96 * (s_f / h_f))) * 0.98;
       }
     }
 
@@ -181,6 +214,18 @@ const StackupCalculator = () => {
           >
             Stripline
           </button>
+          <button
+            className={`zdiff-toggle-btn ${topology === 'gcpw' ? 'zdiff-toggle-btn--active-orange' : ''}`}
+            onClick={() => setTopology('gcpw')}
+          >
+            GCPW
+          </button>
+          <button
+            className={`zdiff-toggle-btn ${topology === 'embedded' ? 'zdiff-toggle-btn--active-orange' : ''}`}
+            onClick={() => setTopology('embedded')}
+          >
+            Embedded
+          </button>
         </div>
       </div>
 
@@ -231,8 +276,10 @@ const StackupCalculator = () => {
             <span className="zdiff-diagram-label">X-Section Mechanical Scan</span>
             <div className="flex justify-center py-6">
               <svg viewBox="0 0 320 130" className="zdiff-svg">
-                {/* Reference Planes */}
+                {/* Reference Planes (Bottom) */}
                 <rect x="20" y="107" width="280" height="5" fill="var(--success)" rx="2" fillOpacity="0.75" />
+                
+                {/* Reference Planes (Top) */}
                 {topology === 'stripline' && (
                   <rect x="20" y="20" width="280" height="5" fill="var(--success)" rx="2" fillOpacity="0.75" />
                 )}
@@ -246,6 +293,19 @@ const StackupCalculator = () => {
                   fillOpacity="0.04" 
                 />
 
+                {/* Embedded Coating Layer */}
+                {topology === 'embedded' && (
+                  <rect x="20" y="55" width="280" height="15" fill="var(--success)" fillOpacity="0.08" rx="2" />
+                )}
+
+                {/* GCPW Top Grounds */}
+                {topology === 'gcpw' && (
+                  <>
+                    <rect x="20" y="100" width="100" height="7" fill="var(--success)" rx="1.5" />
+                    <rect x="200" y="100" width="100" height="7" fill="var(--success)" rx="1.5" />
+                  </>
+                )}
+
                 {/* Trace(s) */}
                 {mode === 'single' ? (
                   <rect x="135" y={topology === 'stripline' ? 62 : 100} width="50" height="7" fill="var(--warning)" rx="1.5" />
@@ -257,8 +317,10 @@ const StackupCalculator = () => {
                 )}
 
                 {/* Annotations */}
-                <text x="160" y={topology === 'stripline' ? 60 : 95} textAnchor="middle" fill="var(--warning)" fontSize="8" fontWeight="700">W</text>
-                {mode === 'diff' && <text x="160" y="115" textAnchor="middle" fill="var(--warning)" fontSize="8">S</text>}
+                <text x="160" y={topology === 'stripline' ? 60 : (topology === 'embedded' ? 95 : 95)} textAnchor="middle" fill="var(--warning)" fontSize="8" fontWeight="700">W</text>
+                {(mode === 'diff' || topology === 'gcpw') && (
+                  <text x="160" y="115" textAnchor="middle" fill="var(--warning)" fontSize="8">{topology === 'gcpw' ? 'G' : 'S'}</text>
+                )}
                 <text x="310" y="65" textAnchor="middle" fill="var(--text-tertiary)" fontSize="8" transform="rotate(90, 310, 65)">H</text>
               </svg>
             </div>
@@ -278,9 +340,9 @@ const StackupCalculator = () => {
               value={convertValue(activeStackup.width)}
               onChange={e => handleInputChange('width', e.target.value)}
             />
-            {mode === 'diff' && (
+            {(mode === 'diff' || topology === 'gcpw') && (
               <EngineeringInput
-                label="S — Spacing"
+                label={topology === 'gcpw' ? "G — Gap" : "S — Spacing"}
                 unit={unitSystem}
                 value={convertValue(activeStackup.spacing)}
                 onChange={e => handleInputChange('spacing', e.target.value)}
