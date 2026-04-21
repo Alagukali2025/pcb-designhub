@@ -9386,3 +9386,9 @@ input[type=number] {
   padding: var(--space-4);
   overflow-y: auto;
 }
+
+/* Accent Background Utilities */
+.bg-accent-primary { background-color: var(--accent-primary) !important; }
+.bg-accent-secondary { background-color: var(--accent-secondary) !important; }
+.bg-accent-light { background-color: var(--accent-light) !important; }
+

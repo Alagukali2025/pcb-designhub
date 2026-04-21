@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { AlertTriangle, CheckCircle2, Zap, BookOpen, ShieldCheck, Waves } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Zap, BookOpen, ShieldCheck, Waves, Sparkles } from 'lucide-react';
+import MaterialWizard from './MaterialWizard';
 
 const MM_TO_MIL = 39.3701;
 
@@ -19,6 +20,7 @@ const GLASS_STYLES = [
 const FiberWeaveSkew = () => {
   const [unitSystem, setUnitSystem] = useState('mil');
   const [activeStyle, setActiveStyle] = useState('1067');
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const selected = GLASS_STYLES.find(g => g.style === activeStyle);
 
   const stats = useMemo(() => {
@@ -30,15 +32,43 @@ const FiberWeaveSkew = () => {
 
   return (
     <div className="si-tool-card fade-in" id="fiber-weave-analyzer">
-      <div className="si-tool-header">
-        <div className="si-tool-icon-box" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
-          <Zap size={24} />
+      <div className="si-tool-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+          <div className="si-tool-icon-box" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+            <Zap size={24} />
+          </div>
+          <div>
+            <h3 className="zdiff-title">Fiber Weave Skew Solver</h3>
+            <p className="zdiff-subtitle">Material-induced Dk Variation — Intra-pair Phase Skew</p>
+          </div>
         </div>
-        <div>
-          <h3 className="zdiff-title">Fiber Weave Skew Solver</h3>
-          <p className="zdiff-subtitle">Material-induced Dk Variation — Intra-pair Phase Skew</p>
-        </div>
+
+        <button 
+          onClick={() => setIsWizardOpen(!isWizardOpen)}
+          style={{ 
+            padding: '8px 16px', 
+            borderRadius: 'var(--radius-md)', 
+            border: 'none', 
+            background: 'var(--accent-secondary)', 
+            color: '#fff', 
+            fontSize: '0.7rem', 
+            fontWeight: 800, 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px', 
+            cursor: 'pointer',
+            transition: 'all 0.3s'
+          }}
+        >
+          <Sparkles size={14} /> {isWizardOpen ? 'CLOSE WIZARD' : 'STRATEGY WIZARD'}
+        </button>
       </div>
+
+      <MaterialWizard 
+        isOpen={isWizardOpen} 
+        onClose={() => setIsWizardOpen(false)} 
+        onApply={(style) => setActiveStyle(style)} 
+      />
 
       <div className="si-tool-grid">
         {/* Left Side: Weave Illustration */}
@@ -75,7 +105,7 @@ const FiberWeaveSkew = () => {
                 {GLASS_STYLES.map(g => (
                   <button 
                     key={g.style} 
-                    className={`text-[10px] py-2 rounded font-black transition-colors ${activeStyle === g.style ? 'bg-accent-primary text-white' : 'text-tertiary hover:bg-white/5'}`}
+                    className={`text-[10px] py-2 rounded font-black transition-colors ${activeStyle === g.style ? 'bg-accent-secondary text-white' : 'text-tertiary hover:bg-white/5'}`}
                     style={{ border: 'none', cursor: 'pointer' }}
                     onClick={() => setActiveStyle(g.style)}
                   >
