@@ -1,12 +1,14 @@
-import React, { useState, useMemo } from 'react';
-import { Ruler, Activity, AlertTriangle, CheckCircle2, Drill, ShieldCheck, Waves } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Ruler, Activity, AlertTriangle, CheckCircle2, Drill, ShieldCheck, Waves, Wand2 } from 'lucide-react';
 import EngineeringInput from './EngineeringInput';
+import ViaWizard from './ViaWizard';
 
 const MM_TO_MIL = 39.3701;
 
 const AspectRatioCalculator = () => {
   const [unitSystem, setUnitSystem] = useState('mm'); // 'mm' | 'mil'
   const [mode, setMode] = useState('aspect'); // 'aspect' | 'stub'
+  const [showWizard, setShowWizard] = useState(false);
 
   // Aspect Ratio State (Internal in mm)
   const [thickness, setThickness] = useState(1.6);
@@ -42,6 +44,12 @@ const AspectRatioCalculator = () => {
   const isOptimalAspect = stats.aspect <= 8;
   const isHighRiskStub = stats.resonantFreq < 15;
 
+  const handleWizardApply = useCallback((results) => {
+    setThickness(results.thickness);
+    setDrill(results.drill);
+    setMode(results.mode);
+  }, []);
+
   return (
     <div className="si-tool-card fade-in" id="via-technology-center">
       <div className="si-tool-header">
@@ -52,7 +60,22 @@ const AspectRatioCalculator = () => {
           <h3 className="zdiff-title">Via Technology Center</h3>
           <p className="zdiff-subtitle">Advanced Drill Aspect Ratio & Signal Integrity Stub Center</p>
         </div>
+        <div className="flex items-center gap-3" style={{ marginLeft: 'auto' }}>
+           <button 
+             onClick={() => setShowWizard(!showWizard)}
+             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-[0.7rem] font-bold ${showWizard ? 'bg-pcb-green text-white border-pcb-green' : 'bg-transparent text-pcb-green border-pcb-green hover:bg-pcb-green hover:text-white'}`}
+           >
+             <Wand2 size={12} /> 
+             {showWizard ? 'EXIT WIZARD' : 'DESIGN WIZARD'}
+           </button>
+        </div>
       </div>
+
+      <ViaWizard 
+        isOpen={showWizard} 
+        onClose={() => setShowWizard(false)} 
+        onApply={handleWizardApply}
+      />
 
       <div className="si-tool-grid">
         {/* Left Side: Visualization & Core Mode */}
