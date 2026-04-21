@@ -103,6 +103,32 @@ export const AuthProvider = ({ children }) => {
 
     async function checkSession() {
       try {
+        // 🛠️ START: LOCALHOST DEV BYPASS
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocalhost) {
+          console.log('🛠️ AUTH_BYPASS: Active on Localhost');
+          const mockOwnerUser = {
+            id: 'dev-admin-id',
+            email: 'kalialagu201@gmail.com',
+            name: 'Dev Admin (Localhost)',
+            initials: 'DA',
+            picture: null,
+            loginTime: new Date().toISOString(),
+            isOwner: true, // Grants full access to Admin Panel and modules
+            authMethod: 'localhost_bypass',
+            hasPassword: true,
+            industry: 'Engineering',
+            phone: '000-000-0000'
+          };
+          if (mounted) {
+            setIsLoggedIn(true);
+            setUserData(mockOwnerUser);
+            setLoading(false);
+            return; // Skip standard Supabase session check
+          }
+        }
+        // 🛠️ END: LOCALHOST DEV BYPASS
+
         console.group('🔍 AUTH DIAGNOSTICS: checkSession');
         
         // 🚨 MANUAL SESSION INJECTION (The Nuclear Option)
@@ -158,6 +184,13 @@ export const AuthProvider = ({ children }) => {
 
     // Listen for Auth Changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      
+      if (isLocalhost) {
+        console.log(`🛠️ AUTH_BYPASS: Supabase event (${event}) ignored on Localhost to preserve dev session`);
+        return;
+      }
+
       console.log(`🔑 AUTH_EVENT: ${event}`, session ? 'SESSION_EXISTS' : 'NO_SESSION');
       if (mounted) {
         if (session?.user) {

@@ -190,7 +190,7 @@ export default function ContentViewer() {
     return (
       <div className="content-not-found fade-in">
         <h2>Module not found</h2>
-        <Link to="/" className="back-link mt-4"><ArrowLeft size={16} /> Return to Dashboard</Link>
+        <Link to="/" className="back-link mt-4"><ArrowLeft size={16} /> Return to Back</Link>
       </div>
     );
   }
@@ -292,7 +292,7 @@ export default function ContentViewer() {
       <div className="content-layout fade-in">
         <div className="back-link-wrapper">
           <Link to="/" className="back-link">
-            <ArrowLeft size={16} /> Dashboard
+            <ArrowLeft size={16} /> Back
           </Link>
         </div>
 

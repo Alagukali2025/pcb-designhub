@@ -101,6 +101,23 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
     setSearchQuery('');
   };
 
+  const getPageTitle = () => {
+    if (location.pathname === '/') return 'Dashboard';
+    if (location.pathname === '/admin') return 'Admin Panel';
+    if (location.pathname === '/profile') return 'User Profile';
+    if (location.pathname === '/create-password') return 'Security Setup';
+    
+    if (location.pathname.startsWith('/module/')) {
+      const moduleId = location.pathname.split('/').pop();
+      const module = modulesData.find(m => m.id === moduleId);
+      return module ? module.title : 'Module View';
+    }
+    
+    return 'Dashboard';
+  };
+
+  const pageTitle = getPageTitle();
+
   return (
     <header className="app-header fade-in">
       <div className={`header-left ${isSearchExpanded ? 'search-expanded' : ''}`}>
@@ -112,10 +129,9 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
           {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
         
-        <Link to="/" className="header-logo">
-          <img src="/logo.webp" alt="PCB Design Hub Logo" className="logo-img" />
-          <span className="logo-text">PCB Design Hub</span>
-        </Link>
+        <div className="header-page-title">
+          <span>{pageTitle}</span>
+        </div>
         
         <div className={`search-bar ${isSearchExpanded ? 'expanded' : ''}`} ref={searchRef}>
           <Search size={18} className="search-icon" />
