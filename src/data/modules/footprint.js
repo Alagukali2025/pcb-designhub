@@ -125,7 +125,7 @@ export const content = {
     {
       heading: "Version Control & Metadata",
       content: "Every footprint must carry embedded metadata for audit readiness (IPC Class 3):",
-      codeBlock: "FOOTPRINT_NAME:    [PACKAGE]_[STANDARD]_[DENSITY]\\nCREATION_DATE:     YYYY-MM-DD\\nDATASHEET_REF:     Manufacturer_PN_Datasheet_RevX.pdf\\nIPC_STANDARD:      IPC-7351B, Density Level B\\nFOOTPRINT_VERSION: 1.0.0\\nREVIEW_STATUS:     APPROVED / PENDING\\nREVIEWER_ID:       Rev_002"
+      codeBlock: "FOOTPRINT_NAME:    [PACKAGE]_[STANDARD]_[DENSITY]\nCREATION_DATE:     YYYY-MM-DD\nDATASHEET_REF:     Manufacturer_PN_Datasheet_RevX.pdf\nIPC_STANDARD:      IPC-7351B, Density Level B\nFOOTPRINT_VERSION: 1.0.0\nREVIEW_STATUS:     APPROVED / PENDING\nREVIEWER_ID:       Rev_002"
     },
     {
       heading: "Critical Datasheet Sections",

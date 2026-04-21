@@ -2084,6 +2084,8 @@ a:hover {
   padding: var(--space-6);
   margin: 0;
   overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .code-pre code {
