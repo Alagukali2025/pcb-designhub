@@ -138,12 +138,30 @@ export const content = {
     },
     {
       heading: "Via Gardening & Thermal Stitching",
-      content: "Vias are the 'heat pipes' of a PCB. Strategically placed arrays (gardening) can bridge heat from top-layer components to internal or bottom-layer ground planes.",
+      content: "Vias are the 'heat pipes' and 'shielding posts' of a high-performance PCB. While they look the same, their design intent—Thermal vs. Signal—requires different placement strategies.",
+      filletGrid: [
+        {
+          title: "Thermal Stitching (Heat Pipes)",
+          color: "success",
+          list: [
+            { label: "Analogy", text: "Copper rivets 'sewing' layers together." },
+            { label: "Physics", text: "Moves heat from hot SMT pads to internal planes." },
+            { label: "Heuristic", text: "0.3mm drill at 1.0mm pitch under thermal pads." }
+          ]
+        },
+        {
+          title: "Via Gardening (EM Shielding)",
+          color: "blue",
+          list: [
+            { label: "Analogy", text: "A protective 'fence' around signal vias." },
+            { label: "Physics", text: "Provides a cage of ground vias to trap EMI/Crosstalk." },
+            { label: "Heuristic", text: "Place ground vias within 50 mil of high-speed transitions." }
+          ]
+        }
+      ],
       type: "thermal-tool",
-      list: [
-        { label: "Via Size", text: "0.3mm (12 mil) drill is the 'sweet spot' for thermal vias — large enough to plate well, small enough for high density." },
-        { label: "Placement", text: "Place directly under the component's exposed thermal pad (VIPPO) for maximum effect." },
-        { label: "Pitch", text: "Maintain 1.0mm to 1.25mm pitch. Too tight causes 'Swiss-cheese' planes; too loose increases thermal resistance." }
+      alerts: [
+        { type: 'info', text: "Expert Heuristic: For Thermal Stitching, use VIPPO (Via-In-Pad Plated Over) to prevent solder wicking while maximizing heat transfer area." }
       ]
     },
     {
