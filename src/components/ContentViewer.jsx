@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { modulesData } from '../data/modules';
-import { ArrowLeft, Check, AlertTriangle, Info, List, Clock, Zap, Calculator, ShieldAlert, ArrowRight, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Check, AlertTriangle, Info, List, Clock, Zap, Calculator, ShieldAlert, ArrowRight, ExternalLink, ChevronUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import ToolLock from './ToolLock';
 
@@ -111,6 +111,7 @@ export default function ContentViewer() {
   }, [id, location.state, moduleData, content]);
 
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [checkedItems, setCheckedItems] = useState({});
   const sectionRefs = useRef([]);
   const visibleSections = useRef(new Set());
@@ -130,6 +131,7 @@ export default function ContentViewer() {
       const totalScroll = scrollHeight - clientHeight;
       const currentProgress = totalScroll > 0 ? (scrollTop / totalScroll) * 100 : 0;
       setScrollProgress(currentProgress);
+      setShowScrollTop(scrollTop > 400);
     };
 
     const container = document.querySelector('.page-content');
@@ -286,6 +288,18 @@ export default function ContentViewer() {
       <div className="reading-progress-container">
         <div className="reading-progress-bar" style={{ width: `${scrollProgress}%` }}></div>
       </div>
+
+      {/* Floating Back to Top */}
+      <button 
+        className={`scroll-top-btn ${showScrollTop ? 'visible' : ''}`}
+        onClick={() => {
+          const container = document.querySelector('.page-content');
+          if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        aria-label="Back to Top"
+      >
+        <ChevronUp size={24} />
+      </button>
 
       <div className="content-layout fade-in">
         <div className="back-link-wrapper">

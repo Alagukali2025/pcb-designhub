@@ -61,6 +61,26 @@ export const content = {
       ]
     },
     {
+      heading: "Copper Weight Reference (IPC-4562A)",
+      content: "Copper weight (oz/ft²) is the industry-standard unit defining copper foil thickness. This table provides the definitive SSOT mapping between weight designations, physical thickness, and nominal current capacity for standard trace geometries.",
+      table: {
+        headers: ["Copper Weight", "Thickness (µm)", "Thickness (mil)", "Approx. Capacity (10mil trace, +10°C)", "Typical Application"],
+        rows: [
+          ["0.25 oz (Quarter)", "8.75", "0.34", "~0.5 A", "RF shields, impedance tuning"],
+          ["0.5 oz (Half)", "17.5", "0.69", "~1.0 A", "High-density signal layers, HDI"],
+          { type: 'highlight', data: ["1.0 oz (Standard)", "35.0", "1.37", "~1.5 A", "Default signal and plane layers"] },
+          ["2.0 oz (Heavy)", "70.0", "2.74", "~2.5 A", "Power distribution, bus bars"],
+          ["3.0 oz (Extreme)", "105.0", "4.11", "~3.5 A", "High-current switching, EV power"],
+          ["4.0 oz (Exotic)", "140.0", "5.51", "~4.5 A", "Defense, extreme power busbars"]
+        ]
+      },
+      alerts: [
+        { type: 'info', text: "💡 Pro Tip: 1 oz copper means 1 oz of copper was spread over 1 sq ft, resulting in a thickness of ~35µm (1.37 mil)." },
+        { type: 'warning', text: "Current Analogy: Think of copper like a water pipe. 2 oz is a 'wider pipe' that carries more current without overheating. Use 0.5 oz for signals and 2 oz+ for power paths." },
+        { type: 'info', text: "Current capacity values are approximate for a 10 mil wide external trace with 10°C rise in still air. Use the IPC-2152 calculator above for precise results." }
+      ]
+    },
+    {
       heading: "Advanced Material Science — Laminate Database",
       content: "Searchable, IPC-4101C referenced material database covering critical high-frequency parameters. Click column headers to sort by Df, Tg, Z-CTE, or Thermal Conductivity. Hover acronym headers for plain-English definitions.",
       type: 'laminate-table'
@@ -95,6 +115,29 @@ export const content = {
       },
       alerts: [
         { type: 'info', text: "The above buildup yields exactly 62.8 mil (1.59 mm), falling within the standard ±10% fabrication tolerance. Copper weights on L1/L8 include plating (p)." }
+      ]
+    },
+    {
+      heading: "Core vs. Foil Construction",
+      content: "Choosing between Foil Build (industry standard) or Core Build determines the lamination sequence and final board rigidity.",
+      table: {
+        headers: ["Construction Type", "Process", "Primary Benefit", "Standard Application"],
+        rows: [
+          ["Foil Build", "Copper foil + Prepreg on outer cores", "Cheaper; thinner dielectric control", "Standard 4-10 layer commercial"],
+          ["Core Build", "Laminating double-sided cores together", "Increased rigidity; symmetric stability", "Backplanes, high-reliability aerospace"]
+        ]
+      }
+    },
+    {
+      heading: "Copper Balancing for Lamination Quality",
+      content: "Resin starvation occurs during the lamination press cycle if one side of the board has significantly higher copper density than the other, leading to board warpage (bow and twist).",
+      list: [
+        { label: "The Resin Starvation Risk", text: "Prepreg resin flows toward empty copper areas. If one layer is 'starved,' the board becomes unstable." },
+        { label: "Copper Thieving", text: "Adding 'dead' copper pads or pours in open board areas to equalize the copper density and resin flow." },
+        { label: "Lamination Balance", text: "Maintain a symmetric copper density (±10%) about the board's vertical center plane." }
+      ],
+      alerts: [
+        { type: 'info', text: "Copper density balance (target ±10%) is one of the rules validated in the DFM Rule Checker. Run the full DFM verification in the DFM/DFT Mastery module after stackup is finalized." }
       ]
     },
     {
@@ -135,17 +178,6 @@ export const content = {
       type: 'calculator'
     },
     {
-      heading: "Core vs. Foil Construction",
-      content: "Choosing between Foil Build (industry standard) or Core Build determines the lamination sequence and final board rigidity.",
-      table: {
-        headers: ["Construction Type", "Process", "Primary Benefit", "Standard Application"],
-        rows: [
-          ["Foil Build", "Copper foil + Prepreg on outer cores", "Cheaper; thinner dielectric control", "Standard 4-10 layer commercial"],
-          ["Core Build", "Laminating double-sided cores together", "Increased rigidity; symmetric stability", "Backplanes, high-reliability aerospace"]
-        ]
-      }
-    },
-    {
       heading: "Return Currents: High-Frequency Physics",
       content: "Every signal needs a return path. At high frequencies (>1 MHz), current follows the path of least Inductance, not least Resistance.",
       list: [
@@ -158,16 +190,18 @@ export const content = {
       ]
     },
     {
-      heading: "Copper Balancing for Lamination Quality",
-      content: "Resin starvation occurs during the lamination press cycle if one side of the board has significantly higher copper density than the other, leading to board warpage (bow and twist).",
-      list: [
-        { label: "The Resin Starvation Risk", text: "Prepreg resin flows toward empty copper areas. If one layer is 'starved,' the board becomes unstable." },
-        { label: "Copper Thieving", text: "Adding 'dead' copper pads or pours in open board areas to equalize the copper density and resin flow." },
-        { label: "Lamination Balance", text: "Maintain a symmetric copper density (±10%) about the board's vertical center plane." }
-      ],
-      alerts: [
-        { type: 'info', text: "Copper density balance (target ±10%) is one of the rules validated in the DFM Rule Checker. Run the full DFM verification in the DFM/DFT Mastery module after stackup is finalized." }
-      ]
+      heading: "Current Carrying Capacity (IPC-2152)",
+      content: "Calculate the required trace width for a target current and allowable temperature rise based on the modern IPC-2152 standards. Internal traces (stripline) and external traces (microstrip) require different widths due to thermal dissipation variables.",
+      type: 'cross-ref',
+      refModuleId: 'thermal',
+      refTargetHeading: 'IPC-2152 Current Capacity Solver',
+      refLabel: 'Launch Interactive IPC-2152 Solver → Thermal Design',
+      refDesc: 'The full interactive IPC-2152 Current Capacity Solver is canonically located in the Thermal & Power Integrity module to ensure consistent thermal parameter modeling.'
+    },
+    {
+      heading: "High-Speed Signal Integrity: Fiber Weave Skew",
+      content: "Glass fiber bundles in PCB laminates have a higher dielectric constant (Dk ~6.0) than the surrounding resin (~3.2). This periodic Dk variation causes differential pair traces to travel at different speeds — a phenomenon called fiber weave skew.",
+      type: 'fiber-weave'
     },
     {
       heading: "DFM Validation — Key Stackup Rules",
@@ -192,68 +226,28 @@ export const content = {
       type: 'aspect-ratio-calc'
     },
     {
-      heading: "High-Speed Signal Integrity: Fiber Weave Skew",
-      content: "Glass fiber bundles in PCB laminates have a higher dielectric constant (Dk ~6.0) than the surrounding resin (~3.2). This periodic Dk variation causes differential pair traces to travel at different speeds — a phenomenon called fiber weave skew.",
-      type: 'fiber-weave'
-    },
-    {
-      heading: "SSOT Intelligence & Export Formats",
-      content: "Standard Gerber RS-274X is a 'dumb' format that only contains geometry. For professional stackup handovers, use intelligent formats that carry the SSOT definition.",
-      table: {
-        headers: ["Format", "Intelligence", "Content", "Preferred Usage"],
-        rows: [
-          ["IPC-2581", "Full SSOT", "Stackup, materials, Dk/Df, netlist, BOM", "Modern 1st Choice; Vendor Preferred"],
-          ["ODB++", "High-Level", "Layer stackup, component footprints, netlist", "Industry Standard; Tool agnostic"],
-          ["Gerber RS-274X", "Zero", "Only lines and polygons (Apertures)", "Legacy; Requires manual FAB drawing"]
-        ]
-      },
-      alerts: [
-        { type: 'info', text: "Exporting in IPC-2581 allows the fabricator to verify impedance targets against actual material Dk in their software automatically." }
+      heading: "Creepage vs. Clearance — Design Decision",
+      content: "Clearance and creepage address different failure modes: Air breakdown vs. Surface tracking.",
+      filletGrid: [
+        {
+          title: "Clearance (Air)",
+          color: "blue",
+          list: [
+            { label: "Definition", text: "Shortest distance through air." },
+            { label: "Failure", text: "Arc discharge / flashover." },
+            { label: "Standard", text: "IPC-2221B Table 6-1." }
+          ]
+        },
+        {
+          title: "Creepage (Surface)",
+          color: "orange",
+          list: [
+            { label: "Definition", text: "Shortest distance along surface." },
+            { label: "Failure", text: "Surface tracking." },
+            { label: "Standard", text: "IEC 62368-1." }
+          ]
+        }
       ]
-    },
-    {
-      heading: "Current Carrying Capacity (IPC-2152)",
-      content: "Calculate the required trace width for a target current and allowable temperature rise based on the modern IPC-2152 standards. Internal traces (stripline) and external traces (microstrip) require different widths due to thermal dissipation variables.",
-      type: 'cross-ref',
-      refModuleId: 'thermal',
-      refTargetHeading: 'IPC-2152 Current Capacity Solver',
-      refLabel: 'Launch Interactive IPC-2152 Solver → Thermal Design',
-      refDesc: 'The full interactive IPC-2152 Current Capacity Solver is canonically located in the Thermal & Power Integrity module to ensure consistent thermal parameter modeling.'
-    },
-    {
-      heading: "Copper Weight Reference (IPC-4562A)",
-      content: "Copper weight (oz/ft²) is the industry-standard unit defining copper foil thickness. This table provides the definitive SSOT mapping between weight designations, physical thickness, and nominal current capacity for standard trace geometries.",
-      table: {
-        headers: ["Copper Weight", "Thickness (µm)", "Thickness (mil)", "Approx. Capacity (10mil trace, +10°C)", "Typical Application"],
-        rows: [
-          ["0.25 oz (Quarter)", "8.75", "0.34", "~0.5 A", "RF shields, impedance tuning"],
-          ["0.5 oz (Half)", "17.5", "0.69", "~1.0 A", "High-density signal layers, HDI"],
-          { type: 'highlight', data: ["1.0 oz (Standard)", "35.0", "1.37", "~1.5 A", "Default signal and plane layers"] },
-          ["2.0 oz (Heavy)", "70.0", "2.74", "~2.5 A", "Power distribution, bus bars"],
-          ["3.0 oz (Extreme)", "105.0", "4.11", "~3.5 A", "High-current switching, EV power"],
-          ["4.0 oz (Exotic)", "140.0", "5.51", "~4.5 A", "Defense, extreme power busbars"]
-        ]
-      },
-      alerts: [
-        { type: 'info', text: "💡 Pro Tip: 1 oz copper means 1 oz of copper was spread over 1 sq ft, resulting in a thickness of ~35µm (1.37 mil)." },
-        { type: 'warning', text: "Current Analogy: Think of copper like a water pipe. 2 oz is a 'wider pipe' that carries more current without overheating. Use 0.5 oz for signals and 2 oz+ for power paths." },
-        { type: 'info', text: "Current capacity values are approximate for a 10 mil wide external trace with 10°C rise in still air. Use the IPC-2152 calculator above for precise results." }
-      ]
-    },
-    {
-      heading: "IPC Standards Compliance",
-      content: "Specify laminates by IPC slash-sheet designators in your SSOT — never by brand name alone — to prevent unauthorized substitutions.",
-      table: {
-        headers: ["Standard", "Title", "Design Hub Application"],
-        rows: [
-          ["IPC-2221B", "Generic PWB Design", "Electrical clearances, via aspect ratios"],
-          ["IPC-2222", "Sectional Standard for Rigid", "Rigid organic board requirements"],
-          ["IPC-4101C", "Rigid Base Materials", "/21 (Std FR4), /24 (High-Tg), /99 (Halogen-Free)"],
-          ["IPC-4562A", "Metal Foil Standard", "ED, RA, and VLP copper foil specifications"],
-          ["IPC-6012E", "Qualification & Perf.", "Acceptance criteria (Bow/Twist <0.75%)"],
-          ["IPC-1601A", "Handling & Storage", "Mandatory bake-out (125°C) to prevent delamination"]
-        ]
-      }
     },
     {
       heading: "Electrical Clearance & Creepage (IPC-2221B)",
@@ -281,27 +275,33 @@ export const content = {
       ]
     },
     {
-      heading: "Creepage vs. Clearance — Design Decision",
-      content: "Clearance and creepage address different failure modes: Air breakdown vs. Surface tracking.",
-      filletGrid: [
-        {
-          title: "Clearance (Air)",
-          color: "blue",
-          list: [
-            { label: "Definition", text: "Shortest distance through air." },
-            { label: "Failure", text: "Arc discharge / flashover." },
-            { label: "Standard", text: "IPC-2221B Table 6-1." }
-          ]
-        },
-        {
-          title: "Creepage (Surface)",
-          color: "orange",
-          list: [
-            { label: "Definition", text: "Shortest distance along surface." },
-            { label: "Failure", text: "Surface tracking." },
-            { label: "Standard", text: "IEC 62368-1." }
-          ]
-        }
+      heading: "IPC Standards Compliance",
+      content: "Specify laminates by IPC slash-sheet designators in your SSOT — never by brand name alone — to prevent unauthorized substitutions.",
+      table: {
+        headers: ["Standard", "Title", "Design Hub Application"],
+        rows: [
+          ["IPC-2221B", "Generic PWB Design", "Electrical clearances, via aspect ratios"],
+          ["IPC-2222", "Sectional Standard for Rigid", "Rigid organic board requirements"],
+          ["IPC-4101C", "Rigid Base Materials", "/21 (Std FR4), /24 (High-Tg), /99 (Halogen-Free)"],
+          ["IPC-4562A", "Metal Foil Standard", "ED, RA, and VLP copper foil specifications"],
+          ["IPC-6012E", "Qualification & Perf.", "Acceptance criteria (Bow/Twist <0.75%)"],
+          ["IPC-1601A", "Handling & Storage", "Mandatory bake-out (125°C) to prevent delamination"]
+        ]
+      }
+    },
+    {
+      heading: "SSOT Intelligence & Export Formats",
+      content: "Standard Gerber RS-274X is a 'dumb' format that only contains geometry. For professional stackup handovers, use intelligent formats that carry the SSOT definition.",
+      table: {
+        headers: ["Format", "Intelligence", "Content", "Preferred Usage"],
+        rows: [
+          ["IPC-2581", "Full SSOT", "Stackup, materials, Dk/Df, netlist, BOM", "Modern 1st Choice; Vendor Preferred"],
+          ["ODB++", "High-Level", "Layer stackup, component footprints, netlist", "Industry Standard; Tool agnostic"],
+          ["Gerber RS-274X", "Zero", "Only lines and polygons (Apertures)", "Legacy; Requires manual FAB drawing"]
+        ]
+      },
+      alerts: [
+        { type: 'info', text: "Exporting in IPC-2581 allows the fabricator to verify impedance targets against actual material Dk in their software automatically." }
       ]
     }
   ],
