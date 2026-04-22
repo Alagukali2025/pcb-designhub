@@ -212,11 +212,6 @@ export const content = {
       ]
     },
     {
-      heading: "Stackup Export Simulation (SSOT Download)",
-      content: "Simulate a professional stackup handover. Select your target format to see what data is included. Download a mock IPC-2581 or ODB++ JSON to understand the SSOT data structure expected by modern fabrication houses.",
-      type: 'stackup-export'
-    },
-    {
       heading: "Current Carrying Capacity (IPC-2152)",
       content: "Calculate the required trace width for a target current and allowable temperature rise based on the modern IPC-2152 standards. Internal traces (stripline) and external traces (microstrip) require different widths due to thermal dissipation variables.",
       type: 'cross-ref',
@@ -240,7 +235,9 @@ export const content = {
         ]
       },
       alerts: [
-        { type: 'info', text: "Current capacity values are approximate for a 10 mil wide external trace with 10°C rise in still air. Use the IPC-2152 calculator above for precise results. Doubling copper weight increases capacity by ~1.6× (not 2×) due to non-linear thermal spreading." }
+        { type: 'info', text: "💡 Pro Tip: 1 oz copper means 1 oz of copper was spread over 1 sq ft, resulting in a thickness of ~35µm (1.37 mil)." },
+        { type: 'warning', text: "Current Analogy: Think of copper like a water pipe. 2 oz is a 'wider pipe' that carries more current without overheating. Use 0.5 oz for signals and 2 oz+ for power paths." },
+        { type: 'info', text: "Current capacity values are approximate for a 10 mil wide external trace with 10°C rise in still air. Use the IPC-2152 calculator above for precise results." }
       ]
     },
     {

@@ -13,7 +13,6 @@ const AspectRatioCalculator = lazy(() => import('./AspectRatioCalculator'));
 const LaminateTable = lazy(() => import('./LaminateTable'));
 const DFMRuleChecker = lazy(() => import('./DFMRuleChecker'));
 const FiberWeaveSkew = lazy(() => import('./FiberWeaveSkew'));
-const StackupExport = lazy(() => import('./StackupExport'));
 const ZdiffCalculator = lazy(() => import('./ZdiffCalculator'));
 const DiffPairReferenceTable = lazy(() => import('./DiffPairReferenceTable'));
 const DDRTimingCalculator = lazy(() => import('./DDRTimingCalculator'));
@@ -265,7 +264,6 @@ export default function ContentViewer() {
     'laminate-table': () => <LaminateTable />,
     'dfm-checker': () => <DFMRuleChecker />,
     'fiber-weave': () => <FiberWeaveSkew />,
-    'stackup-export': () => <StackupExport />,
     'zdiff-calculator': () => <ZdiffCalculator />,
     'diff-reference-table': () => <DiffPairReferenceTable />,
     'ddr-timing-calculator': () => <DDRTimingCalculator />,
