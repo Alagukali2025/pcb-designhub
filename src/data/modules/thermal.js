@@ -56,6 +56,21 @@ export const content = {
       ]
     },
     {
+      heading: "Copper Weight & Thermal Spreading",
+      content: "Increasing copper weight (oz) increases the cross-sectional area for current and the surface area for thermal spreading. Primary Metric: Current Density & Heat Spreading.",
+      table: {
+        headers: ["Copper Weight", "Foil Thickness µm (mil)", "Approx. Capacity", "Typical Usage"],
+        rows: [
+          ["0.25 oz (Quarter)", "8.75 (0.34)", "~0.5 A", "RF shields, impedance tuning"],
+          ["0.5 oz (Half)", "17.5 (0.69)", "~1.0 A", "High-density signal layers, HDI"],
+          { type: 'highlight', data: ["1.0 oz (Standard)", "35.0 (1.37)", "~1.5 A", "Default signal and power planes"] },
+          ["2.0 oz (Heavy)", "70.0 (2.74)", "~2.5 A", "Power distribution, bus bars"],
+          ["3.0 oz (Extreme)", "105.0 (4.11)", "~3.5 A", "High-current switching, EV power"],
+          ["4.0 oz (Exotic)", "140.0 (5.51)", "~4.5 A", "Defense, extreme power busbars"]
+        ]
+      }
+    },
+    {
       heading: "IPC-2152 Current Capacity Solver",
       standard: {
         title: "IPC-2152 (2009)",
@@ -87,19 +102,6 @@ export const content = {
         { label: "Placement", text: "Place directly under the component's exposed thermal pad (VIPPO) for maximum effect." },
         { label: "Pitch", text: "Maintain 1.0mm to 1.25mm pitch. Too tight causes 'Swiss-cheese' planes; too loose increases thermal resistance." }
       ]
-    },
-    {
-      heading: "Copper Weight & Thermal Spreading",
-      content: "Increasing copper weight (oz) increases the cross-sectional area for current and the surface area for thermal spreading.",
-      table: {
-        headers: ["Copper Weight", "Thickness (mil)", "Thermal Spreading", "Typical Usage"],
-        rows: [
-          ["0.5 oz (Half)", "0.7 mil", "Low", "Signal layers only"],
-          ["1.0 oz (Standard)", "1.4 mil", "Moderate", "Standard power planes"],
-          ["2.0 oz (Heavy)", "2.8 mil", "High", "High-power (>10A) rails"],
-          { type: 'highlight', data: ["3.0 oz (Extreme)", "4.2 mil", "Maximum", "Automotive / EV Busbars"] }
-        ]
-      }
     },
     {
       heading: "Heatsink & TIM Strategy",

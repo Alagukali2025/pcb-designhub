@@ -66,10 +66,10 @@ export const modulesData = [
     sections: [
       "Three Pillars of Heat Transfer",
       "The Thermal Resistance Path (Rθ)",
+      "Copper Weight & Thermal Spreading",
       "IPC-2152 Current Capacity Solver",
       "Internal vs. External Traces",
       "Via Gardening & Thermal Stitching",
-      "Copper Weight & Thermal Spreading",
       "Heatsink & TIM Strategy",
       "Expert DFM: The Soldering Paradox"
     ],

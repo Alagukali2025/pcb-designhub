@@ -64,14 +64,14 @@ export const content = {
       heading: "Copper Weight Reference (IPC-4562A)",
       content: "Copper weight (oz/ft²) is the industry-standard unit defining copper foil thickness. This table provides the definitive SSOT mapping between weight designations, physical thickness, and nominal current capacity for standard trace geometries.",
       table: {
-        headers: ["Copper Weight", "Thickness (µm)", "Thickness (mil)", "Approx. Capacity (10mil trace, +10°C)", "Typical Application"],
+        headers: ["Copper Weight", "Foil Thickness µm (mil)", "Approx. Capacity", "Typical Application"],
         rows: [
-          ["0.25 oz (Quarter)", "8.75", "0.34", "~0.5 A", "RF shields, impedance tuning"],
-          ["0.5 oz (Half)", "17.5", "0.69", "~1.0 A", "High-density signal layers, HDI"],
-          { type: 'highlight', data: ["1.0 oz (Standard)", "35.0", "1.37", "~1.5 A", "Default signal and plane layers"] },
-          ["2.0 oz (Heavy)", "70.0", "2.74", "~2.5 A", "Power distribution, bus bars"],
-          ["3.0 oz (Extreme)", "105.0", "4.11", "~3.5 A", "High-current switching, EV power"],
-          ["4.0 oz (Exotic)", "140.0", "5.51", "~4.5 A", "Defense, extreme power busbars"]
+          ["0.25 oz (Quarter)", "8.75 (0.34)", "~0.5 A", "RF shields, impedance tuning"],
+          ["0.5 oz (Half)", "17.5 (0.69)", "~1.0 A", "High-density signal layers, HDI"],
+          { type: 'highlight', data: ["1.0 oz (Standard)", "35.0 (1.37)", "~1.5 A", "Default signal and plane layers"] },
+          ["2.0 oz (Heavy)", "70.0 (2.74)", "~2.5 A", "Power distribution, bus bars"],
+          ["3.0 oz (Extreme)", "105.0 (4.11)", "~3.5 A", "High-current switching, EV power"],
+          ["4.0 oz (Exotic)", "140.0 (5.51)", "~4.5 A", "Defense, extreme power busbars"]
         ]
       },
       alerts: [
@@ -94,23 +94,23 @@ export const content = {
       heading: "Standard 8-Layer PCB Construction",
       content: "A standard 1.6mm (62 mil) 8-layer board requires precise material thickness control to achieve target impedances while maintaining mechanical symmetry. Below is a representative 1.6mm build-up using alternating Core and Prepreg construction.",
       table: {
-        headers: ["Layer", "Function", "Material Type", "Thickness (mil)", "Thickness (mm)", "Copper (oz)"],
+        headers: ["Layer", "Function", "Material Type", "Foil/Dielectric Thickness mil (mm)", "Copper (oz)"],
         rows: [
-          ["L1", "Signal (Microstrip)", "Top Solder Mask + Foil", "1.4 mil", "0.035 mm", "0.5 oz (p)"],
-          ["DI-1", "Prepreg", "1080 / 2116 Glass Style", "4.0 mil", "0.100 mm", "-"],
-          ["L2", "Ground Plane", "Core (Reference)", "1.4 mil", "0.035 mm", "1.0 oz"],
-          ["DI-2", "Core", "Dielectric isolation", "8.0 mil", "0.200 mm", "-"],
-          ["L3", "Signal (Stripline)", "Internal Signal", "1.4 mil", "0.035 mm", "1.0 oz"],
-          ["DI-3", "Prepreg", "1080 / 2116 Glass Style", "4.0 mil", "0.100 mm", "-"],
-          ["L4", "Power Plane", "Core (Distribution)", "1.4 mil", "0.035 mm", "1.0 oz"],
-          ["DI-4", "Core", "Mid-Plane Isolation", "8.0 mil", "0.200 mm", "-"],
-          ["L5", "Ground Plane", "Core (Reference)", "1.4 mil", "0.035 mm", "1.0 oz"],
-          ["DI-5", "Prepreg", "1080 / 2116 Glass Style", "4.0 mil", "0.100 mm", "-"],
-          ["L6", "Signal (Stripline)", "Internal Signal", "1.4 mil", "0.035 mm", "1.0 oz"],
-          ["DI-6", "Core", "Dielectric isolation", "8.0 mil", "0.200 mm", "-"],
-          ["L7", "Ground Plane", "Core (Reference)", "1.4 mil", "0.035 mm", "1.0 oz"],
-          ["DI-7", "Prepreg", "1080 / 2116 Glass Style", "4.0 mil", "0.100 mm", "-"],
-          ["L8", "Signal (Microstrip)", "Bottom Solder Mask + Foil", "1.4 mil", "0.035 mm", "0.5 oz (p)"]
+          ["L1", "Signal (Microstrip)", "Top Solder Mask + Foil", "1.4 (0.035)", "0.5 oz (p)"],
+          ["DI-1", "Prepreg", "1080 / 2116 Glass Style", "4.0 (0.100)", "-"],
+          ["L2", "Ground Plane", "Core (Reference)", "1.4 (0.035)", "1.0 oz"],
+          ["DI-2", "Core", "Dielectric isolation", "8.0 (0.200)", "-"],
+          ["L3", "Signal (Stripline)", "Internal Signal", "1.4 (0.035)", "1.0 oz"],
+          ["DI-3", "Prepreg", "1080 / 2116 Glass Style", "4.0 (0.100)", "-"],
+          ["L4", "Power Plane", "Core (Distribution)", "1.4 (0.035)", "1.0 oz"],
+          ["DI-4", "Core", "Mid-Plane Isolation", "8.0 (0.200)", "-"],
+          ["L5", "Ground Plane", "Core (Reference)", "1.4 (0.035)", "1.0 oz"],
+          ["DI-5", "Prepreg", "1080 / 2116 Glass Style", "4.0 (0.100)", "-"],
+          ["L6", "Signal (Stripline)", "Internal Signal", "1.4 (0.035)", "1.0 oz"],
+          ["DI-6", "Core", "Dielectric isolation", "8.0 (0.200)", "-"],
+          ["L7", "Ground Plane", "Core (Reference)", "1.4 (0.035)", "1.0 oz"],
+          ["DI-7", "Prepreg", "1080 / 2116 Glass Style", "4.0 (0.100)", "-"],
+          ["L8", "Signal (Microstrip)", "Bottom Solder Mask + Foil", "1.4 (0.035)", "0.5 oz (p)"]
         ]
       },
       alerts: [
