@@ -151,7 +151,12 @@ export const content = {
     },
     {
       heading: "PDN Target Impedance Solver (Interactive)",
-      content: "Calculate the required Target Impedance for your PDN based on peak transient current (ΔI) and allowable ripple (ΔV). Use the result to specify your decoupling strategy and validate against simulation.",
+      content: "This solver calculates the 'Target Impedance'—the maximum allowable electrical resistance of your power planes. Keeping impedance low ensures that when your chips suddenly switch on, the power doesn't 'dip' and cause a system crash.",
+      list: [
+        { label: "The Power Dip", text: "High-speed chips need massive current instantly. If the path is too thin, voltage drops." },
+        { label: "Target Z", text: "The 'Speed Limit' for power noise. If you stay below this number, the chip stays stable." },
+        { label: "The Calculation", text: "Based on your voltage rail (e.g. 1.2V) and the allowable ripple (e.g. 5%)." }
+      ],
       type: "pi-target-calc"
     },
     {
@@ -190,7 +195,12 @@ export const content = {
     },
     {
       heading: "Via Stub Resonance & Back-Drilling",
-      content: "Every through-hole via that does not connect to all layers creates a stub — an unterminated transmission line segment that resonates at a specific frequency. At PCIe Gen 4+ data rates (≥16 GT/s), via stubs are the single most common cause of channel compliance failures.",
+      content: "A 'stub' is the part of a via that goes deeper than the signal needs to go. This tool calculates the frequency where that unused copper acts like an antenna and 'steals' your signal energy.",
+      list: [
+        { label: "The Antenna Effect", text: "Unused via copper reflects signals back, causing huge data loss (nulls)." },
+        { label: "Back-Drilling", text: "The process of literally drilling out the unused copper to fix the signal." },
+        { label: "The 1/4 Wave Rule", text: "Resonance happens when the stub length equals 1/4 of the signal wavelength." }
+      ],
       formula: {
         title: "Via Stub Resonant Frequency",
         equations: [

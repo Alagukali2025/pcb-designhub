@@ -181,7 +181,12 @@ export const content = {
     },
     {
       heading: "Power Integrity (PI) Fundamentals",
-      content: "Power Delivery Networks (PDN) serve as the return path for all signals. If the PDN impedance is too high at a given frequency, the voltage rails will collapse during high-speed switching (SSN).",
+      content: "A PDN Analyzer ensures your power delivery is smooth and stable. It's like checking the 'water pressure' in your pipes to make sure the chips don't crash when they suddenly demand more power.",
+      list: [
+        { label: "Voltage Ripple", text: "Fast-switching chips cause noisy waves in the power supply." },
+        { label: "Target Impedance", text: "Keeping the power path 'wide' and 'fast' so the noise stays low." },
+        { label: "Decoupling", text: "Using capacitors as local 'storage tanks' to provide instant power." }
+      ],
       type: "pdn-analyzer"
     },
     {
@@ -279,7 +284,12 @@ export const content = {
     },
     {
       heading: "Via Parasitics (Advanced Modeling)",
-      content: "Vias introduce parasitic inductance and capacitance. Optimization is non-negotiable above 5 Gbps.",
+      content: "Every via is a tiny obstacle for high-speed signals. This calculator helps you model the 'speed bumps' caused by parasitic capacitance and inductance in your via transitions.",
+      list: [
+        { label: "Parasitic C", text: "Holes in the ground plane act like small batteries (capacitors)." },
+        { label: "Parasitic L", text: "Long via barrels act like small coils (inductors)." },
+        { label: "The Solution", text: "Using smaller vias and optimized 'antipad' sizes reduces these effects." }
+      ],
       type: "via-advanced-calc"
     },
     {

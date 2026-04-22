@@ -82,12 +82,22 @@ export const content = {
     },
     {
       heading: "EMI Bandwidth & Critical Length Solver",
-      content: "Determine the significant frequency bandwidth and critical edge-rate propagation limits for your design.",
+      content: "This solver tells you how fast your signals are actually 'vibrating' and how long a trace can be before it turns into an antenna. It helps you identify which wires on your board are most likely to fail government noise tests.",
+      list: [
+        { label: "The Antenna Rule", text: "Traces become antennas when they reach 1/20th of the signal's wavelength." },
+        { label: "Edge Rate Danger", text: "Fast rise times create high-frequency noise, even if the clock is slow." },
+        { label: "Critical Length", text: "The maximum safe length before you MUST use high-speed routing rules." }
+      ],
       type: "emi-calculator"
     },
     {
       heading: "EMI Design Compliance Checklist",
-      content: "A systematic, engineering-accurate checklist for ensuring electromagnetic compatibility. Based on industrial shielding, grounding, and filtering best practices.",
+      content: "Passing the 'EMC Lab' is the hardest part of launching a product. This interactive checklist guides you through the physics of shielding and grounding to ensure you pass on the first try.",
+      list: [
+        { label: "The Shield", text: "Using metal 'fences' to keep noise inside your product." },
+        { label: "Grounding", text: "Providing a clean path for electrical noise to return to its source." },
+        { label: "Filtering", text: "Cleaning up the power lines so they don't act like long antennas." }
+      ],
       type: "emi-checklist-tool"
     }
   ],

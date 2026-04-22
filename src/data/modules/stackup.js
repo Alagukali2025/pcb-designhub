@@ -81,13 +81,23 @@ export const content = {
       ]
     },
     {
-      heading: "Advanced Material Science — Laminate Database",
-      content: "Searchable, IPC-4101C referenced material database covering critical high-frequency parameters. Click column headers to sort by Df, Tg, Z-CTE, or Thermal Conductivity. Hover acronym headers for plain-English definitions.",
+      heading: "Laminate Selection: The Foundation",
+      content: "Laminate selection is like choosing the 'foundation' of your house. It determines how fast your signals can travel, how well the board handles heat, and how much it will cost to manufacture.",
+      list: [
+        { label: "Dk (Dielectric Constant)", text: "How much the material slows down your electrical signals." },
+        { label: "Df (Dissipation Factor)", text: "How much signal energy is lost as heat inside the board." },
+        { label: "Tg (Glass Transition)", text: "The temperature where the board softens like butter." }
+      ],
       type: 'laminate-table'
     },
     {
-      heading: "Interactive Layer Stackup Generator",
-      content: "Toggle between 4, 6, 8, and 12-layer configurations to explore symmetric construction strategies. Visualizes solder mask, copper layers, prepreg vs. core, and drill span overlays in a real cross-section format.",
+      heading: "Industrial Stackup Visualizer",
+      content: "Building a stackup is like assembling a sandwich. This visualizer helps you see exactly how copper layers and insulating materials (Prepreg and Core) are layered to reach your target board thickness.",
+      list: [
+        { label: "The Sandwich", text: "Alternating copper (meat) and insulation (bread)." },
+        { label: "Symmetry", text: "Keeping the top and bottom identical to prevent board warping." },
+        { label: "Grounding", text: "Using solid copper planes to soak up noise and heat." }
+      ],
       type: 'visualizer'
     },
     {
@@ -174,7 +184,12 @@ export const content = {
         title: "IPC-2141A (2004)",
         note: "✅ Industry standard for controlled impedance modeling."
       },
-      content: "Calculate characteristic impedance (Z₀) for Single-Ended and Differential configurations across Microstrip, Stripline, Embedded Microstrip, and GCPW topologies using professional IPC-2141A and Conformal Mapping models.",
+      content: "Impedance control ensures that your electrical signals arrive at their destination without 'bouncing' back like an echo. This solver calculates the exact trace width needed to match your circuit's requirements.",
+      list: [
+        { label: "The Echo", text: "Unmatched impedance causes signal reflections and data errors." },
+        { label: "The Solution", text: "Adjusting width and spacing to reach 50Ω (Single) or 100Ω (Diff)." },
+        { label: "The Rule", text: "Moving the trace closer to the ground plane lowers impedance." }
+      ],
       type: 'calculator'
     },
     {
@@ -200,7 +215,12 @@ export const content = {
     },
     {
       heading: "High-Speed Signal Integrity: Fiber Weave Skew",
-      content: "Glass fiber bundles in PCB laminates have a higher dielectric constant (Dk ~6.0) than the surrounding resin (~3.2). This periodic Dk variation causes differential pair traces to travel at different speeds — a phenomenon called fiber weave skew.",
+      content: "Fiber weave skew is what happens when the 'fabric' of your board causes one signal in a pair to travel slower than the other. This tool helps you choose the right glass style to keep your data synchronized.",
+      list: [
+        { label: "The Fabric Effect", text: "Board material is a weave of glass and resin with different speeds." },
+        { label: "The Skew", text: "If one wire sits on glass and the other on resin, they arrive at different times." },
+        { label: "The Solution", text: "Using 'Spread Glass' or routing at an angle ensures both wires see the same speed." }
+      ],
       type: 'fiber-weave'
     },
     {
@@ -222,7 +242,12 @@ export const content = {
     },
     {
       heading: "Via Technologies: Aspect Ratio & DFM",
-      content: "Vias transition signals between layers. Each type carries different parasitic inductance and fabrication costs. Always calculate your Aspect Ratio to ensure plating reliability.",
+      content: "Vias transition signals between layers. This calculator ensures your board is 'buildable' by checking the Aspect Ratio—the relationship between board thickness and hole size.",
+      list: [
+        { label: "The Drill Limit", text: "If the hole is too deep and too thin, the copper 'plating' cannot reach the middle." },
+        { label: "The 10:1 Rule", text: "Standard fabrication stays below a 10:1 ratio for high reliability." },
+        { label: "Z-Axis Expansion", text: "Thicker boards expand more when heated, putting stress on thin vias." }
+      ],
       type: 'aspect-ratio-calc'
     },
     {

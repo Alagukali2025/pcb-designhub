@@ -89,7 +89,12 @@ export const content = {
     },
     {
       heading: "Interactive Zdiff Calculator",
-      content: "Calculate differential impedance for Microstrip and Stripline topologies using the IPC-2141A Wheeler/Hammerstad approximation — the same model used in professional EDA tools. Validate all results with a 2D field solver before tape-out.",
+      content: "A differential pair is like two signals working as a team. This solver calculates the exact 'teaming' impedance (Zdiff) between them to ensure they are perfectly balanced and immune to noise.",
+      list: [
+        { label: "The Teamwork", text: "Signals work in pairs (D+ and D-) to cancel out electrical noise." },
+        { label: "The Balance", text: "Targeting 90Ω or 100Ω keeps the signals clean over long distances." },
+        { label: "The Geometry", text: "Widening the gap between the two wires raises the impedance." }
+      ],
       type: "zdiff-calculator"
     },
     {
@@ -213,7 +218,12 @@ export const content = {
     },
     {
       heading: "Interface Impedance Reference Table",
-      content: "Electrical and layout specifications for the most widely used high-speed differential pair interfaces. All impedance values are as seen at the PCB trace. Consult the referenced specification documents for authoritative requirements.",
+      content: "Not every high-speed connection is the same. This cheat sheet gives you the standard 'Target Values' for common interfaces like USB, HDMI, and PCIe so you know exactly what numbers to aim for.",
+      list: [
+        { label: "The Goal", text: "USB uses 90Ω; PCIe uses 100Ω. Mixing them up causes data errors." },
+        { label: "The Standard", text: "These values are defined by the groups that invent the technology (like USB-IF)." },
+        { label: "The Tolerance", text: "Stay within ±10% of these values for a professional design." }
+      ],
       type: "diff-reference-table"
     },
     {

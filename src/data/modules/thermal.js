@@ -71,13 +71,56 @@ export const content = {
       }
     },
     {
+      heading: "Theory: IPC-2221 vs. IPC-2152",
+      content: "For decades, designers used IPC-2221 (based on 1950s data). However, IPC-2152 is the modern replacement that provides much more accurate results for modern materials and multi-layer boards.",
+      filletGrid: [
+        {
+          title: "IPC-2221 (Legacy)",
+          color: "orange",
+          list: [
+            { label: "Data Age", text: "Based on 1950s research (pre-FR4)." },
+            { label: "Accuracy", text: "Conservative and often inaccurate for internal layers." },
+            { label: "Variable", text: "Only considers Current and Copper Weight." }
+          ]
+        },
+        {
+          title: "IPC-2152 (Modern)",
+          color: "success",
+          list: [
+            { label: "Data Age", text: "Extensive modern empirical testing (2009)." },
+            { label: "Accuracy", text: "Accounts for board thickness and copper plane proximity." },
+            { label: "Variable", text: "Thermal conductivity of the dielectric is a primary input." }
+          ]
+        }
+      ]
+    },
+    {
       heading: "IPC-2152 Current Capacity Solver",
       standard: {
         title: "IPC-2152 (2009)",
         note: "✅ Current Industry Standard for Trace Design (Replaces legacy IPC-2221)."
       },
-      content: "IPC-2152 is the modern, standards-driven methodology for sizing traces. Unlike the legacy IPC-2221, it accounts for material thermal conductivity and nearby copper planes.",
+      content: "A Current Capacity Solver determines how wide your PCB traces must be to prevent them from overheating or acting like a fuse. It analyzes your Amperage, Board Thickness, and nearby Copper Planes to ensure your design stays cool and your electrical power arrives without losing 'pressure' (Voltage Drop).",
+      list: [
+        { label: "The Heat Goal", text: "Ensure the trace doesn't exceed the board's Tg (Melting point)." },
+        { label: "The Efficiency Goal", text: "Minimize Voltage Drop so your components get full power." },
+        { label: "The Safety Goal", text: "Stay far below the Fusing Current (the 'Poof' point)." }
+      ],
       type: "calculator"
+    },
+    {
+      heading: "Quick Reference: Current Limits",
+      content: "Estimated current capacity for 1oz (35µm) copper traces at +10°C and +20°C temperature rise.",
+      table: {
+        headers: ["Trace Width", "Area (sq mil)", "10°C Rise", "20°C Rise"],
+        rows: [
+          ["10 mil (0.25mm)", "13.7", "0.6 A", "0.9 A"],
+          ["20 mil (0.50mm)", "27.4", "1.1 A", "1.5 A"],
+          ["50 mil (1.27mm)", "68.5", "2.1 A", "3.0 A"],
+          { type: 'highlight', data: ["100 mil (2.54mm)", "137.0", "3.8 A", "5.2 A"] },
+          ["200 mil (5.08mm)", "274.0", "6.2 A", "8.5 A"]
+        ]
+      }
     },
     {
       heading: "Internal vs. External Traces",

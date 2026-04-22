@@ -51,7 +51,12 @@ export const content = {
         title: "IPC-7351B (2010)",
         note: "⚠️ Note: IPC-7351C draft concepts merged into IPC-7352 (2022)."
       },
-      content: "Calculate the precise land pattern dimensions for the Top, Side, and Heel fillets based on the IPC-7351B mathematical model. Select your target Density Level to see how pad size affects yield.",
+      content: "A 'Land Pattern' is the copper shape on your board where the component's legs will be soldered. This solver ensures those shapes are perfectly sized so the solder can flow correctly without causing short circuits.",
+      list: [
+        { label: "The Footprint", text: "Designing the copper pads to match the component's physical legs." },
+        { label: "Density Levels", text: "Choosing between 'Most Material' (safe/large) and 'Least Material' (tight/small)." },
+        { label: "The Fillet", text: "Ensuring there is enough extra copper for a strong solder joint 'mountain'." }
+      ],
       type: 'calculator'
     },
     {
