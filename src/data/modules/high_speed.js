@@ -3,19 +3,16 @@ export const content = {
   sections: [
     {
       heading: "What is High-Speed PCB Design?",
-      content: "The standard industry threshold for high-speed design is when trace length exceeds 1/6 of the signal wavelength. Below this, lumped-circuit analysis is valid. Above it, distributed transmission line effects dominate.",
+      content: "The standard industry threshold for high-speed design is when trace length exceeds 1/6 of the signal wavelength. Below this, lumped-circuit analysis is valid. Above it, distributed transmission line effects dominate. For digital signals, the rise time (tr) is the primary driver of high-speed behavior.",
       formula: {
         title: "The Critical Length Rule",
         equations: [
-          "λ = vp / f // wavelength in the medium",
           "vp = c / √εr // propagation velocity (c ≈ 3×10⁸ m/s)",
-          "Lcritical = λ / 6 // minimum trace length requiring TL treatment",
-          "Lcritical = (tr × vp) / 6 // rise-time-based critical length"
+          "Lcritical = (tr × vp) / 6 // 1/6th rise-time distance rule"
         ],
         variables: [
           { name: "vp", desc: "Propagation velocity", tag: "CALC" },
-          { name: "f", desc: "Signal frequency", tag: "INPUT" },
-          { name: "tr", desc: "Rise time", tag: "INPUT" },
+          { name: "tr", desc: "Signal rise time (10% to 90%)", tag: "INPUT" },
           { name: "Lcritical", desc: "Critical length", tag: "OUTPUT" }
         ]
       },
@@ -24,14 +21,27 @@ export const content = {
           badge: "DDR4 / LPDDR4",
           badgeClass: "tool-badge-altium",
           title: "High Speed",
-          items: ["<200 ps rise time", "Critical length ≈ 7 mm", "Every trace is a transmission line"]
+          items: [
+            "<200 ps rise time", 
+            "Critical length ≈ 7 mm (@ FR4)", 
+            "Every trace is a transmission line",
+            "Heuristic: Use 1/10th rule for DDR5"
+          ]
         },
         {
           badge: "Slow logic",
           badgeClass: "tool-badge-cadence",
           title: "Lumped",
-          items: [">10 ns rise time", "Critical length >40 mm", "Most traces safe without TL treatment"]
+          items: [
+            ">10 ns rise time", 
+            "Critical length >40 mm", 
+            "Most traces safe without TL treatment",
+            "Heuristic: Simple R-C models valid"
+          ]
         }
+      ],
+      alerts: [
+        { type: 'info', text: "Industrial Workflow: Professional designers use these formulas for pre-layout planning. Final trace widths and via geometries are always validated using 2D/3D Field Solvers for production reliability." }
       ]
     },
     {
@@ -60,13 +70,16 @@ export const content = {
         title: "Geometry Models",
         equations: [
           "Z₀(Microstrip) ≈ (87/√(εr + 1.41)) × ln(5.98H/(0.8W + T))",
-          "Z₀(Stripline) ≈ (60/√εr) × ln(4B/(0.67π(0.8W + T)))"
+          "εeff ≈ 0.475εr + 0.67 // Effective Dk (accounts for air)",
+          "Z₀(Stripline) ≈ (60/√εr) × ln(1.9B / (0.8W + T))",
+          "// Validity: 0.1 < W/H < 2.0"
         ],
         variables: [
           { name: "W", desc: "Trace width", tag: "GEOM" },
           { name: "H", desc: "Dielectric height", tag: "GEOM" },
           { name: "T", desc: "Trace thickness", tag: "GEOM" },
-          { name: "B", desc: "Total dielectric thickness (stripline)", tag: "GEOM" }
+          { name: "B", desc: "Total dielectric thickness (stripline)", tag: "GEOM" },
+          { name: "εeff", desc: "Effective Dk", tag: "PRO" }
         ]
       },
       table: {

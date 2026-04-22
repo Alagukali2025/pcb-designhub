@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, Sun, Moon, Menu, X, BookOpen, Hash, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Search, User, Sun, Moon, Menu, X, BookOpen, Hash, ArrowRight, ShieldCheck, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { modulesData } from '../data/modules';
 import { useAuth } from '../context/AuthContext';
@@ -126,7 +126,7 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
           onClick={toggleSidebar}
           aria-label="Toggle Sidebar"
         >
-          {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          {isSidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
         </button>
         
         <div className="header-page-title">
