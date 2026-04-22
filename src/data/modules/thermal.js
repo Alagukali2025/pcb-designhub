@@ -166,15 +166,160 @@ export const content = {
     },
     {
       heading: "Heatsink & TIM Strategy",
-      content: "When copper plane dissipation is insufficient, external heatsinks are required. The interface between the component and the heatsink is the bottleneck.",
-      cards: [
+      content: "When copper plane dissipation is insufficient, external heatsinks are required. The interface between the component and the heatsink is the primary bottleneck due to microscopic air gaps.",
+      alerts: [
+        { type: 'info', text: "Expert Heuristic: The air trapped between two 'flat' surfaces represents 95-99% of the interface. TIM is not just a conductor; it is an air-displacement medium." }
+      ]
+    },
+    {
+      heading: "TIM Selection Matrix",
+      content: "Choosing the right Thermal Interface Material (TIM) is a balance between thermal conductivity, gap-filling capability, and manufacturing complexity.",
+      table: {
+        headers: ["Material Type", "Conductivity (W/m·K)", "Gap Capability", "Key Trade-off"],
+        rows: [
+          ["Thermal Grease", "3.0 - 15.0", "Excellent (Thin)", "Can 'pump-out' over time; messy assembly"],
+          ["Gap Pads", "1.0 - 8.0", "Excellent (Thick)", "Higher thermal resistance; easier assembly"],
+          ["Phase Change (PCM)", "3.0 - 10.0", "Very Good", "Requires initial 'melt' temperature to perform"],
+          ["Thermal Putty", "3.0 - 12.0", "Good", "Stress-free for fragile components; one-time use"],
+          ["Graphite Sheets", "1500 (XY axis)", "Poor", "Highly anisotropic; electrically conductive (Danger)"]
+        ]
+      }
+    },
+    {
+      heading: "The 'BLT' Rule: Bond Line Thickness",
+      content: "Bond Line Thickness (BLT) is the distance between the component and the heatsink. In thermal physics, distance is the enemy.",
+      formula: {
+        title: "Interface Resistance Calculation",
+        equations: [
+          "Rθ_cs = BLT / (K_tim × Area)"
+        ],
+        variables: [
+          { name: "Rθ_cs", desc: "Case-to-Sink Resistance", tag: "OUTPUT" },
+          { name: "BLT", desc: "Bond Line Thickness (m)", tag: "INPUT" },
+          { name: "K_tim", desc: "TIM Conductivity (W/m·K)", tag: "INPUT" }
+        ]
+      },
+      alerts: [
+        { type: 'warning', text: "Doubling the TIM thickness (BLT) doubles the thermal resistance of the interface, regardless of the material's quality. Thinner is always better." }
+      ]
+    },
+    {
+      heading: "Mechanical Attachment Strategies",
+      content: "How you attach the heatsink dictates the clamping force, which in turn determines the BLT and the mechanical reliability of the PCB.",
+      filletGrid: [
         {
-          title: "Thermal Interface Material (TIM)",
-          text: "Fills microscopic air gaps (Rθcs). Use high-performance paste or pads with K > 3.0 W/m·K."
+          title: "Push-Pins & Springs",
+          color: "blue",
+          list: [
+            { label: "Category", text: "Industrial Grade" },
+            { label: "Pros", text: "High, consistent clamping force; easy rework." },
+            { label: "Cons", text: "Requires PCB through-holes; consumes significant 'Keep-out' area." }
+          ]
         },
         {
-          title: "Mechanical Pressure",
-          text: "TIM performance depends on clamping force. Ensure mounting holes support consistent pressure without bowing the PCB."
+          title: "Solderable Anchors",
+          color: "success",
+          list: [
+            { label: "Category", text: "Automated Assembly" },
+            { label: "Pros", text: "Pick-and-place compatible; no through-holes needed." },
+            { label: "Cons", text: "Permanent; difficult to rework without specialized tools." }
+          ]
+        },
+        {
+          title: "Adhesive Tape",
+          color: "orange",
+          list: [
+            { label: "Category", text: "Consumer Grade" },
+            { label: "Pros", text: "Zero PCB footprint impact; lowest cost." },
+            { label: "Cons", text: "Low clamping force; adhesive can degrade over time/heat." }
+          ]
+        }
+      ]
+    },
+    {
+      heading: "Altitude & Air Density Derating",
+      content: "IPC-2152 standards are based on sea-level air density. As altitude increases, air becomes thinner and its ability to carry heat via convection drops significantly.",
+      table: {
+        headers: ["Altitude (ft)", "Altitude (m)", "Density Ratio", "Current Derating"],
+        rows: [
+          ["0 (Sea Level)", "0", "1.00", "100% (No change)"],
+          ["5,000", "1,524", "0.86", "95% Capacity"],
+          ["10,000", "3,048", "0.74", "89% Capacity"],
+          { type: 'highlight', data: ["30,000 (Avionics)", "9,144", "0.37", "72% Capacity"] },
+          ["50,000", "15,240", "0.15", "55% Capacity"]
+        ]
+      },
+      alerts: [
+        { type: 'warning', text: "Critical: For aerospace or high-altitude industrial designs, you must increase trace widths by ~20-30% to maintain the same ΔT as sea level." }
+      ]
+    },
+    {
+      heading: "Forced Air: CFM Calculation",
+      content: "When natural convection is insufficient, a fan must be sized to move enough air (Mass Flow) to absorb the heat generated by the system.",
+      formula: {
+        title: "Required Airflow (CFM)",
+        equations: [
+          "CFM = (1.76 × P) / ΔT_rise",
+          "CFM = (3.16 × P) / ΔT_rise (Metric Units)"
+        ],
+        variables: [
+          { name: "P", desc: "Total Power Dissipated (Watts)", tag: "INPUT" },
+          { name: "ΔT_rise", desc: "Allowed Air Temp Rise", tag: "INPUT" },
+          { name: "3.16", desc: "Conversion Constant (Use for °C)", tag: "CONST" },
+          { name: "1.76", desc: "Conversion Constant (Use for °F)", tag: "CONST" },
+          { name: "CFM", desc: "Required Airflow Volume", tag: "OUTPUT" }
+        ]
+      },
+      alerts: [
+        { type: 'info', text: "Engineering Tip: A standard 40mm fan provides 5-10 CFM. For high-power servers, you may need 50+ CFM per slot." },
+        { type: 'info', text: "Expert Insight: The 1.76 and 3.16 constants represent the density and specific heat of air at sea level. If designing for high altitude, these constants must be adjusted based on the Altitude Derating table above." }
+      ]
+    },
+    {
+      heading: "Placement & Airflow Strategy",
+      content: "The physical arrangement of components determines if your cooling strategy actually works. Avoid 'Thermal Shadowing' to ensure fresh air reaches hot components.",
+      filletGrid: [
+        {
+          title: "Thermal Shadowing",
+          color: "orange",
+          list: [
+            { label: "The Problem", text: "Tall components block airflow to hot SMT parts downstream." },
+            { label: "The Fix", text: "Stagger tall components or align them parallel to the airflow path." }
+          ]
+        },
+        {
+          title: "Upstream Priority",
+          color: "success",
+          list: [
+            { label: "Strategy", text: "Place the most temperature-sensitive parts (e.g., Crystal Oscillators) upstream." },
+            { label: "Strategy", text: "Place the hottest parts (e.g., CPU) near the exhaust or in direct intake flow." }
+          ]
+        },
+        {
+          title: "Airflow Shortcuts",
+          color: "blue",
+          list: [
+            { label: "The Problem", text: "Air takes the path of least resistance, bypassing hot areas." },
+            { label: "The Fix", text: "Use baffles or ducting to force air through heatsink fins." }
+          ]
+        }
+      ]
+    },
+    {
+      heading: "Critical DFM: The Bowing Warning",
+      content: "Excessive clamping force on a thin PCB (< 1.6mm) can cause the board to 'bow' (bend). This is a catastrophic failure mode.",
+      ruleCards: [
+        {
+          number: "T-01",
+          severity: "danger",
+          title: "Solder Joint Fatigue",
+          body: "PCB bowing puts tensile stress on BGA/QFN solder joints. Over thermal cycles, this leads to micro-cracking and intermittent failures."
+        },
+        {
+          number: "T-02",
+          severity: "warning",
+          title: "Stiffener Requirements",
+          body: "For heatsinks > 100g, use a backplate (stiffener) on the opposite side of the PCB to distribute the clamping load."
         }
       ]
     },
@@ -203,7 +348,11 @@ export const content = {
         "Junction temperature (Tj) calculated for all components > 1W.",
         "Heatsink-to-PCB mechanical keepouts verified.",
         "TIM conductivity and thickness specified in the mechanical BOM.",
-        "Airflow path (CFM) verified for forced-convection systems.",
+        "TIM Bond Line Thickness (BLT) verified for multi-component heatsinks (Gap analysis).",
+        "PCB stiffener/backplate verified for heavy heatsinks (>100g) to prevent bowing.",
+        "TIM 'Pump-out' and aging effects evaluated for high-cycle power applications.",
+        "Airflow path (CFM) and 'Thermal Shadowing' verified for forced-convection.",
+        "Altitude derating applied to IPC-2152 current capacity limits.",
         "Thermal relief verified on all pads to prevent manufacturing defects."
       ]
     }
