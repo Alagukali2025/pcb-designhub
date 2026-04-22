@@ -37,7 +37,8 @@ export const content = {
         { label: "Reference Continuity", text: "Place a GND stitching via within 50 mils of any signal via that changes reference layers. Discontinuous return paths are the #1 source of EMI failures." }
       ],
       alerts: [
-        { type: 'danger', text: "Never route high-speed signals across plane splits. The resulting return path detour causes massive EMI radiation and crosstalk failures." }
+        { type: 'danger', text: "Never route high-speed signals across plane splits. The resulting return path detour causes massive EMI radiation and crosstalk failures." },
+        { type: 'warning', text: "Reference Plane Transitions: If a signal changes layers and switches its reference from GND to a Power Plane, you MUST place a 0.1µF stitching capacitor within 50 mils of the via to provide a high-frequency AC return path. Failing this creates a massive loop antenna." }
       ]
     },
     {
@@ -349,7 +350,8 @@ export const content = {
         ]
       },
       alerts: [
-        { type: 'info', text: "Modern high-speed transceivers use equalization (Tx pre-emphasis, Rx CTLE/DFE) to partially compensate for channel loss. However, equalization cannot fix impedance discontinuities, via stubs, or connector resonances — these must be solved in the PCB layout." }
+        { type: 'info', text: "Modern high-speed transceivers use equalization (Tx pre-emphasis, Rx CTLE/DFE) to partially compensate for channel loss. However, equalization cannot fix impedance discontinuities, via stubs, or connector resonances — these must be solved in the PCB layout." },
+        { type: 'warning', text: "Equalization Literacy: CTLE (Continuous Time Linear Equalizer) boosts high frequencies at the receiver; DFE (Decision Feedback Equalizer) cancels reflections from the previous bit. Understanding your Silicon's equalization capability allows you to 'stretch' the insertion loss budget, but it is never a substitute for clean layout." }
       ]
     },
     {

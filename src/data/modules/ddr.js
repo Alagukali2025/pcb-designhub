@@ -78,6 +78,9 @@ export const content = {
           ["Max DQ Trace Length", "2500 mil", "2000 mil", "1500 mil", "Excessive Channel Loss"]
         ]
       },
+      alerts: [
+        { type: "danger", text: "Expert Timing: Pad-to-Pad matching is NOT enough for DDR4/5. You must include the 'Pin-to-Die' package delay (provided by the SoC/CPU vendor) in your length-matching constraints. The package can add 50-150 mils of skew that is invisible to standard DRCs." }
+      ],
       formula: {
         title: "Propagation Delay (FR4 Stripline)",
         equations: [
@@ -115,7 +118,8 @@ export const content = {
         }
       ],
       alerts: [
-        { type: "info", text: "T-branch (Y-topology) is legacy. At DDR4/5 speeds, the impedance mismatch at the branch point creates multi-reflection noise that prevents high-speed boot." }
+        { type: "info", text: "T-branch (Y-topology) is legacy. At DDR4/5 speeds, the impedance mismatch at the branch point creates multi-reflection noise that prevents high-speed boot." },
+        { type: "warning", text: "Expert Insight: Write Leveling. Fly-by topology creates an intentional skew where the clock (CK) arrives at each DRAM at a different time. The memory controller 'learns' these delays during the 'Write Leveling' phase of training, shifting the DQS strobes to compensate. This allows the layout engineer to focus on intra-byte matching rather than absolute length matching across the entire bus." }
       ]
     },
     {

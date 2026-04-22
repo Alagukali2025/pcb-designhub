@@ -107,8 +107,26 @@ export const content = {
         ]
       },
       alerts: [
-        { type: 'warning', text: "Skin effect causes signal current to travel on the rough surface of the copper. For frequencies >5GHz, specify VLP (Very Low Profile) copper to reduce resistive loss." }
+        { type: 'warning', text: "Skin effect causes signal current to travel on the rough surface of the copper. For frequencies >5GHz, specify VLP (Very Low Profile) or RTF (Reverse Treated Foil) copper to reduce resistive loss." },
+        { type: 'danger', text: "Surface Finish Impact: ENIG (Nickel/Gold) is ferromagnetic and increases insertion loss by up to 30% at high frequencies. For 28Gbps+ links, mandate Immersion Silver (I-Ag) or OSP for the signal path." }
       ]
+    },
+    {
+      heading: "The Fiber Weave Effect",
+      content: "PCB cores are made of woven glass bundles. Because glass (Dk ≈ 6.0) and resin (Dk ≈ 3.0) have different dielectric constants, a signal's speed depends on where it sits relative to the weave, causing intra-pair skew.",
+      mistakeList: [
+        { mistake: "Routing parallel to the orthogonal weave pattern.", fix: "Route at a 10° angle relative to the panel edge." },
+        { mistake: "Assuming uniform dielectric constant (Dk).", fix: "Use spread-glass (e.g., 1080/1067) rather than open-weave (7628)." }
+      ],
+      alerts: [
+        { type: 'info', text: "For differential pairs >10 Gbps, zig-zag routing or rotating the entire design by 10 degrees is mandatory to ensure both D+ and D- see the same 'average' Dk." },
+        { type: 'warning', text: "Expert Glass Selection: Avoid standard 7628 glass. Specify 'Spread Glass' or 'Flat Weave' styles like 1067, 1078, or 2116 to minimize intra-pair skew without requiring 10° rotation." }
+      ],
+      type: 'cross-ref',
+      refModuleId: 'stackup',
+      refTargetHeading: 'High-Speed Signal Integrity: Fiber Weave Skew',
+      refLabel: 'Open Interactive Fiber Weave Analyzer → Stackup Design',
+      refDesc: 'The full interactive Fiber Weave Skew tool with glass weave pattern simulation and Dk variation calculator is canonically located in the Stackup Design module under “High-Speed Signal Integrity: Fiber Weave Skew”.'
     },
     {
       heading: "Layer Stack-Up Design",
@@ -131,22 +149,6 @@ export const content = {
       alerts: [
         { type: 'info', text: "Route adjacent signal layers perpendicular to each other to minimize broadside coupled crosstalk." }
       ]
-    },
-    {
-      heading: "The Fiber Weave Effect",
-      content: "PCB cores are made of woven glass bundles. Because glass (Dk ≈ 6.0) and resin (Dk ≈ 3.0) have different dielectric constants, a signal's speed depends on where it sits relative to the weave, causing intra-pair skew.",
-      mistakeList: [
-        { mistake: "Routing parallel to the orthogonal weave pattern.", fix: "Route at a 10° angle relative to the panel edge." },
-        { mistake: "Assuming uniform dielectric constant (Dk).", fix: "Use spread-glass (e.g., 1080/1067) rather than open-weave (7628)." }
-      ],
-      alerts: [
-        { type: 'info', text: "For differential pairs >10 Gbps, zig-zag routing or rotating the entire design by 10 degrees is mandatory to ensure both D+ and D- see the same 'average' Dk." }
-      ],
-      type: 'cross-ref',
-      refModuleId: 'stackup',
-      refTargetHeading: 'High-Speed Signal Integrity: Fiber Weave Skew',
-      refLabel: 'Open Interactive Fiber Weave Analyzer → Stackup Design',
-      refDesc: 'The full interactive Fiber Weave Skew tool with glass weave pattern simulation and Dk variation calculator is canonically located in the Stackup Design module under “High-Speed Signal Integrity: Fiber Weave Skew”.'
     },
     {
       heading: "Return Paths & Ground Planes",
@@ -221,6 +223,12 @@ export const content = {
           title: "Routing Corners (DFM Priority)",
           severity: "info",
           body: "Use 45° corners or arcs. Contrary to myths, 90° corners are primarily a DFM risk (acid traps/etch undercut) rather than an SI risk until well above 20 GHz."
+        },
+        {
+          number: "04",
+          title: "The Hidden Skew: Package Delay",
+          severity: "danger",
+          body: "Pad-to-Pad matching is insufficient for high-end FPGAs/CPUs. You must account for 'Pin-to-Die' delay (Package Skew) which can vary by 100+ mils. Import the package delay file (.csv/.pkg) into your constraint manager to match the true electrical length."
         }
       ]
     },

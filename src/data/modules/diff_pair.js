@@ -147,7 +147,7 @@ export const content = {
           number: "08",
           title: "Minimize Layer Transitions",
           severity: "info",
-          body: "Every layer transition (via) is an impedance discontinuity and a stub. Minimize layer changes for high-speed differential pairs. When unavoidable, place GND stitching vias within 2× the via diameter. For PCIe Gen 3+, back-drilling of via stubs is typically required."
+          body: "Every layer transition (via) is an impedance discontinuity and a stub. Minimize layer changes for high-speed differential pairs. For >10Gbps, experts 'tune' the GND Antipad size (e.g., to 30-40 mils) to reduce parasitic capacitance and maintain 100Ω through the via. For PCIe Gen 3+, back-drilling of via stubs is typically required."
         }
       ]
     },
