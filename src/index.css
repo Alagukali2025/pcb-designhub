@@ -57,7 +57,7 @@
   
   /* Spacing */
   --space-1: 0.35rem;
-  --space-1.5: 0.55rem;
+  --space-1-5: 0.55rem;
   --space-2: 0.75rem;
   --space-3: 1rem;
   --space-4: 1.25rem;
@@ -1469,7 +1469,7 @@ a:hover {
 .alert {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-1.5);
+  gap: var(--space-1-5);
   padding: var(--space-2);
   border-radius: var(--radius-xl);
   border: 1px solid transparent;
