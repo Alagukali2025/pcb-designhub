@@ -5895,18 +5895,18 @@ a:hover {
 .mistake-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  margin: var(--space-8) 0;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
 }
 
 .mistake-item {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-4);
   transition: all var(--transition-fast);
 }
 
@@ -5914,7 +5914,7 @@ a:hover {
   .mistake-item {
     display: grid;
     grid-template-columns: auto 1fr auto 1fr;
-    gap: var(--space-3) var(--space-6);
+    gap: var(--space-2) var(--space-4);
     align-items: center;
   }
 }

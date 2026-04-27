@@ -206,12 +206,12 @@ export const content = {
     },
     {
       heading: "Current Carrying Capacity (IPC-2152)",
-      content: "Calculate the required trace width for a target current and allowable temperature rise based on the modern IPC-2152 standards. Internal traces (stripline) and external traces (microstrip) require different widths due to thermal dissipation variables.",
+      content: "Calculate the required trace width for high-current paths based on modern IPC-2152 standards. Internal vs. external dissipation physics are canonically handled in the Thermal module.",
       type: 'cross-ref',
       refModuleId: 'thermal',
       refTargetHeading: 'IPC-2152 Current Capacity Solver',
-      refLabel: 'Launch Interactive IPC-2152 Solver → Thermal Design',
-      refDesc: 'The full interactive IPC-2152 Current Capacity Solver is canonically located in the Thermal & Power Integrity module to ensure consistent thermal parameter modeling.'
+      refLabel: 'Launch Interactive IPC-2152 Solver →',
+      refDesc: 'The interactive Current Capacity Solver with substrate-specific thermal conductivity modeling is located in the Thermal Management module.'
     },
     {
       heading: "High-Speed Signal Integrity: Fiber Weave Skew",

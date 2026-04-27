@@ -29,17 +29,11 @@ export const content = {
     },
     {
       heading: "Differential Pair Routing Mastery",
-      content: "Differential signaling provides inherent common-mode noise rejection. Maintaining geometry symmetry along the entire route is the primary task of the layout engineer — any break in symmetry becomes a source of mode conversion and EMI.",
-      list: [
-        { label: "Intra-pair Spacing (S)", text: "Set to 2× Trace Width (W) to maintain target odd-mode impedance. Keep S constant for the entire routed length." },
-        { label: "Intra-pair Skew", text: "Must be ≤ 5 mils for DDR4/5; ≤ 10ps max for multi-Gbps serial links. Use meanders within the coupled region, never at the end of the route." },
-        { label: "Inter-pair Spacing", text: "Maintain ≥ 3× W (5× W preferred) to reduce crosstalk coupling below -40 dB. Violating this forces re-simulation." },
-        { label: "Reference Continuity", text: "Place a GND stitching via within 50 mils of any signal via that changes reference layers. Discontinuous return paths are the #1 source of EMI failures." }
-      ],
-      alerts: [
-        { type: 'danger', text: "Never route high-speed signals across plane splits. The resulting return path detour causes massive EMI radiation and crosstalk failures." },
-        { type: 'warning', text: "Reference Plane Transitions: If a signal changes layers and switches its reference from GND to a Power Plane, you MUST place a 0.1µF stitching capacitor within 50 mils of the via to provide a high-frequency AC return path. Failing this creates a massive loop antenna." }
-      ]
+      content: "Differential signaling provides inherent common-mode noise rejection. Maintaining geometry symmetry along the entire route is the primary task of the layout engineer.",
+      type: 'cross-ref',
+      refModuleId: 'diff_pair',
+      refLabel: 'Open Differential Pair Routing Module →',
+      refDesc: 'Comprehensive layout rules, Zdiff calculators, and symmetry constraints are canonically located in the Diff Pair module.'
     },
     {
       heading: "BGA Escape & Fanout Design (IPC-7095C)",

@@ -126,42 +126,20 @@ export const content = {
     },
     {
       heading: "The Fiber Weave Effect",
-      content: "PCB cores are made of woven glass bundles. Because glass (Dk ≈ 6.0) and resin (Dk ≈ 3.0) have different dielectric constants, a signal's speed depends on where it sits relative to the weave, causing intra-pair skew.",
-      mistakeList: [
-        { mistake: "Routing parallel to the orthogonal weave pattern.", fix: "Route at a 10° angle relative to the panel edge." },
-        { mistake: "Assuming uniform dielectric constant (Dk).", fix: "Use spread-glass (e.g., 1080/1067) rather than open-weave (7628)." }
-      ],
-      alerts: [
-        { type: 'info', text: "For differential pairs >10 Gbps, zig-zag routing or rotating the entire design by 10 degrees is mandatory to ensure both D+ and D- see the same 'average' Dk." },
-        { type: 'warning', text: "Expert Glass Selection: Avoid standard 7628 glass. Specify 'Spread Glass' or 'Flat Weave' styles like 1067, 1078, or 2116 to minimize intra-pair skew without requiring 10° rotation." }
-      ],
+      content: "For signals >10 Gbps, the physical weave of the PCB glass becomes a critical bottleneck. Differences in Dk between glass and resin cause intra-pair skew that cannot be ignored.",
       type: 'cross-ref',
       refModuleId: 'stackup',
       refTargetHeading: 'High-Speed Signal Integrity: Fiber Weave Skew',
-      refLabel: 'Open Interactive Fiber Weave Analyzer → Stackup Design',
-      refDesc: 'The full interactive Fiber Weave Skew tool with glass weave pattern simulation and Dk variation calculator is canonically located in the Stackup Design module under “High-Speed Signal Integrity: Fiber Weave Skew”.'
+      refLabel: 'Open Interactive Fiber Weave Analyzer →',
+      refDesc: 'The interactive Fiber Weave Skew simulator and material-specific Dk variation tools are canonically located in the Stackup Design module.'
     },
     {
       heading: "Layer Stack-Up Design",
       content: "Stack-up design determines the physical environment of every trace. It must be defined before routing begins to control impedance and minimize crosstalk.",
-      list: [
-        { label: "Proximity", text: "Every signal layer must have an adjacent reference plane within 5-8 mils." },
-        { label: "Shielding", text: "High-speed signal layers should be internal (stripline) for better shielding." },
-        { label: "Symmetry", text: "Symmetric stack-up prevents bow and twist during fabrication." }
-      ],
-      stackVisual: [
-        { layer: "L1 — Signal (Top)", spec: "Microstrip · 50Ω", color: "#D4963A", note: "Components, non-critical" },
-        { layer: "L2 — Ground (GND)", spec: "Solid Copper", color: "#888780", note: "Reference for L1 & L3" },
-        { layer: "L3 — Signal (HS)", spec: "Stripline · 50Ω", color: "#D4963A", note: "Critical: DDR, PCIe" },
-        { layer: "L4 — Ground (GND)", spec: "Solid Copper", color: "#888780", note: "Reference for L3" },
-        { layer: "L5 — Power (PWR)", spec: "Power Islands", color: "#378ADD", note: "1.8V, 3.3V, 5V planes" },
-        { layer: "L6 — Ground (GND)", spec: "Solid Copper", color: "#888780", note: "Reference for L5 & L7" },
-        { layer: "L7 — Signal (HS)", spec: "Stripline · 50Ω", color: "#D4963A", note: "HS perpendicular to L3" },
-        { layer: "L8 — Signal (Bottom)", spec: "Microstrip · 50Ω", color: "#D4963A", note: "General routing" }
-      ],
-      alerts: [
-        { type: 'info', text: "Route adjacent signal layers perpendicular to each other to minimize broadside coupled crosstalk." }
-      ]
+      type: 'cross-ref',
+      refModuleId: 'stackup',
+      refLabel: 'Open Layer Stackup Visualizer →',
+      refDesc: 'Canonical impedance calculations, material dielectric benchmark tables, and the industrial 8-layer stackup visualizer are managed in the Stackup Design module.'
     },
     {
       heading: "Return Paths & Ground Planes",
@@ -247,11 +225,11 @@ export const content = {
     },
     {
       heading: "Differential Pair Routing",
-      content: "Differential signaling provides inherent immunity to common-mode noise and is the backbone of PCIe, USB, HDMI, and LVDS. Key rules: route as a coupled pair at constant spacing throughout, and match D+ and D− length within ±5 mil for USB 3.x / PCIe Gen 4. The complete engineering reference — 8 Golden Rules, interactive Zdiff Calculator, serpentine constraints, fiber weave mitigation, and full interface reference table — is in the dedicated module.",
+      content: "Differential signaling provides inherent immunity to common-mode noise and is the backbone of modern serial links. Precise length matching and constant Zdiff are mandatory.",
       type: 'cross-ref',
       refModuleId: 'diff_pair',
       refLabel: 'Open Differential Pair Routing Module →',
-      refDesc: 'The Differential Pair Routing module covers all 8 Non-Negotiable Routing Rules, the interactive Zdiff Calculator, length matching constraints, fiber weave mitigation, via placement symmetry, and a complete interface impedance reference table for USB, PCIe, HDMI, LVDS, and more.'
+      refDesc: 'The complete engineering reference for 8 Non-Negotiable Routing Rules, Zdiff Calculators, and interface-specific constraints is canonically located in the Diff Pair module.'
     },
     {
       heading: "Crosstalk Mitigation",
@@ -305,13 +283,12 @@ export const content = {
     },
     {
       heading: "Via Parasitics (Advanced Modeling)",
-      content: "Every via is a tiny obstacle for high-speed signals. This calculator helps you model the 'speed bumps' caused by parasitic capacitance and inductance in your via transitions.",
-      list: [
-        { label: "Parasitic C", text: "Holes in the ground plane act like small batteries (capacitors)." },
-        { label: "Parasitic L", text: "Long via barrels act like small coils (inductors)." },
-        { label: "The Solution", text: "Using smaller vias and optimized 'antipad' sizes reduces these effects." }
-      ],
-      type: "via-advanced-calc"
+      content: "Every via is a tiny obstacle for high-speed signals. Modeling parasitic capacitance and inductance is essential for designs exceeding 5 Gbps.",
+      type: 'cross-ref',
+      refModuleId: 'si_pi',
+      refTargetHeading: 'Via Stub Resonance & Back-Drilling',
+      refLabel: 'Open Expert Via Analytics →',
+      refDesc: 'Complex via stub resonance modeling and back-drilling depth calculators are canonically located in the Signal Integrity module.'
     },
     {
       heading: "Via Stub Resonance",
