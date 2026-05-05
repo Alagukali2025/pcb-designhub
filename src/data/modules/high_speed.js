@@ -173,14 +173,13 @@ export const content = {
       ]
     },
     {
-      heading: "Power Integrity (PI) Fundamentals",
-      content: "A PDN Analyzer ensures your power delivery is smooth and stable. It's like checking the 'water pressure' in your pipes to make sure the chips don't crash when they suddenly demand more power.",
-      list: [
-        { label: "Voltage Ripple", text: "Fast-switching chips cause noisy waves in the power supply." },
-        { label: "Target Impedance", text: "Keeping the power path 'wide' and 'fast' so the noise stays low." },
-        { label: "Decoupling", text: "Using capacitors as local 'storage tanks' to provide instant power." }
-      ],
-      type: "pdn-analyzer"
+      heading: "Power Integrity (PI) Strategy",
+      content: "High-speed digital links are sensitive to transient current spikes. A stable Power Delivery Network (PDN) is the foundation of Signal Integrity — without power stability, signal timing cannot be guaranteed.",
+      type: 'cross-ref',
+      refModuleId: 'si_pi',
+      refTargetHeading: 'PDN Target Impedance Solver (Interactive)',
+      refLabel: 'Open Expert PI Target Wizard →',
+      refDesc: 'The interactive Target Impedance Wizard, decoupling stack heuristics, and PDN stability analysis are canonically located in the Signal & Power Integrity module.'
     },
     {
       heading: "Routing Techniques & Geometry",
