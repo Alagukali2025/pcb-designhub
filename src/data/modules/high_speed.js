@@ -198,24 +198,48 @@ export const content = {
       ruleCards: [
         {
           number: "01",
-          title: "Length Matching",
+          title: "Stitching Vias (The GND Shadow)",
           severity: "warning",
-          body: "DDR4 Data: ±25 mil within byte lane. PCIe (Intra-pair): ±5 mil. Match to setup/hold window."
+          body: "Always place a Ground via next to a signal via when changing layers. This maintains return path continuity and minimizes loop inductance, preventing EMI and signal degradation at the transition point."
         },
         {
           number: "02",
-          title: "Serpentine Tuning",
-          severity: "info",
-          body: "Gap between legs ≥ 3W. Amplitude should be small. Never serpentine inside a differential pair region."
+          title: "Guard Traces vs. Spacing",
+          severity: "warning",
+          body: "Prefer increased spacing (3W/5W) over guard traces. Guard traces can actually increase crosstalk if not stitched to GND at intervals much smaller than the signal wavelength."
         },
         {
           number: "03",
+          title: "Teardrops (Impedance Smoothing)",
+          severity: "info",
+          body: "Apply teardrops at pad and via junctions to prevent drill breakout and smooth the abrupt change in cross-sectional area. This reduces the impedance 'bump' and reflections at high frequencies."
+        },
+        {
+          number: "04",
           title: "Routing Corners (DFM Priority)",
           severity: "info",
           body: "Use 45° corners or arcs. Contrary to myths, 90° corners are primarily a DFM risk (acid traps/etch undercut) rather than an SI risk until well above 20 GHz."
         },
         {
-          number: "04",
+          number: "05",
+          title: "The Zero-Stub Rule",
+          severity: "danger",
+          body: "Eliminate unterminated stubs in high-speed nets. Stubs act as quarter-wave resonators (λ/4) that can absorb signal energy at specific frequencies, creating 'notches' in the insertion loss."
+        },
+        {
+          number: "06",
+          title: "Length Matching",
+          severity: "warning",
+          body: "DDR4 Data: ±25 mil within byte lane. PCIe (Intra-pair): ±5 mil. Match to setup/hold window."
+        },
+        {
+          number: "07",
+          title: "Serpentine Tuning",
+          severity: "info",
+          body: "Maintain gap between legs ≥ 3W. Amplitude should be small. Never serpentine inside a differential pair region."
+        },
+        {
+          number: "08",
           title: "The Hidden Skew: Package Delay",
           severity: "danger",
           body: "Pad-to-Pad matching is insufficient for high-end FPGAs/CPUs. You must account for 'Pin-to-Die' delay (Package Skew) which can vary by 100+ mils. Import the package delay file (.csv/.pkg) into your constraint manager to match the true electrical length."
