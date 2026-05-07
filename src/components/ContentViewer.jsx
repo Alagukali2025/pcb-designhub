@@ -589,7 +589,8 @@ export default function ContentViewer() {
                           <div className="term-name">{t.name}</div>
                           <span className={`term-tag ${t.tagColor}-tag`}>{t.tag}</span>
                           <div className="term-pros"><strong>Pros:</strong> {t.pros}</div>
-                          <div className="term-cons"><strong>Cons:</strong> {t.cons}</div>
+                          {t.cons && <div className="term-cons"><strong>Cons:</strong> {t.cons}</div>}
+                          {t.placement && <div className="term-placement" style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--glass-border)' }}><strong>Rule:</strong> {t.placement}</div>}
                         </div>
                       ))}
                     </div>

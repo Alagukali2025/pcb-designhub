@@ -255,52 +255,79 @@ export const content = {
       refDesc: 'The complete engineering reference for 8 Non-Negotiable Routing Rules, Zdiff Calculators, and interface-specific constraints is canonically located in the Diff Pair module.'
     },
     {
-      heading: "Crosstalk Mitigation",
+      heading: "Crosstalk Control & Suppression",
       content: "Crosstalk is the unwanted coupling of energy from an aggressor net onto a victim net through parasitic capacitance and mutual inductance.",
       table: {
         headers: ["Type", "Location", "Polarity", "Magnitude"],
         rows: [
-          ["NEXT", "Same end as driver", "Same as aggressor", "Higher (accumulates)"],
-          ["FEXT", "Far end of line", "Opposite (stripline)", "Lower in microstrip"]
+          ["NEXT", "Same end as driver", "Same as aggressor", "Saturates after critical length"],
+          ["FEXT", "Far end of line", "Opposite (microstrip) / Zero (stripline)", "Accumulates (inhomogeneous media)"]
         ]
       },
       list: [
-        { label: "Spacing", text: "Increase spacing (1/S² drop-off). 3W rule reduces NEXT to <10%." },
-        { label: "Orthogonality", text: "Route adjacent layers perpendicular to eliminate broadside coupling." },
-        { label: "Stripline", text: "FEXT in balanced stripline cancels, making it superior to microstrip." }
+        { label: "Spacing", text: "Increase spacing (1/S² drop-off). Doubling 'S' reduces coupling by ~75%. 3W rule reduces NEXT to <10%." },
+        { label: "Orthogonality", text: "Route adjacent layers perpendicular to eliminate broadside coupling (avoid parallel overlapping traces)." },
+        { label: "Stripline", text: "FEXT in balanced stripline is zero (homogeneous dielectric), making it superior to microstrip." }
+      ],
+      alerts: [
+        { type: 'info', text: "Expert Insight: Stripline cancels FEXT because the velocity of propagation is identical in a homogeneous dielectric, causing the inductive and capacitive components to cancel exactly. In Microstrip, the 'Far End' crosstalk grows linearly with trace length." },
+        { type: 'warning', text: "Guard Traces: Often cause more EMI/SI issues than they solve. Only use guard traces if they can be stitched to ground at intervals < λ/10. Otherwise, prefer increased spacing (3W/5W)." }
       ]
     },
     {
-      heading: "Termination Strategies",
-      content: "Termination is the use of resistors to match the source or load impedance to the transmission line Z₀, thereby eliminating reflections.",
+      heading: "Termination: SI Placement & Topology",
+      content: "While Hardware Engineers define termination in the schematic, the PCB Designer determines if it works. Placement dictates physics. **Rule of Thumb: If trace length > (Rise Time / 6), termination is mandatory.**",
+      alerts: [
+        { type: 'warning', text: "The Guardian of Physics: A perfectly calculated schematic resistor fails if placed at the wrong end of the trace or connected with a massive stub. Topology is your responsibility." }
+      ],
       terminationGrid: [
         {
-          name: "Series (Source) Termination",
+          name: "Series (Source)",
           tag: "Low Power",
           tagColor: "green",
           pros: "Prevents reflection at source. Rs = Z₀ − Zdriver.",
-          cons: "Ideal for point-to-point only."
+          cons: "Ideal for point-to-point only.",
+          placement: "< 200 mils from Driver pad."
         },
         {
-          name: "Parallel (End) Termination",
+          name: "Parallel (End)",
           tag: "High Freq",
           tagColor: "amber",
           pros: "Instantaneous match. Best for multi-drop and clocks.",
-          cons: "High DC power consumption."
+          cons: "High DC power drain.",
+          placement: "End of line, absolutely zero stubs."
         },
         {
-          name: "Differential Termination",
+          name: "AC (Capacitive)",
+          tag: "Clocks",
+          tagColor: "blue",
+          pros: "Blocks DC current, saving massive power over Parallel.",
+          cons: "Adds RC time constant delay.",
+          placement: "End of line."
+        },
+        {
+          name: "Thevenin (Split)",
+          tag: "Bias VREF",
+          tagColor: "amber",
+          pros: "Pulls signal to specific bias voltage (VTT). Good for DDR.",
+          cons: "Constant DC drain through both resistors.",
+          placement: "End of line."
+        },
+        {
+          name: "Differential",
           tag: "Serial Links",
           tagColor: "blue",
           pros: "100Ω across D+/D-. Specified by serial standards.",
-          cons: "Internal ODT preferred over external components."
+          cons: "Internal ODT preferred over external components.",
+          placement: "Directly across receiver pins."
         },
         {
-          name: "On-Die Termination (ODT)",
+          name: "On-Die (ODT)",
           tag: "Modern DDR",
           tagColor: "green",
           pros: "Eliminates board stubs and parasitic inductance.",
-          cons: "Requires software configuration."
+          cons: "Requires software configuration.",
+          placement: "Inside IC (Hardware feature)."
         }
       ]
     },
