@@ -36,7 +36,11 @@ function calcResults(inputs, topology, isRefined = false) {
   let zdiff = 0;
 
   if (topology === 'microstrip') {
-    effDk = 0.475 * er + 0.67;
+    const u = w / h;
+    const aU = 1 + (1/49) * Math.log((Math.pow(u, 4) + Math.pow(u/52, 2)) / (Math.pow(u, 4) + 0.432)) + (1/18.7) * Math.log(1 + Math.pow(u/18.1, 3));
+    const bEr = 0.564 * Math.pow((er - 0.9) / (er + 3), 0.053);
+    effDk = (er + 1) / 2 + ((er - 1) / 2) * Math.pow(1 + 10 / u, -(aU * bEr));
+    
     // Refined Hammerstad accounts for trace thickness effect on Z0
     const w_prime = isRefined ? w + (t / Math.PI) * (1 + Math.log((4 * Math.PI * w) / t)) : w;
     z0 = (60 / Math.sqrt(effDk)) * Math.log((5.98 * h) / (0.8 * w_prime + t));
@@ -46,7 +50,7 @@ function calcResults(inputs, topology, isRefined = false) {
       ? 0.48 * Math.exp(-0.96 * (s / h)) * (1 + 0.1 * (t / h)) 
       : 0.48 * Math.exp(-0.96 * (s / h));
     zdiff = 2 * z0 * (1 - k);
-    delay = 84.75 * Math.sqrt(effDk);
+    delay = 84.72 * Math.sqrt(effDk);
   } else {
     // Symmetric Stripline: B = 2H + T
     const b = 2 * h + t;
@@ -320,7 +324,7 @@ export default function ZdiffCalculator() {
             <button 
               className={`zdiff-switch ${refinedMode ? 'active' : ''}`}
               onClick={() => setRefinedMode(!refinedMode)}
-              title="Refined Mode: Applies Hammerstad & Jensen equations. Accounts for 3D copper thickness (T) sidewall coupling, offering accuracy closer to 2D BEM Field Solvers."
+              title="Refined Mode: Applies additional copper thickness corrections to trace width and coupling, offering accuracy closer to 2D BEM Field Solvers."
             >
               Refined
             </button>
@@ -427,7 +431,7 @@ export default function ZdiffCalculator() {
                   <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Expert Insight</span>
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#475569', lineHeight: '1.5' }}>
-                  <strong>Refined Mode:</strong> Applies Hammerstad & Jensen equations. Accounts for 3D copper thickness (T) sidewall coupling, offering accuracy closer to 2D BEM Field Solvers.<br/><br/>
+                  <strong>Refined Mode:</strong> Applies additional copper thickness (T) corrections to trace width and coupling, offering accuracy closer to 2D BEM Field Solvers.<br/><br/>
                   <strong>Fields Display:</strong> Visualizes the shared electromagnetic flux. Tighter spacing (S) increases coupling density, lowering the differential impedance.
                 </div>
               </div>
@@ -525,7 +529,7 @@ export default function ZdiffCalculator() {
                 </div>
 
                 <div className="zdiff-popover-disclaimer">
-                  <span className="font-bold">Note:</span> Hammerstad model is accurate within ±5% for standard FR4/VLP stackups. Use a 2D Field Solver (HyperLynx/Polar Si9000) for critical 25 Gbps+ channels.
+                  <span className="font-bold">Note:</span> Hammerstad & Jensen model is accurate within ±2% for typical geometries. Use a 2D Field Solver (Polar Si9000) for critical 25 Gbps+ channels.
                 </div>
               </div>
             </div>

@@ -93,7 +93,7 @@ const INTERFACES = [
     interface:    'PCIe Gen 5',
     type:         '32 GT/s',
     zdiff:        85,
-    tolerance:    8,
+    tolerance:    "15 (Rec: 8)",
     maxSkewMil:   5,
     maxSkewPs:    0.5,
     dataRate:     '32 GT/s',
@@ -116,6 +116,7 @@ const INTERFACES = [
     topology:     'Microstrip or Stripline',
     highlight:    false,
     tag:          'AV/Display',
+    calcPreset: { height: 0.20, width: 0.20, thickness: 0.035, spacing: 0.20, dk: 4.17 }
   },
   {
     interface:    'HDMI 2.1',
@@ -155,6 +156,7 @@ const INTERFACES = [
     topology:     'Microstrip or Stripline',
     highlight:    false,
     tag:          'Industrial',
+    calcPreset: { height: 0.20, width: 0.20, thickness: 0.035, spacing: 0.20, dk: 4.17 }
   },
   {
     interface:    '1000BASE-T / SGMII',
@@ -168,6 +170,7 @@ const INTERFACES = [
     topology:     'Microstrip or Stripline',
     highlight:    false,
     tag:          'Networking',
+    calcPreset: { height: 0.20, width: 0.20, thickness: 0.035, spacing: 0.20, dk: 4.17 }
   },
   {
     interface:    '10GBASE-KR / XFI',
@@ -391,7 +394,7 @@ export default function DiffPairReferenceTable() {
 
       <p className="lam-footnote">
         * Zdiff values are PCB-trace targets as specified in the listed interface standards. Connector and cable
-        impedance requirements may differ. PCIe Gen 4+ Zdiff changed to 85 Ω in Rev 5.0.
+        impedance requirements may differ. PCIe Gen 5 CEM spec targets 85 Ω.
         Always consult the normative specification document for the complete, authoritative requirements.
       </p>
     </div>
