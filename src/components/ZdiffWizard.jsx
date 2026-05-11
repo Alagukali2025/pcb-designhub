@@ -13,10 +13,10 @@ import {
 } from 'lucide-react';
 
 const steps = [
-  { id: 'protocol', title: 'Protocol', icon: <Activity size={14} />, desc: 'Target Impedance' },
-  { id: 'topology', title: 'Topology', icon: <Layers size={14} />, desc: 'Stackup Position' },
-  { id: 'fab', title: 'Fab Class', icon: <Cpu size={14} />, desc: 'Manufacturing' },
-  { id: 'summary', title: 'Configure', icon: <ShieldCheck size={14} />, desc: 'Apply Settings' }
+  { id: 'protocol', title: 'APPLICATION', icon: <Activity size={14} />, desc: 'Target Impedance' },
+  { id: 'topology', title: 'TOPOLOGY', icon: <Layers size={14} />, desc: 'Stackup Position' },
+  { id: 'fab', title: 'PCB TECH', icon: <Cpu size={14} />, desc: 'Manufacturing' },
+  { id: 'summary', title: 'STRATEGY', icon: <ShieldCheck size={14} />, desc: 'Apply Settings' }
 ];
 
 const ZdiffWizard = ({ isOpen, onClose, onApply }) => {
@@ -32,15 +32,18 @@ const ZdiffWizard = ({ isOpen, onClose, onApply }) => {
   const next = () => setCurrentStep(Math.min(steps.length - 1, currentStep + 1));
   const prev = () => setCurrentStep(Math.max(0, currentStep - 1));
 
-  const handleApply = () => {
-    // Generate baseline parameters based on selections
+  const updateBaseline = (newData) => {
     const baseline = {
-      presetId: data.protocol === 'usb' ? 0 : data.protocol === 'pcie' ? 3 : 4,
-      topology: data.topology,
-      w: data.fabClass === 'hdi' ? 0.1 : 0.18,
-      s: data.fabClass === 'hdi' ? 0.1 : 0.18,
+      presetId: newData.protocol === 'usb' ? 0 : newData.protocol === 'pcie' ? 3 : 4,
+      topology: newData.topology,
+      w: newData.fabClass === 'hdi' ? 0.1 : 0.18,
+      s: newData.fabClass === 'hdi' ? 0.1 : 0.18,
     };
     onApply(baseline);
+  };
+
+  const handleApply = () => {
+    updateBaseline(data);
     onClose();
   };
 
@@ -62,26 +65,41 @@ const ZdiffWizard = ({ isOpen, onClose, onApply }) => {
         alignItems: 'center',
         justifyContent: 'space-between'
       }}>
-        <div style={{ display: 'flex', gap: 'var(--space-2)', flex: 1 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-4)', flex: 1 }}>
           {steps.map((step, idx) => (
             <div key={step.id} style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', color: idx <= currentStep ? 'var(--accent-primary)' : '#94a3b8', fontWeight: 700, marginBottom: '4px' }}>
+              <div style={{ 
+                fontSize: '0.7rem', 
+                textTransform: 'uppercase', 
+                color: idx === currentStep ? 'var(--accent-primary)' : '#94a3b8', 
+                fontWeight: 700, 
+                marginBottom: '4px',
+                borderBottom: `2px solid ${idx === currentStep ? 'var(--accent-primary)' : '#e2e8f0'}`,
+                paddingBottom: '4px'
+              }}>
                 {step.title}
               </div>
-              <div style={{ 
-                height: '4px', 
-                background: idx <= currentStep ? 'var(--accent-primary)' : '#e2e8f0',
-                borderRadius: '2px',
-                transition: 'all 0.4s'
-              }}></div>
             </div>
           ))}
         </div>
         <button 
           onClick={onClose}
-          style={{ marginLeft: 'var(--space-4)', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+          style={{ 
+            marginLeft: 'var(--space-4)', 
+            background: 'var(--success)', 
+            border: 'none', 
+            color: '#fff', 
+            cursor: 'pointer', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '4px',
+            padding: '6px 12px',
+            borderRadius: '20px',
+            fontSize: '0.65rem',
+            fontWeight: 800
+          }}
         >
-          <Monitor size={14} /> <span style={{ fontSize: '0.65rem', fontWeight: 800 }}>DASHBOARD VIEW</span>
+          <ShieldCheck size={12} /> CLOSE WIZARD
         </button>
       </div>
 
@@ -97,7 +115,7 @@ const ZdiffWizard = ({ isOpen, onClose, onApply }) => {
               ].map(item => (
                 <button 
                   key={item.id}
-                  onClick={() => setData({...data, protocol: item.id})}
+                  onClick={() => { const d = {...data, protocol: item.id}; setData(d); updateBaseline(d); }}
                   style={{ 
                     padding: 'var(--space-4)', 
                     borderRadius: 'var(--radius-md)', 
@@ -124,7 +142,7 @@ const ZdiffWizard = ({ isOpen, onClose, onApply }) => {
               ].map(item => (
                 <button 
                   key={item.id}
-                  onClick={() => setData({...data, topology: item.id})}
+                  onClick={() => { const d = {...data, topology: item.id}; setData(d); updateBaseline(d); }}
                   style={{ 
                     flex: 1, padding: 'var(--space-4)', borderRadius: 'var(--radius-md)',
                     border: `1px solid ${data.topology === item.id ? 'var(--accent-primary)' : '#e2e8f0'}`,
@@ -147,7 +165,7 @@ const ZdiffWizard = ({ isOpen, onClose, onApply }) => {
               ].map(item => (
                 <button 
                   key={item.id}
-                  onClick={() => setData({...data, fabClass: item.id})}
+                  onClick={() => { const d = {...data, fabClass: item.id}; setData(d); updateBaseline(d); }}
                   style={{ 
                     flex: 1, padding: 'var(--space-4)', borderRadius: 'var(--radius-md)',
                     border: `1px solid ${data.fabClass === item.id ? 'var(--accent-primary)' : '#e2e8f0'}`,
@@ -178,8 +196,8 @@ const ZdiffWizard = ({ isOpen, onClose, onApply }) => {
               <ChevronLeft size={14} /> Back
             </button>
             {currentStep < steps.length - 1 ? (
-              <button onClick={next} style={{ padding: '8px 24px', borderRadius: 'var(--radius-md)', border: 'none', background: 'var(--accent-primary)', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
-                Continue <ChevronRight size={14} />
+              <button onClick={next} style={{ padding: '8px 24px', borderRadius: '20px', border: 'none', background: 'var(--success)', color: '#fff', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                CONTINUE <ChevronRight size={14} />
               </button>
             ) : (
               <button onClick={handleApply} style={{ padding: '10px 32px', borderRadius: 'var(--radius-md)', border: 'none', background: 'var(--success)', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>

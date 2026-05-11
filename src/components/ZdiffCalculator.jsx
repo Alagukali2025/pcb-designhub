@@ -350,9 +350,9 @@ export default function ZdiffCalculator() {
         </div>
       </div>
 
-      {isWizardOpen ? (
+      {isWizardOpen && (
         <ZdiffWizard isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} onApply={handleWizardApply} />
-      ) : (
+      )}
       <div className="zdiff-body">
 
         {/* ── Left: Diagram + Inputs ── */}
@@ -493,7 +493,6 @@ export default function ZdiffCalculator() {
           </div>
         </div>
       </div>
-      )}
 
       {showInfo && (
         <div className="zdiff-popover-root">

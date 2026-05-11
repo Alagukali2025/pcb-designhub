@@ -107,58 +107,55 @@ export const content = {
       ruleCards: [
         {
           number: "01",
-          title: "Length Matching — Intra-pair",
-          severity: "danger",
-          body: "D+ and D− must be length-matched within the tolerance specified by the interface standard. Use meandering within the pair, never global routing adjustment. Budgets: USB 2.0 <200 mil, USB 3.x / PCIe Gen 4 <5 mil, DDR4 <25 mil per byte lane."
-        },
-        {
-          number: "02",
-          title: "Phase Skew Control",
-          severity: "danger",
-          body: "Phase skew Δt = ΔL · tpd. Skew converts differential signal to common-mode, degrading CMRR. Meanders must be placed within the coupled region of the pair, using matched-length serpentine tuning — never at the end of the route."
-        },
-        {
-          number: "03",
-          title: "Maintain Constant Spacing (Coupling)",
-          severity: "danger",
-          body: "Route D+ and D− at the target intra-pair spacing S for the entire route length. Spacing changes alter Zdiff locally, creating impedance discontinuities that cause reflections. Never fan out the pair before a connector and then re-converge — this is an impedance discontinuity cascade."
-        },
-        {
-          number: "04",
           title: "Return Path Continuity",
           severity: "danger",
           body: "The high-frequency return current follows directly beneath the signal trace on the nearest reference plane. Any gap, slot, or split forces the return current to detour, creating a loop antenna, extra inductance, and a localized impedance discontinuity. Never route a differential pair across a split plane or over a plane void."
         },
         {
-          number: "05",
+          number: "02",
+          title: "Maintain Constant Spacing (Coupling)",
+          severity: "danger",
+          body: "Route D+ and D− at the target intra-pair spacing S for the entire route length. Spacing changes alter Zdiff locally, creating impedance discontinuities that cause reflections. Never fan out the pair before a connector and then re-converge — this is an impedance discontinuity cascade."
+        },
+        {
+          number: "03",
           title: "3W Rule — Inter-pair Isolation",
           severity: "warning",
           body: "Maintain edge-to-edge spacing of at least 3× the trace width (3W) between adjacent differential pairs. For high-speed interfaces above 5 Gbps, increase to 5W–7W. This keeps mutual coupling below −20 dB between pairs. The 3W applies to the outer edge of the pair, not each individual trace."
         },
         {
-          number: "06",
+          number: "04",
           title: "20H Rule — Plane Edge Keepout",
           severity: "warning",
           body: "Keep signal traces at least 20× the dielectric height (20H) away from the edge of any reference plane. At the plane boundary, fringing fields cause impedance increases and radiated emissions. Critical for CISPR 25 and FCC Part 15 EMC compliance."
         },
         {
-          number: "07",
+          number: "05",
+          title: "Minimize Layer Transitions",
+          severity: "info",
+          body: "Every layer transition (via) is an impedance discontinuity and a stub. Minimize layer changes for high-speed differential pairs. For >10Gbps, experts 'tune' the GND Antipad size (e.g., to 30-40 mils) to reduce parasitic capacitance and maintain 100Ω through the via. For PCIe Gen 3+, back-drilling of via stubs is typically required."
+        },
+        {
+          number: "06",
           title: "Via Placement Symmetry",
           severity: "warning",
           body: "When a differential pair must change layers, use two vias — one for D+, one for D− — placed symmetrically, equidistant from the pair centerline. Asymmetric via placement introduces differential-to-common-mode conversion. Add GND stitching vias adjacent to maintain the return path."
         },
         {
+          number: "07",
+          title: "Length Matching — Intra-pair",
+          severity: "danger",
+          body: "D+ and D− must be length-matched within the tolerance specified by the interface standard. Use meandering within the pair, never global routing adjustment. Budgets: USB 2.0 <200 mil, USB 3.x / PCIe Gen 4 <5 mil, DDR4 <25 mil per byte lane."
+        },
+        {
           number: "08",
-          title: "Minimize Layer Transitions",
-          severity: "info",
-          body: "Every layer transition (via) is an impedance discontinuity and a stub. Minimize layer changes for high-speed differential pairs. For >10Gbps, experts 'tune' the GND Antipad size (e.g., to 30-40 mils) to reduce parasitic capacitance and maintain 100Ω through the via. For PCIe Gen 3+, back-drilling of via stubs is typically required."
+          title: "Phase Skew Control",
+          severity: "danger",
+          body: "Phase skew Δt = ΔL · tpd. Skew converts differential signal to common-mode, degrading CMRR. Meanders must be placed within the coupled region of the pair, using matched-length serpentine tuning — never at the end of the route."
         }
       ]
     },
-    {
-      heading: "Differential Signaling SI",
-      content: "Differential pairs require tight skew control (intra-pair matching) to maintain common-mode rejection and reduce EMI radiation."
-    },
+
     {
       heading: "Length Matching — Intra-pair vs. Inter-pair",
       content: "Two distinct length-matching requirements are frequently confused. Getting this wrong is the single most common cause of high-speed routing failures.",
@@ -212,7 +209,28 @@ export const content = {
             "D+ over glass, D− over resin → different propagation velocities → systematic skew",
             "Can produce 5–20 ps/inch skew — significant at 10 Gbps (UI=100 ps)",
             "Mitigation: Route at 45° to the weave pattern (board X-axis alignment)",
-            "Specify spread-weave/flat-weave laminates (Megtron 6, Isola Atera) for >10 Gbps"
+            "Specify spread-weave/flat-weave laminates (Megtron 6, Isola Atera) for >10 Gbps",
+            "Use specific glass styles like 1067 or 1078 for better uniformity"
+          ]
+        },
+        {
+          badge: "Package-Level Skew",
+          badgeClass: "tool-badge-altium",
+          title: "Internal IC Delay",
+          items: [
+            "Die-to-ball bond wire or trace length creates internal skew",
+            "Must include package pin delays in length matching budget",
+            "Critical for DDR4/5 and PCIe Gen 4+ interfaces"
+          ]
+        },
+        {
+          badge: "Skin Effect & Surface Loss",
+          badgeClass: "tool-badge-cadence",
+          title: "Material Loss at High Frequency",
+          items: [
+            "At >10 GHz, current travels only on the outer skin of the copper",
+            "ENIG finish increases insertion loss due to nickel layer",
+            "Recommend OSP or Immersion Silver for ultra-high speed"
           ]
         }
       ],
@@ -249,6 +267,14 @@ export const content = {
           ["Back-drilling", "Mechanical process to remove via stubs by drilling from the opposite board side, leaving ≤5 mil residual stub", "Required for PCIe Gen 3+ on thick boards"]
         ]
       }
+    },
+    {
+      heading: "Related: Stackup Engineering",
+      content: "Differential impedance is fundamentally locked into your PCB layer stackup. Ensure your Dk, Df, and dielectric heights are correctly configured before relying on routing constraints.",
+      type: "cross-ref",
+      refModuleId: "stackup",
+      refLabel: "Go to Stackup Design",
+      refDesc: "Configure your dielectric materials and reference planes to establish the baseline Zdiff before routing."
     }
   ],
   checklists: [
