@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Zap, CheckCircle2, Info, AlertTriangle, X, ShieldCheck } from 'lucide-react';
 import { useDesign } from '../context/DesignContext';
 import EngineeringInput from './EngineeringInput';
+import ZdiffWizard from './ZdiffWizard';
 
 // ─── Interface Target Presets ─────────────────────────────────────────────────
 const INTERFACE_PRESETS = [
@@ -190,11 +191,12 @@ export default function ZdiffCalculator() {
   const { activeStackup, updateStackup } = useDesign();
   const [topology, setTopology]   = useState('microstrip');
   const [showInfo, setShowInfo]   = useState(false);
-  const [refinedMode, setRefinedMode] = useState(false);
+  const [refinedMode, setRefinedMode] = useState(true);
   const [showFields, setShowFields]   = useState(true);
   const infoBtnRef = React.useRef(null);
   const [activePreset, setActivePreset] = useState(null);
   const [unitSystem, setUnitSystem] = useState('mm'); // 'mm' | 'mil'
+  const [isWizardOpen, setIsWizardOpen] = useState(true);
 
   // Target zdiff from selected preset (default 100Ω)
   const targetZdiff = activePreset !== null ? INTERFACE_PRESETS[activePreset].zdiff : 100;
@@ -219,7 +221,7 @@ export default function ZdiffCalculator() {
 
   const convertValue = (val) => {
     const num = parseFloat(val) || 0;
-    return unitSystem === 'mil' ? (num * MM_TO_MIL).toFixed(2) : num.toFixed(2);
+    return unitSystem === 'mil' ? (num * MM_TO_MIL).toFixed(3) : num.toFixed(3);
   };
 
   // ─── Data Synergy: Listen for external preset loads ─────────────────────────
@@ -252,7 +254,23 @@ export default function ZdiffCalculator() {
   const applyPreset = (idx) => {
     const p = INTERFACE_PRESETS[idx];
     setActivePreset(idx);
+    setRefinedMode(true);
     updateStackup({ height: p.h, width: p.w, thickness: p.t, spacing: p.s, dk: p.dk });
+  };
+
+  const handleWizardApply = (baseline) => {
+    setTopology(baseline.topology);
+    const p = INTERFACE_PRESETS[baseline.presetId];
+    setActivePreset(baseline.presetId);
+    setRefinedMode(true);
+    updateStackup({ 
+      height: p.h, 
+      width: baseline.w, 
+      thickness: p.t, 
+      spacing: baseline.s, 
+      dk: p.dk 
+    });
+    setIsWizardOpen(false);
   };
 
   const delta   = parseFloat(results.zdiff) - targetZdiff;
@@ -302,15 +320,22 @@ export default function ZdiffCalculator() {
             <button 
               className={`zdiff-switch ${refinedMode ? 'active' : ''}`}
               onClick={() => setRefinedMode(!refinedMode)}
+              title="Refined Mode: Applies Hammerstad & Jensen equations. Accounts for 3D copper thickness (T) sidewall coupling, offering accuracy closer to 2D BEM Field Solvers."
             >
               Refined
             </button>
             <button 
               className={`zdiff-switch ${showFields ? 'active' : ''}`}
               onClick={() => setShowFields(!showFields)}
+              title="Fields Display: Visualizes the shared electromagnetic flux. Tighter spacing (S) increases coupling density, lowering the differential impedance."
             >
               Fields
             </button>
+          </div>
+
+          <div className="zdiff-toggle-group">
+            <button className={`zdiff-toggle-btn ${isWizardOpen ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setIsWizardOpen(true)}>Wizard</button>
+            <button className={`zdiff-toggle-btn ${!isWizardOpen ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setIsWizardOpen(false)}>Dashboard</button>
           </div>
 
           <div className="zdiff-toggle-group">
@@ -325,7 +350,9 @@ export default function ZdiffCalculator() {
         </div>
       </div>
 
-      {/* ── Body: Now responsive via global CSS ── */}
+      {isWizardOpen ? (
+        <ZdiffWizard isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} onApply={handleWizardApply} />
+      ) : (
       <div className="zdiff-body">
 
         {/* ── Left: Diagram + Inputs ── */}
@@ -383,6 +410,29 @@ export default function ZdiffCalculator() {
                 View IPC Reference
               </button>
             </div>
+
+            {/* Expert Insight Box */}
+            <div className="zdiff-input-group--full" style={{ gridColumn: '1 / -1', marginTop: 'var(--space-2)' }}>
+              <div style={{
+                background: 'rgba(55, 138, 221, 0.04)',
+                border: '1px solid rgba(55, 138, 221, 0.15)',
+                borderRadius: 'var(--radius-md)',
+                padding: 'var(--space-4)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)' }}>
+                  <Info size={14} />
+                  <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Expert Insight</span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#475569', lineHeight: '1.5' }}>
+                  <strong>Refined Mode:</strong> Applies Hammerstad & Jensen equations. Accounts for 3D copper thickness (T) sidewall coupling, offering accuracy closer to 2D BEM Field Solvers.<br/><br/>
+                  <strong>Fields Display:</strong> Visualizes the shared electromagnetic flux. Tighter spacing (S) increases coupling density, lowering the differential impedance.
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -443,6 +493,7 @@ export default function ZdiffCalculator() {
           </div>
         </div>
       </div>
+      )}
 
       {showInfo && (
         <div className="zdiff-popover-root">

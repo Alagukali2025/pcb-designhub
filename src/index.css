@@ -1869,34 +1869,42 @@ a:hover {
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .formula-header {
   background: var(--bg-elevated);
-  padding: var(--space-2) var(--space-4);
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: var(--space-3) var(--space-6);
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-tertiary);
+  letter-spacing: 0.15em;
+  color: var(--text-secondary);
   border-bottom: 1px solid var(--border-light);
-  backdrop-filter: blur(8px);
-  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .formula-box {
   padding: var(--space-6);
   background: var(--bg-primary);
-  font-family: 'IBM Plex Mono', 'Fira Code', monospace;
+  border-left: 3px solid var(--accent-primary);
 }
 
 .formula-line {
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.formula-line:last-child {
+  margin-bottom: 0;
 }
 
 .formula-line code {
   color: var(--text-primary);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
+  font-family: 'Cambria Math', 'Times New Roman', serif;
+  letter-spacing: 0.02em;
+  background: transparent;
+  padding: 0;
+  border: none;
 }
 
 .formula-variables {
