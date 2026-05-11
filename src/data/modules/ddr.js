@@ -79,15 +79,15 @@ export const content = {
     },
     {
       heading: "Controlled Impedance Specifications",
-      content: "All DDR traces must be treated as transmission lines. Impedance tolerance of ±10% is the JEDEC standard, though ±7% is preferred for high-reliability designs.",
+      content: "All DDR traces must be treated as transmission lines. Impedance tolerance of ±10% is the JEDEC standard, though ±7% is preferred for high-reliability designs. Note: DDR1 used single-ended DQS, while DDR2-5 use differential DQS.",
       table: {
-        headers: ["Signal Group", "Topology", "DDR3 Target", "DDR4/5 Target", "Tolerance"],
+        headers: ["Signal Group", "Topology", "DDR1 Target", "DDR2 Target", "DDR3 Target", "DDR4/5 Target", "Tolerance"],
         rows: [
-          ["DQ / DM / DBI", "Single-ended", "50Ω", "50Ω", "±10%"],
-          ["DQS / DQS#", "Differential", "100Ω", "100Ω", "±10%"],
-          ["CK / CK#", "Differential", "100Ω", "100Ω", "±10%"],
-          ["ADDR / CMD", "Single-ended", "50–60Ω", "50Ω", "±10%"],
-          ["VTT Stub (DDR3)", "Fly-by stub", "50Ω", "N/A (ODT)", "±10%"]
+          ["DQ / DM / DBI", "Single-ended", "60Ω", "50-60Ω", "50Ω", "50Ω", "±10%"],
+          ["DQS / DQS#", "Differential", "60Ω (SE)*", "100Ω", "100Ω", "100Ω", "±10%"],
+          ["CK / CK#", "Differential", "100Ω", "100Ω", "100Ω", "100Ω", "±10%"],
+          ["ADDR / CMD", "Single-ended", "60Ω", "50-60Ω", "50–60Ω", "50Ω", "±10%"],
+          ["VTT Stub (DDR3)", "Fly-by stub", "N/A", "N/A", "50Ω", "N/A (ODT)", "±10%"]
         ]
       },
       alerts: [
@@ -98,15 +98,16 @@ export const content = {
       heading: "Timing Budgets & Length Matching",
       content: "Every byte lane is an independent timing domain. While inter-lane matching is flexible, INTRA-lane matching (DQ to DQS) has zero margin for error. Think of each byte as a team that must arrive together; while different teams can arrive at slightly different times, members of the same team cannot be separated.",
       table: {
-        headers: ["Rule", "DDR3", "DDR4", "DDR5", "Impact of Violation"],
+        headers: ["Rule", "DDR1", "DDR2", "DDR3", "DDR4", "DDR5", "Impact of Violation"],
         rows: [
-          ["DQ to DQS (intra-byte)", "±25 mil", "±25 mil", "±15 mil", "Setup/Hold Violations"],
-          ["DQS+/- Intra-pair Skew", "±5 mil", "±5 mil", "±5 mil", "Common-Mode Noise"],
-          ["ADDR/CMD Intra-group", "±50 mil", "±25 mil", "±25 mil", "Command Phase Error"],
-          ["Max DQ Trace Length", "2500 mil", "2000 mil", "1500 mil", "Excessive Channel Loss"]
+          ["DQ to DQS (intra-byte)", "±100 mil", "±50 mil", "±25 mil", "±25 mil", "±15 mil", "Setup/Hold Violations"],
+          ["DQS+/- Intra-pair Skew", "N/A (SE)", "±10 mil", "±5 mil", "±5 mil", "±5 mil", "Common-Mode Noise"],
+          ["ADDR/CMD Intra-group", "±100 mil", "±100 mil", "±50 mil", "±25 mil", "±25 mil", "Command Phase Error"],
+          ["Max DQ Trace Length", "3500 mil", "3000 mil", "2500 mil", "2000 mil", "1500 mil", "Excessive Channel Loss"]
         ]
       },
       alerts: [
+        { type: "info", text: "Pedagogical Note: Values with '±' represent the allowed length matching tolerance (skew) between signals in a group. For example, a ±100 mil tolerance means that if your reference signal is 2000 mils long, all other signals in that group must be between 1900 and 2100 mils. Absolute values (like 3500 mil) represent the absolute maximum allowed length for a trace." },
         { type: "danger", text: "Expert Timing: Pad-to-Pad matching is NOT enough for DDR4/5. You must include the 'Pin-to-Die' package delay (provided by the SoC/CPU vendor) in your length-matching constraints. The package can add 50-150 mils of skew that is invisible to standard DRCs." }
       ],
       formula: {

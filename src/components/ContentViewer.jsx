@@ -406,29 +406,7 @@ export default function ContentViewer() {
                     </div>
                   )}
 
-                  {sec.formula && (
-                    <div className="formula-container slide-up">
-                      <div className="formula-header">{sec.formula.title}</div>
-                      <div className="formula-box">
-                        {sec.formula.equations.map((eq, ei) => (
-                          <div key={ei} className="formula-line">
-                            <code>{eq}</code>
-                          </div>
-                        ))}
-                      </div>
-                      {sec.formula.variables && (
-                        <div className="formula-variables">
-                          {sec.formula.variables.map((v, vi) => (
-                            <div key={vi} className="formula-var">
-                              <span className="var-name">{v.name}</span>
-                              <span className="var-desc">{v.desc}</span>
-                              {v.tag && <span className={`var-tag tag-${v.tag.toLowerCase()}`}>{v.tag}</span>}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+
 
                   {sec.flow && (
                     <div className="flow-container slide-up">
@@ -637,6 +615,30 @@ export default function ContentViewer() {
                   {sec.alerts && (
                     <div className="section-alerts">
                       {sec.alerts.map((alert, idx) => renderAlert(alert, idx))}
+                    </div>
+                  )}
+
+                  {sec.formula && (
+                    <div className="formula-container slide-up">
+                      <div className="formula-header">{sec.formula.title}</div>
+                      <div className="formula-box">
+                        {sec.formula.equations.map((eq, ei) => (
+                          <div key={ei} className="formula-line">
+                            <code>{eq}</code>
+                          </div>
+                        ))}
+                      </div>
+                      {sec.formula.variables && (
+                        <div className="formula-variables">
+                          {sec.formula.variables.map((v, vi) => (
+                            <div key={vi} className="formula-var">
+                              <span className="var-name">{v.name}</span>
+                              <span className="var-desc">{v.desc}</span>
+                              {v.tag && <span className={`var-tag tag-${v.tag.toLowerCase()}`}>{v.tag}</span>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </section>
