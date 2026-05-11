@@ -176,7 +176,8 @@ export const content = {
             "Symmetric Stripline uses balanced heights (H1=H2)"
           ]
         }
-      ]
+      ],
+      type: "stackup-cross-section"
     },
     {
       heading: "Universal Impedance Solver",

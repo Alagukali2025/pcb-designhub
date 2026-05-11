@@ -27,6 +27,12 @@ const ThermalResistanceVisualizer = lazy(() => import('./ThermalResistanceVisual
 const EMIChecklist = lazy(() => import('./EMIChecklist'));
 const PITargetCalculator = lazy(() => import('./PITargetCalculator'));
 const ReleaseSimulator = lazy(() => import('./OutputSystem/ReleaseSimulator'));
+const DiffWaveformVisualizer = lazy(() => import('./DiffWaveformVisualizer'));
+const StackupCrossSectionVisualizer = lazy(() => import('./StackupCrossSectionVisualizer'));
+const ThermalHeatFluxVisualizer = lazy(() => import('./ThermalHeatFluxVisualizer'));
+const ReturnPathVisualizer = lazy(() => import('./ReturnPathVisualizer'));
+const ViaStubVisualizer = lazy(() => import('./ViaStubVisualizer'));
+const FlybyTopologyVisualizer = lazy(() => import('./FlybyTopologyVisualizer'));
 
 // Tool Loading Fallback (Sleek placeholder)
 const ToolFallback = ({ name }) => (
@@ -279,7 +285,13 @@ export default function ContentViewer() {
     'thermal-resistance-visual': () => <ThermalResistanceVisualizer />,
     'ipc2152-calc': () => <IPC2152Calculator />,
     'emi-checklist-tool': () => <EMIChecklist />,
-    'output-simulator': () => <ReleaseSimulator />
+    'output-simulator': () => <ReleaseSimulator />,
+    'diff-waveform': () => <DiffWaveformVisualizer />,
+    'stackup-cross-section': () => <StackupCrossSectionVisualizer />,
+    'thermal-heat-flux': () => <ThermalHeatFluxVisualizer />,
+    'return-path-visual': () => <ReturnPathVisualizer />,
+    'via-stub-visual': () => <ViaStubVisualizer />,
+    'flyby-topology-visual': () => <FlybyTopologyVisualizer />
   };
 
   return (

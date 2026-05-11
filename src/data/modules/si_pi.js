@@ -220,6 +220,11 @@ export const content = {
       type: 'via-resonance-calc'
     },
     {
+      heading: "Visualizing Via Stub Resonance",
+      content: "When a high-speed signal transitions between layers, any remaining unused via barrel acts as a parasitic antenna. The energy reflects off the dead end and collides with the primary signal. Back-drilling physically removes this dead copper, restoring signal integrity.",
+      type: "via-stub-visual"
+    },
+    {
       heading: "Crosstalk — NEXT & FEXT Fundamentals",
       content: "Crosstalk occurs when the electromagnetic field of one trace induces a voltage on an adjacent trace. It is the #1 root cause of marginal signal integrity on production boards. Two distinct mechanisms exist, determined by the relative position of the aggressor signal and the observation point.",
       formula: {

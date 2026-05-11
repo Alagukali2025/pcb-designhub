@@ -10,7 +10,7 @@ export const content = {
           color: "blue",
           list: [
             { label: "Mechanism", text: "Noise appearing identically on D+ and D− cancels at the receiver. This is Common-Mode Rejection." },
-            { label: "CMRR Formula", text: "CMRR = 20·log(Adm/Acm). A well-matched pair achieves ≥40 dB, attenuating CM noise by 100× or more." },
+            { label: "CMRR Formula", text: "CMRR = 20·log(Adm/Acm) (Differential/Common-Mode Gain). A well-matched pair achieves ≥40 dB, attenuating CM noise by 100× or more." },
             { label: "Key Benefit", text: "Immune to ground potential differences between transmitter and receiver on different boards." }
           ]
         },
@@ -27,12 +27,16 @@ export const content = {
           title: "Higher Data Rates",
           color: "green",
           list: [
-            { label: "Mechanism", text: "Smaller voltage swings (e.g., 400 mV differential vs 3.3 V single-ended) reduce trace capacitance charge energy." },
+            { label: "Mechanism", text: "Smaller voltage swings (e.g., 400 mV differential vs 3.3 V single-ended) take less time to charge and discharge parasitic trace capacitance." },
             { label: "Result", text: "Faster edge rates, higher bandwidth, and better noise margins at comparable voltages." },
             { label: "Example", text: "PCIe Gen 5 operates at 32 GT/s per lane — only achievable with differential signaling." }
           ]
         }
-      ]
+      ],
+      alerts: [
+        { type: "danger", text: "ENGINEERING REALITY: These three benefits rely entirely on phase alignment. Any length mismatch (skew) converts differential signals back into common-mode noise, instantly destroying both EMI suppression and CMRR." }
+      ],
+      type: "diff-waveform"
     },
     {
       heading: "Geometry & Physics — Critical Trace Parameters",

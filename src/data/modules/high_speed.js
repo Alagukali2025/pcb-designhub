@@ -170,7 +170,8 @@ export const content = {
             "Bypass caps placed far from power pins"
           ]
         }
-      ]
+      ],
+      type: "return-path-visual"
     },
     {
       heading: "Power Integrity (PI) Strategy",

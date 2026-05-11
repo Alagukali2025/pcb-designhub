@@ -165,6 +165,11 @@ export const content = {
       ]
     },
     {
+      heading: "Visualizing The Heat Flux Path",
+      content: "The fundamental goal of thermal stitching is to bypass the high thermal resistance of the FR4 dielectric and physically drive heat down into large copper bodies.",
+      type: "thermal-heat-flux"
+    },
+    {
       heading: "Heatsink & TIM Strategy",
       content: "When copper plane dissipation is insufficient, external heatsinks are required. The interface between the component and the heatsink is the primary bottleneck due to microscopic air gaps.",
       alerts: [

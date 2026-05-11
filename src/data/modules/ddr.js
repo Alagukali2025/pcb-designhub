@@ -120,7 +120,8 @@ export const content = {
       alerts: [
         { type: "info", text: "T-branch (Y-topology) is legacy. At DDR4/5 speeds, the impedance mismatch at the branch point creates multi-reflection noise that prevents high-speed boot." },
         { type: "warning", text: "Expert Insight: Write Leveling. Fly-by topology creates an intentional skew where the clock (CK) arrives at each DRAM at a different time. The memory controller 'learns' these delays during the 'Write Leveling' phase of training, shifting the DQS strobes to compensate. This allows the layout engineer to focus on intra-byte matching rather than absolute length matching across the entire bus." }
-      ]
+      ],
+      type: "flyby-topology-visual"
     },
     {
       heading: "Power Integrity & Decoupling Hierarchy",
