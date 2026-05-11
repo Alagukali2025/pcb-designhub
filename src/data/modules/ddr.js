@@ -1,18 +1,18 @@
 export const content = {
-  intro: "DDR (Double Data Rate) SDRAM is the performance bottleneck of modern computing. Routing it requires more than just connecting dots — it requires managing nanosecond timing windows, controlled-impedance transmission lines, and complex power delivery networks. This guide serves as the Single Source of Truth for DDR3, DDR4, and DDR5 layout engineering.",
+  intro: "DDR Routing is fundamentally about precise signal synchronization. At high data rates, 64 parallel signals must arrive at the memory chip within a fraction of a nanosecond of each other. Even a tiny mismatch in the physical length of the copper traces causes signals to arrive out of sync, leading to data corruption. DDR (Double Data Rate) SDRAM is the performance bottleneck of modern computing. Routing it requires more than just connecting dots — it requires managing nanosecond timing windows, controlled-impedance transmission lines, and complex power delivery networks. This guide serves as the Single Source of Truth for DDR3, DDR4, and DDR5 layout engineering.",
   sections: [
     {
       heading: "DDR Generations Comparison",
       content: "The transition from DDR3 to DDR5 involves significant changes in voltage, signaling, and power management. Layout rules for one generation are NOT interchangeable with another.",
       table: {
-        headers: ["Parameter", "DDR3", "DDR4", "DDR5", "PCB Impact"],
+        headers: ["Parameter", "DDR1", "DDR2", "DDR3", "DDR4", "DDR5", "PCB Impact"],
         rows: [
-          ["Standard", "JESD79-3F", "JESD79-4B", "JESD79-5B", "Constraint Basis"],
-          ["Data Rate", "up to 2133 MT/s", "up to 3200 MT/s", "up to 6400+ MT/s", "Tighter matching"],
-          ["Voltage", "1.5 V", "1.2 V", "1.1 V", "Reduced noise margin"],
-          ["Topology", "Fly-by (Optional)", "Fly-by (Mandatory)", "Fly-by (Mandatory)", "Write leveling req."],
-          ["Vref", "External pin", "Internal", "Internal", "Less Vref routing"],
-          ["tCK min", "~0.94 ns", "~0.625 ns", "~0.3 ns", "Lower skew budget"]
+          ["Standard", "JESD79", "JESD79-2", "JESD79-3F", "JESD79-4B", "JESD79-5B", "Constraint Basis"],
+          ["Data Rate", "up to 400 MT/s", "up to 1066 MT/s", "up to 2133 MT/s", "up to 3200 MT/s", "up to 6400+ MT/s", "Tighter matching"],
+          ["Voltage", "2.5 V", "1.8 V", "1.5 V", "1.2 V", "1.1 V", "Reduced noise margin"],
+          ["Topology", "T-Branch", "T-Branch", "Fly-by (Opt)", "Fly-by (Mandatory)", "Fly-by (Mandatory)", "Write leveling req."],
+          ["Vref", "External", "External", "External pin", "Internal", "Internal", "Less Vref routing"],
+          ["tCK min", "~5.0 ns", "~1.87 ns", "~0.94 ns", "~0.625 ns", "~0.3 ns", "Lower skew budget"]
         ]
       }
     },
@@ -21,7 +21,7 @@ export const content = {
       content: "DDR signals are logically grouped to maintain timing synchronicity. Violating the grouping rules is the most common cause of memory training failures.",
       filletGrid: [
         {
-          title: "Data Group (DQ/DQS)",
+          title: "Data Group (DQ/DQS) — The Packages",
           color: "blue",
           list: [
             { label: "DQ[0:n]", text: "Data bits. Matched to their specific DQS strobe." },
@@ -30,7 +30,7 @@ export const content = {
           ]
         },
         {
-          title: "Address/Command (ADDR/CMD)",
+          title: "Address/Command (ADDR/CMD) — The Map & Instructions",
           color: "orange",
           list: [
             { label: "A[0:n]", text: "Row/Column address lines. Sampled on CK rising edge." },
@@ -39,12 +39,40 @@ export const content = {
           ]
         },
         {
-          title: "Clock Group (CK / CK#)",
+          title: "Clock Group (CK / CK#) — The Master Beat",
           color: "cyan",
           list: [
             { label: "CK / CK#", text: "Differential system clock. Master reference for ADDR/CMD." },
             { label: "Reset#", text: "Asynchronous reset. Matched to ADDR/CMD group." },
             { label: "Alert#", text: "Error flag (DDR4/5). High-speed error reporting." }
+          ]
+        }
+      ]
+    },
+    {
+      heading: "Advanced BGA Fanout & Via Control",
+      content: "As data rates exceed 3200 MT/s, the via fanout becomes a major impedance discontinuity. Selecting the right breakout strategy is critical for signal integrity and manufacturability.",
+      twoColumnGrid: [
+        {
+          badge: "Dogbone Fanout",
+          badgeClass: "tool-badge-altium",
+          title: "Standard Density",
+          items: [
+            "Lower cost (uses standard drilling with no via-filling required).",
+            "Short trace (the 'bone') adds parasitic inductance, degrading high-speed signals.",
+            "Suitable for DDR3 and low-speed DDR4 designs.",
+            "Takes up surface space, limiting room for decoupling capacitors on the bottom."
+          ]
+        },
+        {
+          badge: "Via-In-Pad (VIP)",
+          badgeClass: "tool-badge-cadence",
+          title: "High-Speed Standard",
+          items: [
+            "Mandatory for DDR5 and small pitch (dense) BGAs.",
+            "Eliminates trace length to minimize inductance and maximize signal integrity.",
+            "Allows routing directly on the same layer or dropping straight down.",
+            "Increases cost because vias must be epoxy-filled and plated over for flat soldering."
           ]
         }
       ]
@@ -68,7 +96,7 @@ export const content = {
     },
     {
       heading: "Timing Budgets & Length Matching",
-      content: "Every byte lane is an independent timing domain. While inter-lane matching is flexible, INTRA-lane matching (DQ to DQS) has zero margin for error.",
+      content: "Every byte lane is an independent timing domain. While inter-lane matching is flexible, INTRA-lane matching (DQ to DQS) has zero margin for error. Think of each byte as a team that must arrive together; while different teams can arrive at slightly different times, members of the same team cannot be separated.",
       table: {
         headers: ["Rule", "DDR3", "DDR4", "DDR5", "Impact of Violation"],
         rows: [
@@ -92,7 +120,8 @@ export const content = {
           { name: "Vp", desc: "Propagation velocity in dielectric", tag: "PROP" },
           { name: "UI", desc: "Unit Interval (bit time)", tag: "MATH" }
         ]
-      }
+      },
+      type: "byte-lane-visual"
     },
     {
       heading: "Routing Topology: Fly-By Design",
@@ -122,6 +151,24 @@ export const content = {
         { type: "warning", text: "Expert Insight: Write Leveling. Fly-by topology creates an intentional skew where the clock (CK) arrives at each DRAM at a different time. The memory controller 'learns' these delays during the 'Write Leveling' phase of training, shifting the DQS strobes to compensate. This allows the layout engineer to focus on intra-byte matching rather than absolute length matching across the entire bus." }
       ],
       type: "flyby-topology-visual"
+    },
+    {
+      heading: "Legacy Routing: T-Branch Topology",
+      content: "Before DDR3, the standard routing topology was T-Branch (or Star). This method split signals equally to all DRAM chips. While simpler to understand, it creates impedance discontinuities at every branch point, limiting maximum speed.",
+      ruleCards: [
+        {
+          number: "01",
+          title: "Symmetric Routing",
+          severity: "info",
+          body: "Traces from the controller to each DRAM must be of identical length and impedance to ensure simultaneous signal arrival."
+        },
+        {
+          number: "02",
+          title: "Speed Limitations",
+          severity: "warning",
+          body: "The reflection noise at the split points makes T-Branch unusable for data rates above 1066 MT/s."
+        }
+      ]
     },
     {
       heading: "Power Integrity & Decoupling Hierarchy",
@@ -161,34 +208,7 @@ export const content = {
         { mistake: "Missing GND return vias at layer changes.", fix: "Place stitching GND vias within 20 mil of every signal layer transition." }
       ]
     },
-    {
-      heading: "Advanced BGA Fanout & Via Control",
-      content: "As data rates exceed 3200 MT/s, the via fanout becomes a major impedance discontinuity. Selecting the right breakout strategy is critical for signal integrity and manufacturability.",
-      twoColumnGrid: [
-        {
-          badge: "Dogbone Fanout",
-          badgeClass: "tool-badge-altium",
-          title: "Standard Density",
-          items: [
-            "Lower cost (no via-filling required).",
-            "Higher parasitic inductance due to 'bone' trace.",
-            "Suitable for DDR3 and low-speed DDR4.",
-            "Limited space for decoupling caps on bottom."
-          ]
-        },
-        {
-          badge: "Via-In-Pad (VIP)",
-          badgeClass: "tool-badge-cadence",
-          title: "High-Speed Standard",
-          items: [
-            "Mandatory for DDR5 and small pitch BGA.",
-            "Minimum loop inductance to decoupling.",
-            "Allows routing on the same layer as the pad.",
-            "Requires epoxy-filled and plated-over process."
-          ]
-        }
-      ]
-    },
+
     {
       heading: "DDR5 Power & Sideband Engineering",
       content: "DDR5 introduces the PMIC (Power Management IC) directly on the DIMM/PCB. This requires a dedicated focus on thermal management and I3C sideband signal integrity.",
@@ -229,6 +249,34 @@ export const content = {
       heading: "Interactive: DDR Timing Margin Calculator",
       content: "Quantify how much of your total timing window (UI) is consumed by physical PCB layout choices. Enter your design parameters below to see the impact.",
       type: "ddr-timing-calculator"
+    },
+    {
+      heading: "CAD Tool Implementation Tips",
+      content: "Translating theoretical constraints into CAD rules is tool-specific. Here are the best practices for the most common professional design suites.",
+      twoColumnGrid: [
+        {
+          badge: "Altium Designer",
+          badgeClass: "tool-badge-altium",
+          title: "xSignals & Accordions",
+          items: [
+            "Use xSignals to define pad-to-pad paths automatically including series terminators.",
+            "Set up 'Matched Lengths' design rules for each byte lane.",
+            "Use the 'Interactive Length Tuning' tool (Accordion) to match traces within tolerance.",
+            "Include package pin delays in the pin property dialog."
+          ]
+        },
+        {
+          badge: "Cadence Allegro",
+          badgeClass: "tool-badge-cadence",
+          title: "Constraint Manager",
+          items: [
+            "Define pin pairs in Constraint Manager for exact electrical length control.",
+            "Create 'Match Groups' for DQ lanes relative to their DQS strobe.",
+            "Use 'Sigrity' integration for post-layout SI verification.",
+            "Apply 'Z-Axis' delay calculations for accurate via length matching."
+          ]
+        }
+      ]
     }
   ],
   checklists: [
