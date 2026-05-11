@@ -1,5 +1,5 @@
 export const content = {
-  intro: "As clock rates moved into the multi-gigahertz regime, single-ended signaling hit fundamental physical limits: susceptibility to ground-referenced noise, radiated emissions, and impedance discontinuities. Differential signaling overcomes these constraints by encoding data as the voltage difference between two complementary conductors — making it the backbone of USB, PCIe, HDMI, DisplayPort, LVDS, and every modern high-speed interface standard.",
+  intro: "Differential pair routing is a technique that uses two parallel traces to transmit a single signal, protecting it from external electrical noise. As clock rates moved into the multi-gigahertz regime, single-ended signaling hit fundamental physical limits: susceptibility to ground-referenced noise, radiated emissions, and impedance discontinuities. Differential signaling overcomes these constraints by encoding data as the voltage difference between two complementary conductors — making it the backbone of USB, PCIe, HDMI, DisplayPort, LVDS, and every modern high-speed interface standard.",
   sections: [
     {
       heading: "Why Differential Signaling Dominates High-Speed",
