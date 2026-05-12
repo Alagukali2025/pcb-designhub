@@ -10,7 +10,8 @@ export const content = {
           ["Single-ended (General)", "50 Ω", "±10%", "IPC-2141A"],
           ["DDR4/5 Data (DQ)", "40–50 Ω SE", "±10%", "JEDEC JESD79-5B"],
           ["DDR4/5 CLK / DQS", "100 Ω Diff", "±10%", "JEDEC JESD79-5B"],
-          ["PCIe Gen 1–5", "100 Ω Diff", "±15%", "PCI-SIG CEM Spec (85Ω at connector)"],
+          ["PCIe Gen 1–5 (PCB Trace)", "100 Ω Diff", "±10%", "PCI-SIG CEM Spec §4.3.2"],
+          ["PCIe Gen 1–5 (Connector)", "85 Ω Diff", "Per CEM Spec", "PCI-SIG CEM (at gold-finger interface)"],
           ["USB 3.x / 4", "90 Ω Diff", "±15%", "USB 3.2 §6.7"],
           ["1000BASE-T (GbE)", "100 Ω Diff", "±15%", "IEEE 802.3"]
         ]
@@ -50,7 +51,7 @@ export const content = {
       ]
     },
     {
-      heading: "Differential Pair Routing Mastery",
+      heading: "Differential Pair Routing (Cross-Reference)",
       content: "Differential signaling provides inherent common-mode noise rejection. Maintaining geometry symmetry along the entire route is the primary task of the layout engineer.",
       type: 'cross-ref',
       refModuleId: 'diff_pair',
@@ -78,7 +79,7 @@ export const content = {
         headers: ["Coupling Type", "Observed At", "Worst Case", "Primary Mitigation"],
         rows: [
           ["NEXT (Near-End)", "Aggressor source end", "Stronger — coupling adds over time", "Increase inter-pair spacing (≥ 3× W)"],
-          { type: 'highlight', data: ["FEXT (Far-End)", "Aggressor receive end", "Weaker in microstrip; significant in stripline", "Tighter differential routing, orthogonal routing"] },
+          { type: 'highlight', data: ["FEXT (Far-End)", "Aggressor receive end", "Significant in microstrip; near-zero in balanced stripline (coupling cancels)", "Tighter differential routing, orthogonal routing"] },
           ["Broadside Coupling", "Parallel stacked traces", "Very strong — 3–5× worse than edge coupling", "Avoid parallel routing on adjacent inner layers"]
         ]
       },
@@ -112,11 +113,6 @@ export const content = {
     {
       heading: "Via Stub Resonance & Back-Drilling",
       content: "A 'stub' is the part of a via that goes deeper than the signal needs to go. This tool calculates the frequency where that unused copper acts like an antenna and 'steals' your signal energy.",
-      list: [
-        { label: "The Antenna Effect", text: "Unused via copper reflects signals back, causing huge data loss (nulls)." },
-        { label: "Back-Drilling", text: "The process of literally drilling out the unused copper to fix the signal." },
-        { label: "The 1/4 Wave Rule", text: "Resonance happens when the stub length equals 1/4 of the signal wavelength." }
-      ],
       formula: {
         title: "Via Stub Resonant Frequency",
         equations: [
@@ -131,6 +127,8 @@ export const content = {
         ]
       },
       list: [
+        { label: "The Antenna Effect", text: "Unused via copper reflects signals back, causing huge data loss (nulls) at the resonant frequency." },
+        { label: "The 1/4 Wave Rule", text: "Resonance happens when the stub length equals 1/4 of the signal wavelength — this is the fundamental physics." },
         { label: "Back-Drilling (Controlled Depth Drilling)", text: "Manufacturing process that removes the via stub by drilling from the back of the board to within 5–8 mils of the last signal connection layer. Eliminates the resonance. Specify ±3 mil drill depth tolerance in fab notes." },
         { label: "Blind Vias", text: "Connects only from the top/bottom surface to a specific inner layer — no stub exists. HDI process, adds 15–30% fabrication cost per layer pair." },
         { label: "When to Back-Drill", text: "Required when via stub resonance falls within 2× the signal Nyquist frequency. For PCIe Gen 4 (8 GHz Nyquist), any stub > 20 mil must be back-drilled." }
@@ -144,6 +142,73 @@ export const content = {
       heading: "Visualizing Via Stub Resonance",
       content: "When a high-speed signal transitions between layers, any remaining unused via barrel acts as a parasitic antenna. The energy reflects off the dead end and collides with the primary signal. Back-drilling physically removes this dead copper, restoring signal integrity.",
       type: "via-stub-visual"
+    },
+    {
+      heading: "Return Path Continuity",
+      content: "At high frequencies (> 1 MHz), return current follows the path of least inductance — not least resistance. This means the return current mirrors directly beneath the signal trace on the nearest reference plane. Any break in this path creates a loop antenna, radiates EMI, and causes impedance discontinuities that corrupt the signal.",
+      filletGrid: [
+        {
+          title: "Layer Transition Stitching",
+          color: "cyan",
+          list: [
+            { label: "Rule", text: "Every signal via MUST have an adjacent GND stitching via within 50 mils (1.27 mm) to maintain return path continuity." },
+            { label: "Physics", text: "Without a stitching via, the return current must find an alternate path through a distant via — creating a massive loop area." },
+            { label: "EMI Impact", text: "Radiated emissions scale as: E ∝ Loop Area × f² × dI/dt. Doubling the loop area quadruples the radiation." }
+          ]
+        },
+        {
+          title: "Split Plane Crossing",
+          color: "orange",
+          list: [
+            { label: "Rule", text: "Never route a high-speed signal across a split, slot, or gap in its reference plane." },
+            { label: "If Unavoidable", text: "Place a stitching capacitor (100 nF, 0402) across the split directly beneath the signal crossing point to provide an AC return path." },
+            { label: "Verification", text: "Use a 'copper pour check' in your EDA tool to highlight all signals crossing plane voids." }
+          ]
+        },
+        {
+          title: "Reference Plane Change",
+          color: "green",
+          list: [
+            { label: "Scenario", text: "Signal on L1 (ref: L2 GND) transitions via to L3 (ref: L4 GND). The return current must transfer from L2 to L4." },
+            { label: "Solution", text: "Place GND stitching vias connecting L2 and L4 adjacent to the signal via — this provides the return current bridge." },
+            { label: "Power Plane Ref", text: "If the new reference is a Power plane, add a 100 nF bypass cap between the Power plane and GND within 100 mils of the via." }
+          ]
+        }
+      ],
+      alerts: [
+        { type: 'danger', text: "Return path violations are the #1 cause of EMI failures in production boards. A single high-speed trace crossing a plane split can cause a board to fail FCC/CISPR radiated emissions testing by 10–20 dB." }
+      ]
+    },
+    {
+      heading: "Impedance Discontinuity Analysis",
+      content: "Every point where the characteristic impedance changes — even slightly — causes a portion of the signal energy to reflect back toward the source. At data rates above 5 Gbps, even minor discontinuities compound across the channel and close the eye diagram. Identifying and minimizing these discontinuities is the core skill of SI-aware layout.",
+      table: {
+        headers: ["Discontinuity Source", "Typical ΔZ₀", "Root Cause", "Mitigation"],
+        rows: [
+          ["Connector Transition", "5–15 Ω", "Geometry change from PCB trace to connector pin field", "Via anti-pad tuning, connector breakout optimization per vendor guidelines"],
+          { type: 'highlight', data: ["Via Transition", "3–10 Ω", "Parasitic capacitance of via barrel and anti-pad", "Tune anti-pad diameter (30–40 mil for 100Ω diff), use back-drilling"] },
+          ["BGA Breakout", "5–12 Ω", "Fan-out traces from BGA pads change width/spacing", "Maintain target W/S immediately after pad escape, use VIPPO"],
+          ["Trace Width Change (Neck-Down)", "2–8 Ω", "Trace narrows at pads or through BGA channel", "Apply teardrops, minimize neck-down length to < 50 mils"],
+          ["Test Point / Stub", "3–15 Ω", "Unterminated stub acts as quarter-wave resonator", "Use non-contact probing, or add series resistor (33–50 Ω) to damp stub"]
+        ]
+      },
+      formula: {
+        title: "Reflection Coefficient at Discontinuity",
+        equations: [
+          "Γ = (Z₂ − Z₁) / (Z₂ + Z₁)",
+          "Reflected voltage = Γ × V_incident",
+          "Example: Z₁=100Ω, Z₂=85Ω → Γ = -0.081 → 8.1% reflection per transition"
+        ],
+        variables: [
+          { name: "Γ", desc: "Reflection coefficient (dimensionless, -1 to +1)", tag: "OUTPUT" },
+          { name: "Z₁", desc: "Impedance before the discontinuity (Ω)", tag: "INPUT" },
+          { name: "Z₂", desc: "Impedance after the discontinuity (Ω)", tag: "INPUT" }
+        ]
+      },
+      alerts: [
+        { type: 'warning', text: "Reflections from multiple discontinuities add constructively at specific frequencies, creating resonant peaks in S11 (return loss). A channel with 5 vias, each causing 5% reflection, can produce > 20% aggregate reflection at resonance — failing the S11 < -10 dB mask." },
+        { type: 'info', text: "TDR (Time Domain Reflectometry) is the primary lab tool for locating impedance discontinuities. Each bump or dip in the TDR trace corresponds to a physical location on the board. Use TDR to validate your via tuning and connector transitions." }
+      ]
     },
     {
       heading: "PDN Target Impedance — Theory & Formula",
@@ -165,7 +230,7 @@ export const content = {
         headers: ["Interface / Device", "Vdd (V)", "Ripple Budget", "Typical ΔI (A)", "Ztarget Estimate"],
         rows: [
           ["DDR4 DRAM (VDDQ)", "1.2 V", "±3% (36 mV)", "2–4 A", "9–18 mΩ"],
-          { type: 'highlight', data: ["DDR5 DRAM (VDDQ)", "1.1 V", "±2% (22 mV)", "3–6 A", "3.7–7.3 mΩ"] },
+          { type: 'highlight', data: ["DDR5 DRAM (VDDQ)", "1.1 V", "±3% (33 mV)", "3–6 A", "5.5–11 mΩ"] },
           ["Modern FPGA Core", "0.9 V", "±5% (45 mV)", "15–40 A", "1.1–3 mΩ"],
           ["PCIe Gen 5 Host CPU", "0.8 V", "±5% (40 mV)", "30–80 A", "0.5–1.3 mΩ"],
           ["General ASIC / SoC", "1.0 V", "±5% (50 mV)", "5–20 A", "2.5–10 mΩ"]
@@ -178,12 +243,7 @@ export const content = {
     },
     {
       heading: "PDN Target Impedance Solver (Interactive)",
-      content: "This solver calculates the 'Target Impedance'—the maximum allowable electrical resistance of your power planes. Keeping impedance low ensures that when your chips suddenly switch on, the power doesn't 'dip' and cause a system crash.",
-      list: [
-        { label: "The Power Dip", text: "High-speed chips need massive current instantly. If the path is too thin, voltage drops." },
-        { label: "Target Z", text: "The 'Speed Limit' for power noise. If you stay below this number, the chip stays stable." },
-        { label: "The Calculation", text: "Based on your voltage rail (e.g. 1.2V) and the allowable ripple (e.g. 5%)." }
-      ],
+      content: "Apply the theory above — enter your rail voltage, ripple budget, and transient current step to calculate the maximum allowable PDN impedance for your design.",
       type: "pi-target-calc"
     },
     {
@@ -241,41 +301,44 @@ export const content = {
       },
       alerts: [
         { type: 'info', text: "A capacitor is anti-resonant with adjacent capacitors of different values — the parallel combination creates impedance peaks. SPICE simulation is required to verify the composite impedance curve when mixing multiple cap values." },
-        { type: 'warning', text: "Never place decoupling caps more than 5mm from the IC power pin. Every mm of trace adds ~0.7 nH of inductance — directly raising the PDN impedance at high frequencies." }
+        { type: 'warning', text: "Never place decoupling caps more than 5mm from the IC power pin. Every mm of trace adds ~0.7 nH of inductance — directly raising the PDN impedance at high frequencies." },
+        { type: 'info', text: "Via placement is critical. Vias must be immediately adjacent to capacitor pads to keep loop inductance < 100 pH. A via placed 1mm away from the cap pad adds ~0.7 nH — raising impedance by 4.4 Ω at 1 GHz." }
       ]
     },
     {
-      heading: "Decoupling Hierarchy & Via Physics",
-      content: "Capacitors are only effective below their Self-Resonant Frequency. A cascaded multi-tier strategy covers the full frequency spectrum from DC (VRM domain) to the GHz range (die-level demand). Each tier transitions seamlessly into the next.",
-      filletGrid: [
-        {
-          title: "Bulk / VRM (DC–100kHz)",
-          color: "blue",
-          list: [
-            { label: "Value", text: "100µF – 1mF Tantalum or Polymer." },
-            { label: "Role", text: "Supplies slow load transients. Placed near VRM output." },
-            { label: "ESR Note", text: "Higher ESR than MLCC — acceptable at these low frequencies." }
-          ]
-        },
-        {
-          title: "Mid-Freq (1MHz–100MHz)",
-          color: "orange",
-          list: [
-            { label: "Value", text: "100nF – 1µF MLCC (0402/0603)." },
-            { label: "Role", text: "Bridges the gap between VRM and local decoupling." }
-          ]
-        },
-        {
-          title: "High-Freq (100MHz–1GHz+)",
-          color: "cyan",
-          list: [
-            { label: "Value", text: "10nF – 100nF (0201/01005)." },
-            { label: "Role", text: "Critical for suppressing switching noise near IC pins." }
-          ]
-        }
+      heading: "DC IR Drop Analysis",
+      content: "While Ztarget governs AC power integrity, DC IR Drop analysis ensures that the static voltage at every IC power pin meets the minimum operating voltage. Copper planes have finite resistance — when current flows through them, voltage drops according to Ohm's Law. This drop must be budgeted into the overall power delivery design.",
+      formula: {
+        title: "IR Drop Fundamentals",
+        equations: [
+          "V_drop = I_load × R_plane",
+          "R_sheet = ρ / (thickness) // Sheet resistance (mΩ/□)",
+          "1 oz copper (35µm): R_sheet ≈ 0.49 mΩ/□ at 25°C"
+        ],
+        variables: [
+          { name: "V_drop", desc: "Voltage drop across the plane copper (mV)", tag: "OUTPUT" },
+          { name: "I_load", desc: "Total DC current drawn by the IC (A)", tag: "INPUT" },
+          { name: "R_plane", desc: "Effective resistance of the copper path (mΩ)", tag: "CALC" },
+          { name: "R_sheet", desc: "Sheet resistance per square (mΩ/□)", tag: "CONST" }
+        ]
+      },
+      table: {
+        headers: ["Power Rail", "Typical Vdd", "Max IR Drop Budget", "Impact of Violation"],
+        rows: [
+          ["DDR5 VDDQ", "1.1 V", "< 20 mV (< 2%)", "Timing margin loss, bit errors at max data rate"],
+          { type: 'highlight', data: ["FPGA Core", "0.9 V", "< 15 mV (< 1.7%)", "Logic timing failures, increased dynamic power"] },
+          ["PCIe / CPU Core", "0.8 V", "< 10 mV (< 1.25%)", "Clock jitter, PLL instability"],
+          ["I/O Rails (3.3V / 1.8V)", "3.3 / 1.8 V", "< 50 mV", "Reduced noise margin, output level violations"]
+        ]
+      },
+      list: [
+        { label: "Copper Weight Matters", text: "1 oz copper has 2× the resistance of 2 oz copper. High-current rails (> 5A) typically require 2 oz planes to keep IR drop within budget." },
+        { label: "Via Resistance", text: "Each via adds 0.5–2 mΩ depending on drill size and plating thickness. Multiple vias in parallel reduce effective via resistance." },
+        { label: "Thermal Interaction", text: "Copper resistivity increases ~0.4% per °C. At 85°C operating temperature, plane resistance is ~25% higher than at 25°C — always simulate at worst-case temperature." }
       ],
       alerts: [
-        { type: 'info', text: "Via placement is critical. Vias must be immediately adjacent to capacitor pads to keep loop inductance < 100 pH. A via placed 1mm away from the cap pad adds ~0.7 nH — raising impedance by 4.4 Ω at 1 GHz." }
+        { type: 'warning', text: "IR Drop simulation (Cadence Sigrity PowerDC, Ansys SIwave) is mandatory for any design where the total current draw on a single rail exceeds 5A. Visual 'heat maps' reveal current crowding at via transitions and narrow copper necks." },
+        { type: 'info', text: "IR Drop and AC Ztarget are complementary — a board can pass AC impedance checks but still fail due to DC voltage droop at the IC pin. Both analyses are required for complete PI sign-off." }
       ]
     },
     {
@@ -311,7 +374,8 @@ export const content = {
       ],
       alerts: [
         { type: 'warning', text: "L3 shown as a dedicated signal layer. Mixing power distribution on L3 is an anti-pattern that degrades both SI (reference plane discontinuity) and PI (poor PDN return path). Keep L3 as signal-only for performance-critical designs." },
-        { type: 'info', text: "Maintain thin dielectric (≤ 4 mils) between L4 GND and L5 PWR to maximize distributed plane capacitance for high-frequency decoupling. This plane-pair is effectively a zero-ESL capacitor at 100 MHz–1 GHz." }
+        { type: 'info', text: "Maintain thin dielectric (≤ 4 mils) between L4 GND and L5 PWR to maximize distributed plane capacitance for high-frequency decoupling. This plane-pair is effectively a zero-ESL capacitor at 100 MHz–1 GHz." },
+        { type: 'danger', text: "L6 (Bottom) is referenced to L5 Power — not Ground. Route only low-speed signals on L6, or add stitching capacitors (100nF, 0402) at via transitions to provide an AC return path through the power plane. High-speed signals require a solid GND reference." }
       ]
     },
     {
@@ -333,7 +397,7 @@ export const content = {
       table: {
         headers: ["Interface", "Nyquist Freq.", "S21 Mask at Nyquist", "S11 Limit", "Test Standard"],
         rows: [
-          ["PCIe Gen 3 (8 GT/s)", "4 GHz", "≥ -12 dB", "< -10 dB", "PCI-SIG CEM 3.0"],
+          ["PCIe Gen 3 (8 GT/s)", "4 GHz", "≥ -20 dB (channel)", "< -10 dB", "PCI-SIG CEM 3.0"],
           ["PCIe Gen 4 (16 GT/s)", "8 GHz", "≥ -20 dB", "< -8 dB", "PCI-SIG CEM 4.0"],
           { type: 'highlight', data: ["PCIe Gen 5 (32 GT/s)", "16 GHz", "≥ -36 dB", "< -6 dB", "PCI-SIG CEM 5.0"] },
           ["USB 3.2 Gen 2 (10 Gbps)", "5 GHz", "≥ -17 dB", "< -10 dB", "USB 3.2 §6.7"],
@@ -355,7 +419,7 @@ export const content = {
           list: [
             { label: "Definition", text: "Vertical opening of the eye — voltage margin between '1' and '0' levels." },
             { label: "Degradation", text: "Reduced by ISI (Inter-Symbol Interference), reflections, and power supply noise." },
-            { label: "Spec Example", text: "PCIe Gen 5: Eye Height ≥ 15 mV at the receiver input after equalization." }
+            { label: "Spec Example", text: "PCIe Gen 5: Eye Height ≥ 15 mV (typical) at BER 10⁻⁶ after CTLE+DFE equalization — exact threshold per PCI-SIG compliance channel model." }
           ]
         },
         {
