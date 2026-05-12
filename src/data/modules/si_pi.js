@@ -1,5 +1,5 @@
 export const content = {
-  intro: "When a DDR5 memory interface fails at validation, the root cause is almost never the chip — it is the PCB. Signal Integrity (SI) and Power Integrity (PI) are the two disciplines that determine whether electrons arrive at the right place, at the right time, with the right voltage. This module is the authoritative SI/PI engineering reference, anchored in IPC-2141A, JEDEC JESD79-5B, PCI-SIG CEM Spec, and IEEE 802.3. Master these principles to design boards that pass compliance testing on the first spin.",
+  intro: "When a high-speed interface fails at validation, the root cause is almost never the chip — it is the PCB layout. At its core, this module is about two things: Signal Integrity (SI) ensures data arrives at the exact right time, while Power Integrity (PI) ensures chips receive the exact right voltage. This module serves as an authoritative engineering reference, anchored directly in industry standards: IPC-2141A, JEDEC JESD79-5B, PCI-SIG CEM, and IEEE 802.3. Master these principles to guarantee your boards pass compliance testing on the first spin.",
   sections: [
     {
       heading: "SI Core: Transmission Line Standards",
@@ -28,6 +28,28 @@ export const content = {
       }
     },
     {
+      heading: "Lossy Line Physics (Expert Insight)",
+      content: "At frequencies > 10 GHz, the ideal 'lossless' transmission line model becomes invalid. Four distinct physical mechanisms attenuate signals — each must be modeled separately in a field solver. Understanding these effects determines material selection for high-speed designs.",
+      cards: [
+        {
+          title: "Dielectric Loss (Tan δ)",
+          text: "The PCB material acts like a sponge, absorbing high-frequency energy as heat. Specify Low-Loss materials (Megtron 6/7) for PCIe Gen 5+."
+        },
+        {
+          title: "Skin Effect & Roughness",
+          text: "High-speed current only travels on the outer 'skin' of the trace. If the copper is rough, the path gets longer and causes drag. Specify Very Low Profile (VLP) copper."
+        },
+        {
+          title: "Fiber Weave Effect",
+          text: "Traces traveling over glass bundles move at different speeds than over resin gaps, causing timing skew. Use 'spread glass' or rotate routing 10°."
+        },
+        {
+          title: "Surface Finish Impact",
+          text: "Nickel (used in ENIG finish) is magnetic and acts as a speed-bump for high frequencies. Prefer Immersion Silver or OSP for >10 GHz."
+        }
+      ]
+    },
+    {
       heading: "Differential Pair Routing Mastery",
       content: "Differential signaling provides inherent common-mode noise rejection. Maintaining geometry symmetry along the entire route is the primary task of the layout engineer.",
       type: 'cross-ref',
@@ -36,24 +58,133 @@ export const content = {
       refDesc: 'Comprehensive layout rules, Zdiff calculators, and symmetry constraints are canonically located in the Diff Pair module.'
     },
     {
-      heading: "BGA Escape & Fanout Design (IPC-7095C)",
-      content: "Breaking out signals from fine-pitch BGAs (0.8mm to 0.4mm) is the most geometry-constrained task in layout. Strategy selection directly impacts layer count, via technology, and fabrication cost — this decision must be made before placement is finalized.",
+      heading: "Crosstalk — NEXT & FEXT Fundamentals",
+      content: "Crosstalk occurs when the electromagnetic field of one trace induces a voltage on an adjacent trace. It is the #1 root cause of marginal signal integrity on production boards. Two distinct mechanisms exist, determined by the relative position of the aggressor signal and the observation point.",
+      formula: {
+        title: "Crosstalk Coupling Coefficient (Kf / Kb)",
+        equations: [
+          "Kf (FEXT) = (T_d / 2) × (Cm/C0 - Lm/L0)  // Forward coupling",
+          "Kb (NEXT) = (1/4) × (Cm/C0 + Lm/L0)       // Backward coupling",
+          "NEXT (dB) = 20 × log10(Kb × V_aggressor / V_victim)"
+        ],
+        variables: [
+          { name: "Cm", desc: "Mutual capacitance per unit length (F/m)", tag: "CALC" },
+          { name: "Lm", desc: "Mutual inductance per unit length (H/m)", tag: "CALC" },
+          { name: "C0, L0", desc: "Self capacitance/inductance per unit length", tag: "CALC" },
+          { name: "T_d", desc: "Propagation delay of the coupled region", tag: "INPUT" }
+        ]
+      },
       table: {
-        headers: ["Feature Pitch", "Escape Strategy", "Via Technology", "Layer Impact"],
+        headers: ["Coupling Type", "Observed At", "Worst Case", "Primary Mitigation"],
         rows: [
-          ["1.0mm - 0.8mm", "Dog-bone fanout", "Standard Thru-hole / Blind", "Low to Medium"],
-          ["0.65mm - 0.5mm", "Via-In-Pad (VIPPO)", "Microvia / Plated Shut", "High (HDI required)"],
-          ["< 0.4mm", "Any-Layer HDI", "Stacked Microvias", "Maximum (ELIC)"]
+          ["NEXT (Near-End)", "Aggressor source end", "Stronger — coupling adds over time", "Increase inter-pair spacing (≥ 3× W)"],
+          { type: 'highlight', data: ["FEXT (Far-End)", "Aggressor receive end", "Weaker in microstrip; significant in stripline", "Tighter differential routing, orthogonal routing"] },
+          ["Broadside Coupling", "Parallel stacked traces", "Very strong — 3–5× worse than edge coupling", "Avoid parallel routing on adjacent inner layers"]
+        ]
+      },
+      ruleCards: [
+        {
+          number: "01",
+          title: "Minimum Inter-Pair Spacing",
+          severity: "danger",
+          body: "Maintain ≥ 3× Trace Width (W) edge-to-edge between differential pairs. For 4 mil traces: min spacing = 12 mils. Preferred is 5× W (20 mils) for NEXT margin > 40 dB. This rule applies for the full parallel coupled length."
+        },
+        {
+          number: "02",
+          title: "Minimize Parallel Coupling Length",
+          severity: "danger",
+          body: "The crosstalk voltage scales linearly with the coupled length. Route aggressor and victim traces to minimize parallel runs. A 90° crossing has near-zero crosstalk. Use 45° angle of incidence at crossings to minimize coupling time."
+        },
+        {
+          number: "03",
+          title: "Avoid Broadside Routing on Adjacent Layers",
+          severity: "warning",
+          body: "Traces on adjacent inner layers that overlap in the XY plane create broadside coupling — 3–5× stronger than edge coupling. Route signals on adjacent signal layers orthogonally (H/V or ±45°) to break coupling geometry."
+        },
+        {
+          number: "04",
+          title: "Crosstalk Budget Verification",
+          severity: "info",
+          body: "NEXT + FEXT combined must remain < -30 dB at the receiver for robust margin. For DDR5 and PCIe Gen 5, field solver simulation (Ansys HFSS / Cadence Sigrity) is mandatory — analytical formulas are insufficient."
+        }
+      ]
+    },
+    {
+      heading: "Via Stub Resonance & Back-Drilling",
+      content: "A 'stub' is the part of a via that goes deeper than the signal needs to go. This tool calculates the frequency where that unused copper acts like an antenna and 'steals' your signal energy.",
+      list: [
+        { label: "The Antenna Effect", text: "Unused via copper reflects signals back, causing huge data loss (nulls)." },
+        { label: "Back-Drilling", text: "The process of literally drilling out the unused copper to fix the signal." },
+        { label: "The 1/4 Wave Rule", text: "Resonance happens when the stub length equals 1/4 of the signal wavelength." }
+      ],
+      formula: {
+        title: "Via Stub Resonant Frequency",
+        equations: [
+          "f_resonance = c / (4 × L_stub × √εr_eff)",
+          "Example: L_stub = 40 mil (1mm), εr_eff = 4.0 → f_res ≈ 3.75 GHz"
+        ],
+        variables: [
+          { name: "f_resonance", desc: "Resonant frequency of the via stub (GHz)", tag: "OUTPUT" },
+          { name: "L_stub", desc: "Physical stub length (m) — unused via barrel below signal connection", tag: "INPUT" },
+          { name: "εr_eff", desc: "Effective dielectric constant of via barrel region", tag: "INPUT" },
+          { name: "c", desc: "Speed of light (3×10⁸ m/s)", tag: "CONST" }
         ]
       },
       list: [
-        { label: "VIPPO", text: "Via-In-Pad Plated Over. Mandatory for <0.5mm pitch to save routing real estate. Requires flat surface for assembly (IPC-4761 Table 1, Type VII)." },
-        { label: "Differential Pair Breakout", text: "Maintain symmetry immediately after leaving the BGA ball. Avoid asymmetric via placements that introduce skew within the first 100 mils." },
-        { label: "Void Management", text: "Ensure stitching vias do not create 'Swiss-cheese' patterns in ground planes, which would choke return currents." }
+        { label: "Back-Drilling (Controlled Depth Drilling)", text: "Manufacturing process that removes the via stub by drilling from the back of the board to within 5–8 mils of the last signal connection layer. Eliminates the resonance. Specify ±3 mil drill depth tolerance in fab notes." },
+        { label: "Blind Vias", text: "Connects only from the top/bottom surface to a specific inner layer — no stub exists. HDI process, adds 15–30% fabrication cost per layer pair." },
+        { label: "When to Back-Drill", text: "Required when via stub resonance falls within 2× the signal Nyquist frequency. For PCIe Gen 4 (8 GHz Nyquist), any stub > 20 mil must be back-drilled." }
       ],
       alerts: [
-        { type: 'warning', text: "Always confirm with your fabricator before using Via-In-Pad. Non-conductive epoxy fill and capping add 15-25% to board cost." }
+        { type: 'danger', text: "PCIe Gen 4 and Gen 5 channel compliance specifications (PCI-SIG) explicitly require via stub analysis. A board without back-drilling at these data rates will almost certainly fail the insertion loss mask (S21) at the stub resonant frequency." }
+      ],
+      type: 'via-resonance-calc'
+    },
+    {
+      heading: "Visualizing Via Stub Resonance",
+      content: "When a high-speed signal transitions between layers, any remaining unused via barrel acts as a parasitic antenna. The energy reflects off the dead end and collides with the primary signal. Back-drilling physically removes this dead copper, restoring signal integrity.",
+      type: "via-stub-visual"
+    },
+    {
+      heading: "PDN Target Impedance — Theory & Formula",
+      content: "The Power Distribution Network (PDN) must maintain its impedance below a critical threshold — the Target Impedance (Ztarget) — from DC up to the maximum frequency of switching current events. This is the governing design constraint for all PI work.",
+      formula: {
+        title: "Target Impedance Derivation (JEDEC / Intel PDN Methodology)",
+        equations: [
+          "Ztarget = (Vdd × Ripple%) / ΔI_transient",
+          "Example: Vdd=1.1V, Ripple=5%, ΔI=10A → Ztarget = (1.1 × 0.05) / 10 = 5.5 mΩ"
+        ],
+        variables: [
+          { name: "Ztarget", desc: "Maximum allowable PDN impedance (mΩ)", tag: "OUTPUT" },
+          { name: "Vdd", desc: "Rail voltage (V)", tag: "INPUT" },
+          { name: "Ripple%", desc: "Allowable voltage ripple percentage", tag: "INPUT" },
+          { name: "ΔI_transient", desc: "Peak transient current step (A)", tag: "INPUT" }
+        ]
+      },
+      table: {
+        headers: ["Interface / Device", "Vdd (V)", "Ripple Budget", "Typical ΔI (A)", "Ztarget Estimate"],
+        rows: [
+          ["DDR4 DRAM (VDDQ)", "1.2 V", "±3% (36 mV)", "2–4 A", "9–18 mΩ"],
+          { type: 'highlight', data: ["DDR5 DRAM (VDDQ)", "1.1 V", "±2% (22 mV)", "3–6 A", "3.7–7.3 mΩ"] },
+          ["Modern FPGA Core", "0.9 V", "±5% (45 mV)", "15–40 A", "1.1–3 mΩ"],
+          ["PCIe Gen 5 Host CPU", "0.8 V", "±5% (40 mV)", "30–80 A", "0.5–1.3 mΩ"],
+          ["General ASIC / SoC", "1.0 V", "±5% (50 mV)", "5–20 A", "2.5–10 mΩ"]
+        ]
+      },
+      alerts: [
+        { type: 'danger', text: "A PDN impedance peak that exceeds Ztarget — even at a single frequency — causes voltage droop that corrupts data. Post-layout PDN simulation is mandatory for DDR5 and PCIe Gen 4+ designs." },
+        { type: 'info', text: "The PDN loop consists of VRM output impedance + plane spreading impedance + decoupling cap network. Each stage dominates a different frequency decade and must be designed as a system, not independently." }
       ]
+    },
+    {
+      heading: "PDN Target Impedance Solver (Interactive)",
+      content: "This solver calculates the 'Target Impedance'—the maximum allowable electrical resistance of your power planes. Keeping impedance low ensures that when your chips suddenly switch on, the power doesn't 'dip' and cause a system crash.",
+      list: [
+        { label: "The Power Dip", text: "High-speed chips need massive current instantly. If the path is too thin, voltage drops." },
+        { label: "Target Z", text: "The 'Speed Limit' for power noise. If you stay below this number, the chip stays stable." },
+        { label: "The Calculation", text: "Based on your voltage rail (e.g. 1.2V) and the allowable ripple (e.g. 5%)." }
+      ],
+      type: "pi-target-calc"
     },
     {
       heading: "Decoupling Capacitor Engineering",
@@ -114,47 +245,6 @@ export const content = {
       ]
     },
     {
-      heading: "PDN Target Impedance — Theory & Formula",
-      content: "The Power Distribution Network (PDN) must maintain its impedance below a critical threshold — the Target Impedance (Ztarget) — from DC up to the maximum frequency of switching current events. This is the governing design constraint for all PI work.",
-      formula: {
-        title: "Target Impedance Derivation (JEDEC / Intel PDN Methodology)",
-        equations: [
-          "Ztarget = (Vdd × Ripple%) / ΔI_transient",
-          "Example: Vdd=1.1V, Ripple=5%, ΔI=10A → Ztarget = (1.1 × 0.05) / 10 = 5.5 mΩ"
-        ],
-        variables: [
-          { name: "Ztarget", desc: "Maximum allowable PDN impedance (mΩ)", tag: "OUTPUT" },
-          { name: "Vdd", desc: "Rail voltage (V)", tag: "INPUT" },
-          { name: "Ripple%", desc: "Allowable voltage ripple percentage", tag: "INPUT" },
-          { name: "ΔI_transient", desc: "Peak transient current step (A)", tag: "INPUT" }
-        ]
-      },
-      table: {
-        headers: ["Interface / Device", "Vdd (V)", "Ripple Budget", "Typical ΔI (A)", "Ztarget Estimate"],
-        rows: [
-          ["DDR4 DRAM (VDDQ)", "1.2 V", "±3% (36 mV)", "2–4 A", "9–18 mΩ"],
-          { type: 'highlight', data: ["DDR5 DRAM (VDDQ)", "1.1 V", "±2% (22 mV)", "3–6 A", "3.7–7.3 mΩ"] },
-          ["Modern FPGA Core", "0.9 V", "±5% (45 mV)", "15–40 A", "1.1–3 mΩ"],
-          ["PCIe Gen 5 Host CPU", "0.8 V", "±5% (40 mV)", "30–80 A", "0.5–1.3 mΩ"],
-          ["General ASIC / SoC", "1.0 V", "±5% (50 mV)", "5–20 A", "2.5–10 mΩ"]
-        ]
-      },
-      alerts: [
-        { type: 'danger', text: "A PDN impedance peak that exceeds Ztarget — even at a single frequency — causes voltage droop that corrupts data. Post-layout PDN simulation is mandatory for DDR5 and PCIe Gen 4+ designs." },
-        { type: 'info', text: "The PDN loop consists of VRM output impedance + plane spreading impedance + decoupling cap network. Each stage dominates a different frequency decade and must be designed as a system, not independently." }
-      ]
-    },
-    {
-      heading: "PDN Target Impedance Solver (Interactive)",
-      content: "This solver calculates the 'Target Impedance'—the maximum allowable electrical resistance of your power planes. Keeping impedance low ensures that when your chips suddenly switch on, the power doesn't 'dip' and cause a system crash.",
-      list: [
-        { label: "The Power Dip", text: "High-speed chips need massive current instantly. If the path is too thin, voltage drops." },
-        { label: "Target Z", text: "The 'Speed Limit' for power noise. If you stay below this number, the chip stays stable." },
-        { label: "The Calculation", text: "Based on your voltage rail (e.g. 1.2V) and the allowable ripple (e.g. 5%)." }
-      ],
-      type: "pi-target-calc"
-    },
-    {
       heading: "Decoupling Hierarchy & Via Physics",
       content: "Capacitors are only effective below their Self-Resonant Frequency. A cascaded multi-tier strategy covers the full frequency spectrum from DC (VRM domain) to the GHz range (die-level demand). Each tier transitions seamlessly into the next.",
       filletGrid: [
@@ -189,91 +279,39 @@ export const content = {
       ]
     },
     {
-      heading: "Via Stub Resonance & Back-Drilling",
-      content: "A 'stub' is the part of a via that goes deeper than the signal needs to go. This tool calculates the frequency where that unused copper acts like an antenna and 'steals' your signal energy.",
-      list: [
-        { label: "The Antenna Effect", text: "Unused via copper reflects signals back, causing huge data loss (nulls)." },
-        { label: "Back-Drilling", text: "The process of literally drilling out the unused copper to fix the signal." },
-        { label: "The 1/4 Wave Rule", text: "Resonance happens when the stub length equals 1/4 of the signal wavelength." }
-      ],
-      formula: {
-        title: "Via Stub Resonant Frequency",
-        equations: [
-          "f_resonance = c / (4 × L_stub × √εr_eff)",
-          "Example: L_stub = 40 mil (1mm), εr_eff = 4.0 → f_res ≈ 3.75 GHz"
-        ],
-        variables: [
-          { name: "f_resonance", desc: "Resonant frequency of the via stub (GHz)", tag: "OUTPUT" },
-          { name: "L_stub", desc: "Physical stub length (m) — unused via barrel below signal connection", tag: "INPUT" },
-          { name: "εr_eff", desc: "Effective dielectric constant of via barrel region", tag: "INPUT" },
-          { name: "c", desc: "Speed of light (3×10⁸ m/s)", tag: "CONST" }
+      heading: "BGA Escape & Fanout Design (IPC-7095C)",
+      content: "Breaking out signals from fine-pitch BGAs (0.8mm to 0.4mm) is the most geometry-constrained task in layout. Strategy selection directly impacts layer count, via technology, and fabrication cost — this decision must be made before placement is finalized.",
+      table: {
+        headers: ["Feature Pitch", "Escape Strategy", "Via Technology", "Layer Impact"],
+        rows: [
+          ["1.0mm - 0.8mm", "Dog-bone fanout", "Standard Thru-hole / Blind", "Low to Medium"],
+          ["0.65mm - 0.5mm", "Via-In-Pad (VIPPO)", "Microvia / Plated Shut", "High (HDI required)"],
+          ["< 0.4mm", "Any-Layer HDI", "Stacked Microvias", "Maximum (ELIC)"]
         ]
       },
       list: [
-        { label: "Back-Drilling (Controlled Depth Drilling)", text: "Manufacturing process that removes the via stub by drilling from the back of the board to within 5–8 mils of the last signal connection layer. Eliminates the resonance. Specify ±3 mil drill depth tolerance in fab notes." },
-        { label: "Blind Vias", text: "Connects only from the top/bottom surface to a specific inner layer — no stub exists. HDI process, adds 15–30% fabrication cost per layer pair." },
-        { label: "When to Back-Drill", text: "Required when via stub resonance falls within 2× the signal Nyquist frequency. For PCIe Gen 4 (8 GHz Nyquist), any stub > 20 mil must be back-drilled." }
+        { label: "VIPPO", text: "Via-In-Pad Plated Over. Mandatory for <0.5mm pitch to save routing real estate. Requires flat surface for assembly (IPC-4761 Table 1, Type VII)." },
+        { label: "Differential Pair Breakout", text: "Maintain symmetry immediately after leaving the BGA ball. Avoid asymmetric via placements that introduce skew within the first 100 mils." },
+        { label: "Void Management", text: "Ensure stitching vias do not create 'Swiss-cheese' patterns in ground planes, which would choke return currents." }
       ],
       alerts: [
-        { type: 'danger', text: "PCIe Gen 4 and Gen 5 channel compliance specifications (PCI-SIG) explicitly require via stub analysis. A board without back-drilling at these data rates will almost certainly fail the insertion loss mask (S21) at the stub resonant frequency." }
+        { type: 'warning', text: "Always confirm with your fabricator before using Via-In-Pad. Non-conductive epoxy fill and capping add 15-25% to board cost." }
+      ]
+    },
+    {
+      heading: "Recommended 6-Layer Stackup for SI/PI",
+      content: "For high-performance designs requiring both excellent SI (controlled impedance) and PI (distributed decoupling), the 6-layer stackup provides a balanced approach. Layer assignment is driven by reference plane adjacency requirements.",
+      stackVisual: [
+        { layer: "L1 — Signal (Top)", spec: "High-Speed Microstrip", color: "#D4963A", note: "Referenced to L2 GND" },
+        { layer: "L2 — Ground (GND)", spec: "Solid Copper Plane", color: "#888780", note: "Primary Reference" },
+        { layer: "L3 — Signal (Stripline)", spec: "Internal Signals Only", color: "#378ADD", note: "Referenced to L2+L4. Do NOT mix power islands here." },
+        { layer: "L4 — Ground (GND)", spec: "Solid Copper Plane", color: "#888780", note: "Primary Reference" },
+        { layer: "L5 — Power (VCC)", spec: "Copper Pour", color: "#378ADD", note: "Main distribution layer" },
+        { layer: "L6 — Signal (Bot)", spec: "Microstrip", color: "#D4963A", note: "Referenced to L5" }
       ],
-      type: 'via-resonance-calc'
-    },
-    {
-      heading: "Visualizing Via Stub Resonance",
-      content: "When a high-speed signal transitions between layers, any remaining unused via barrel acts as a parasitic antenna. The energy reflects off the dead end and collides with the primary signal. Back-drilling physically removes this dead copper, restoring signal integrity.",
-      type: "via-stub-visual"
-    },
-    {
-      heading: "Crosstalk — NEXT & FEXT Fundamentals",
-      content: "Crosstalk occurs when the electromagnetic field of one trace induces a voltage on an adjacent trace. It is the #1 root cause of marginal signal integrity on production boards. Two distinct mechanisms exist, determined by the relative position of the aggressor signal and the observation point.",
-      formula: {
-        title: "Crosstalk Coupling Coefficient (Kf / Kb)",
-        equations: [
-          "Kf (FEXT) = (T_d / 2) × (Cm/C0 - Lm/L0)  // Forward coupling",
-          "Kb (NEXT) = (1/4) × (Cm/C0 + Lm/L0)       // Backward coupling",
-          "NEXT (dB) = 20 × log10(Kb × V_aggressor / V_victim)"
-        ],
-        variables: [
-          { name: "Cm", desc: "Mutual capacitance per unit length (F/m)", tag: "CALC" },
-          { name: "Lm", desc: "Mutual inductance per unit length (H/m)", tag: "CALC" },
-          { name: "C0, L0", desc: "Self capacitance/inductance per unit length", tag: "CALC" },
-          { name: "T_d", desc: "Propagation delay of the coupled region", tag: "INPUT" }
-        ]
-      },
-      table: {
-        headers: ["Coupling Type", "Observed At", "Worst Case", "Primary Mitigation"],
-        rows: [
-          ["NEXT (Near-End)", "Aggressor source end", "Stronger — coupling adds over time", "Increase inter-pair spacing (≥ 3× W)"],
-          { type: 'highlight', data: ["FEXT (Far-End)", "Aggressor receive end", "Weaker in microstrip; significant in stripline", "Tighter differential routing, orthogonal routing"] },
-          ["Broadside Coupling", "Parallel stacked traces", "Very strong — 3–5× worse than edge coupling", "Avoid parallel routing on adjacent inner layers"]
-        ]
-      },
-      ruleCards: [
-        {
-          number: "01",
-          title: "Minimum Inter-Pair Spacing",
-          severity: "danger",
-          body: "Maintain ≥ 3× Trace Width (W) edge-to-edge between differential pairs. For 4 mil traces: min spacing = 12 mils. Preferred is 5× W (20 mils) for NEXT margin > 40 dB. This rule applies for the full parallel coupled length."
-        },
-        {
-          number: "02",
-          title: "Minimize Parallel Coupling Length",
-          severity: "danger",
-          body: "The crosstalk voltage scales linearly with the coupled length. Route aggressor and victim traces to minimize parallel runs. A 90° crossing has near-zero crosstalk. Use 45° angle of incidence at crossings to minimize coupling time."
-        },
-        {
-          number: "03",
-          title: "Avoid Broadside Routing on Adjacent Layers",
-          severity: "warning",
-          body: "Traces on adjacent inner layers that overlap in the XY plane create broadside coupling — 3–5× stronger than edge coupling. Route signals on adjacent signal layers orthogonally (H/V or ±45°) to break coupling geometry."
-        },
-        {
-          number: "04",
-          title: "Crosstalk Budget Verification",
-          severity: "info",
-          body: "NEXT + FEXT combined must remain < -30 dB at the receiver for robust margin. For DDR5 and PCIe Gen 5, field solver simulation (Ansys HFSS / Cadence Sigrity) is mandatory — analytical formulas are insufficient."
-        }
+      alerts: [
+        { type: 'warning', text: "L3 shown as a dedicated signal layer. Mixing power distribution on L3 is an anti-pattern that degrades both SI (reference plane discontinuity) and PI (poor PDN return path). Keep L3 as signal-only for performance-critical designs." },
+        { type: 'info', text: "Maintain thin dielectric (≤ 4 mils) between L4 GND and L5 PWR to maximize distributed plane capacitance for high-frequency decoupling. This plane-pair is effectively a zero-ESL capacitor at 100 MHz–1 GHz." }
       ]
     },
     {
@@ -351,44 +389,6 @@ export const content = {
       alerts: [
         { type: 'info', text: "Modern high-speed transceivers use equalization (Tx pre-emphasis, Rx CTLE/DFE) to partially compensate for channel loss. However, equalization cannot fix impedance discontinuities, via stubs, or connector resonances — these must be solved in the PCB layout." },
         { type: 'warning', text: "Equalization Literacy: CTLE (Continuous Time Linear Equalizer) boosts high frequencies at the receiver; DFE (Decision Feedback Equalizer) cancels reflections from the previous bit. Understanding your Silicon's equalization capability allows you to 'stretch' the insertion loss budget, but it is never a substitute for clean layout." }
-      ]
-    },
-    {
-      heading: "Lossy Line Physics (Expert Insight)",
-      content: "At frequencies > 10 GHz, the ideal 'lossless' transmission line model becomes invalid. Four distinct physical mechanisms attenuate signals — each must be modeled separately in a field solver. Understanding these effects determines material selection for high-speed designs.",
-      cards: [
-        {
-          title: "Dielectric Loss (Tan δ)",
-          text: "Absorption of energy by the resin/glass. Specify Low-Loss materials (Megtron 6/7) for PCIe Gen 5+."
-        },
-        {
-          title: "Skin Effect & Roughness",
-          text: "Current crowds to the copper surface. Rough copper (STD) increases resistance by 30% over VLP copper."
-        },
-        {
-          title: "Fiber Weave Effect",
-          text: "Differential pairs crossing glass bundles experience skew due to varying Dk. Use 'spread glass' or rotate routing 10°."
-        },
-        {
-          title: "Surface Finish Impact",
-          text: "Nickel in ENIG is magnetic and increases insertion loss at high frequencies. Prefer Immersion Silver or OSP."
-        }
-      ]
-    },
-    {
-      heading: "Recommended 6-Layer Stackup for SI/PI",
-      content: "For high-performance designs requiring both excellent SI (controlled impedance) and PI (distributed decoupling), the 6-layer stackup provides a balanced approach. Layer assignment is driven by reference plane adjacency requirements.",
-      stackVisual: [
-        { layer: "L1 — Signal (Top)", spec: "High-Speed Microstrip", color: "#D4963A", note: "Referenced to L2 GND" },
-        { layer: "L2 — Ground (GND)", spec: "Solid Copper Plane", color: "#888780", note: "Primary Reference" },
-        { layer: "L3 — Signal (Stripline)", spec: "Internal Signals Only", color: "#378ADD", note: "Referenced to L2+L4. Do NOT mix power islands here." },
-        { layer: "L4 — Ground (GND)", spec: "Solid Copper Plane", color: "#888780", note: "Primary Reference" },
-        { layer: "L5 — Power (VCC)", spec: "Copper Pour", color: "#378ADD", note: "Main distribution layer" },
-        { layer: "L6 — Signal (Bot)", spec: "Microstrip", color: "#D4963A", note: "Referenced to L5" }
-      ],
-      alerts: [
-        { type: 'warning', text: "L3 shown as a dedicated signal layer. Mixing power distribution on L3 is an anti-pattern that degrades both SI (reference plane discontinuity) and PI (poor PDN return path). Keep L3 as signal-only for performance-critical designs." },
-        { type: 'info', text: "Maintain thin dielectric (≤ 4 mils) between L4 GND and L5 PWR to maximize distributed plane capacitance for high-frequency decoupling. This plane-pair is effectively a zero-ESL capacitor at 100 MHz–1 GHz." }
       ]
     },
     {
