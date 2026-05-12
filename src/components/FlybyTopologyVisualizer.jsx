@@ -146,7 +146,7 @@ const FlybyTopologyVisualizer = () => {
 
           </svg>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', margin: 0, lineHeight: '1.4' }}>
-            Signals pass continuously through each DRAM in sequence. Zero impedance splits. <strong>The sequential delay is corrected by the CPU.</strong>
+            Address and Command signals pass continuously through each DRAM in sequence. Zero impedance splits. <strong>The sequential delay is corrected by the CPU.</strong>
           </p>
         </div>
       </div>

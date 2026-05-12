@@ -126,7 +126,14 @@ export const content = {
     },
     {
       heading: "Routing Topology: Fly-By Design",
-      content: "Fly-by topology (mandatory for DDR4/5) chains signals through each DRAM in sequence. This introduces intentional skew that is corrected by the memory controller's 'Write Leveling' training.",
+      content: "Fly-by topology (mandatory for DDR4/5) chains Address, Command, Control, and Clock signals through each DRAM in sequence. This introduces intentional skew that is corrected by the memory controller's 'Write Leveling' training.",
+      list: [
+        { label: "Concept", text: "Instead of trying to reach all chips at once, the signal chains through them in sequence—like a postman delivering mail house-by-house." },
+        { label: "Benefit", text: "Eliminates signal 'bounces' (reflections) that occur when splitting traces at high speeds (DDR4/5)." },
+        { label: "Trade-off", text: "Because signals travel in sequence, the first chip hears the message before the last chip." },
+        { label: "Fix", text: "The CPU runs 'Write Leveling' training to artificially delay signals and sync all chips perfectly." },
+        { label: "Golden Rule", text: "This applies ONLY to Address, Command, and Clock signals. Data lines remain strictly Point-to-Point." }
+      ],
       ruleCards: [
         {
           number: "01",
@@ -148,6 +155,7 @@ export const content = {
         }
       ],
       alerts: [
+        { type: "danger", text: "CRITICAL: Data (DQ/DQS) signals are NOT routed in Fly-by topology. They are strictly Point-to-Point per byte lane to minimize loading and maximize speed." },
         { type: "info", text: "T-branch (Y-topology) is legacy. At DDR4/5 speeds, the impedance mismatch at the branch point creates multi-reflection noise that prevents high-speed boot." },
         { type: "warning", text: "Expert Insight: Write Leveling. Fly-by topology creates an intentional skew where the clock (CK) arrives at each DRAM at a different time. The memory controller 'learns' these delays during the 'Write Leveling' phase of training, shifting the DQS strobes to compensate. This allows the layout engineer to focus on intra-byte matching rather than absolute length matching across the entire bus." }
       ],
@@ -203,10 +211,26 @@ export const content = {
       heading: "Common Routing Mistakes",
       content: "Avoid these common DDR pitfalls to ensure your design passes first-spin JEDEC compliance testing.",
       mistakeList: [
-        { mistake: "DQS pair split across layers.", fix: "Always route + and - on the identical layer and proximity." },
-        { mistake: "Routing DDR over a split power plane.", fix: "Ensure a continuous GND reference plane for every single DDR layer." },
-        { mistake: "Tight serpentine meanders (gap < 3W).", fix: "Follow the 3W rule internally for meanders to prevent self-coupling." },
-        { mistake: "Missing GND return vias at layer changes.", fix: "Place stitching GND vias within 20 mil of every signal layer transition." }
+        { 
+          mistake: "DQS pair split across layers.", 
+          fix: "Always route + and - on the identical layer and proximity.",
+          explanation: "DQS is a 'Differential Pair' (a team of two wires carrying opposite signals). They must stay together on the same layer to cancel noise."
+        },
+        { 
+          mistake: "Routing DDR over a split power plane.", 
+          fix: "Ensure a continuous GND reference plane for every single DDR layer.",
+          explanation: "Electricity flows in a loop. The layer below the wire is the return path. A split is a gap; crossing it forces a long detour, creating noise."
+        },
+        { 
+          mistake: "Tight serpentine meanders (gap < 3W).", 
+          fix: "Follow the 3W rule internally for meanders to prevent self-coupling.",
+          explanation: "We wiggle wires to match length. The gap between wiggles must be 3x the wire width, or the signal jumps the gap (self-coupling) and ruins timing."
+        },
+        { 
+          mistake: "Missing GND return vias at layer changes.", 
+          fix: "Place stitching GND vias within 20 mil of every signal layer transition.",
+          explanation: "When a signal jumps layers, its return current on the ground layer must jump too. A stitching via acts as a bridge for the return current."
+        }
       ]
     },
 

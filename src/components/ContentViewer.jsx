@@ -567,6 +567,12 @@ export default function ContentViewer() {
                           <span className="mistake-text">{m.mistake}</span>
                           <span className="mis-label mis-fix">Fix</span>
                           <span className="mistake-text">{m.fix}</span>
+                          {m.explanation && (
+                            <>
+                              <span className="mis-label" style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}>Concept</span>
+                              <span className="mistake-text">{m.explanation}</span>
+                            </>
+                          )}
                         </div>
                       ))}
                     </div>
