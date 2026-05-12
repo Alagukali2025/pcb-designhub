@@ -1,5 +1,5 @@
 export const content = {
-  intro: "DDR Routing is fundamentally about precise signal synchronization. At high data rates, 64 parallel signals must arrive at the memory chip within a fraction of a nanosecond of each other. Even a tiny mismatch in the physical length of the copper traces causes signals to arrive out of sync, leading to data corruption. DDR (Double Data Rate) SDRAM is the performance bottleneck of modern computing. Routing it requires more than just connecting dots — it requires managing nanosecond timing windows, controlled-impedance transmission lines, and complex power delivery networks. This guide serves as the Single Source of Truth for DDR3, DDR4, and DDR5 layout engineering.",
+  intro: "DDR Routing is fundamentally about precise signal synchronization. At high data rates, 64 parallel signals must arrive at the memory chip within a fraction of a nanosecond of each other. Even a tiny mismatch in the physical length of the copper traces causes signals to arrive out of sync, leading to data corruption. DDR (Double Data Rate) SDRAM is one of the most timing-sensitive interfaces on a modern PCB. Routing it requires more than just connecting dots — it requires managing nanosecond timing windows, controlled-impedance transmission lines, and complex power delivery networks. This guide serves as the Single Source of Truth for DDR3, DDR4, and DDR5 layout engineering.",
   sections: [
     {
       heading: "DDR Generations Comparison",
@@ -12,7 +12,9 @@ export const content = {
           ["Voltage", "2.5 V", "1.8 V", "1.5 V", "1.2 V", "1.1 V", "Reduced noise margin"],
           ["Topology", "T-Branch", "T-Branch", "Fly-by (Opt)", "Fly-by (Mandatory)", "Fly-by (Mandatory)", "Write leveling req."],
           ["Vref", "External", "External", "External pin", "Internal", "Internal", "Less Vref routing"],
-          ["tCK min", "~5.0 ns", "~1.87 ns", "~0.94 ns", "~0.625 ns", "~0.3 ns", "Lower skew budget"]
+          ["tCK min", "~5.0 ns", "~1.87 ns", "~0.94 ns", "~0.625 ns", "~0.3 ns", "Lower skew budget"],
+          ["Bus Width", "64-bit", "64-bit", "64-bit", "64-bit", "2×32-bit sub-ch", "Independent routing"],
+          ["IO Standard", "SSTL_2", "SSTL_18", "SSTL_15", "POD_12", "PODL_11", "Termination scheme"]
         ]
       }
     },
@@ -44,7 +46,7 @@ export const content = {
           list: [
             { label: "CK / CK#", text: "Differential system clock. Master reference for ADDR/CMD." },
             { label: "Reset#", text: "Asynchronous reset. Matched to ADDR/CMD group." },
-            { label: "Alert#", text: "Error flag (DDR4/5). High-speed error reporting." }
+            { label: "Alert#", text: "Error flag (DDR4/5). Low-speed open-drain output — does not require impedance control." }
           ]
         }
       ]
@@ -79,7 +81,7 @@ export const content = {
     },
     {
       heading: "Controlled Impedance Specifications",
-      content: "All DDR traces must be treated as transmission lines. Impedance tolerance of ±10% is the JEDEC standard, though ±7% is preferred for high-reliability designs. Note: DDR1 used single-ended DQS, while DDR2-5 use differential DQS.",
+      content: "All DDR traces must be treated as transmission lines. Impedance tolerance of ±10% is the JEDEC standard, though ±7% is preferred for high-reliability designs. Note: DDR1 used single-ended DQS (marked * in the table). DDR2 onwards uses differential DQS pairs for improved noise rejection.",
       table: {
         headers: ["Signal Group", "Topology", "DDR1 Target", "DDR2 Target", "DDR3 Target", "DDR4/5 Target", "Tolerance"],
         rows: [
@@ -92,6 +94,31 @@ export const content = {
       },
       alerts: [
         { type: "danger", text: "Never route DDR signals over a split plane boundary. The resulting return path detour creates an inductive loop that destroys signal integrity and causes massive EMI." }
+      ]
+    },
+    {
+      heading: "On-Die Termination (ODT) Configuration",
+      content: "On-Die Termination (ODT) replaces external VTT resistors starting from DDR3. The DRAM chip activates internal resistors to absorb signal reflections. Incorrect ODT settings are the #1 cause of DDR4/5 training failures — even with perfect routing.",
+      table: {
+        headers: ["ODT Value", "DDR3 Support", "DDR4 Support", "DDR5 Support", "Typical Use Case"],
+        rows: [
+          ["34Ω", "—", "✓", "✓", "High-speed DDR5 point-to-point"],
+          ["40Ω", "40Ω", "✓", "✓", "Default for DDR4-3200"],
+          ["48Ω", "—", "✓", "✓", "DDR5 balanced power/SI"],
+          ["60Ω", "60Ω", "✓", "✓", "DDR3/DDR4 moderate speed"],
+          ["80Ω", "—", "✓", "—", "DDR4 low-power"],
+          ["120Ω", "120Ω", "✓", "—", "DDR3 low-speed"],
+          ["240Ω", "—", "✓", "—", "DDR4 minimal termination"]
+        ]
+      },
+      list: [
+        { label: "RTT_NOM", text: "Termination applied when the DRAM is NOT being written to. Controls reflections from idle receivers." },
+        { label: "RTT_WR", text: "Termination activated during WRITE operations. Absorbs the incoming signal to prevent reflections back to the controller." },
+        { label: "RTT_PARK", text: "(DDR4/5 only) Persistent termination on non-target ranks. Critical for dual-rank DIMM designs." }
+      ],
+      alerts: [
+        { type: "warning", text: "ODT values are set in the BIOS/firmware Mode Register Set (MRS) commands. The PCB layout engineer cannot change ODT — but incorrect trace impedance will make any ODT setting ineffective. Always verify that your trace Z₀ matches the ODT target." },
+        { type: "info", text: "DDR5 uses PODL (Pseudo Open Drain Low-Side) signaling, which changes the termination scheme. The DRAM terminates to VSS (ground) instead of VDDQ. This means the return current path is through the ground plane, making ground plane integrity even more critical." }
       ]
     },
     {
@@ -157,7 +184,8 @@ export const content = {
       alerts: [
         { type: "danger", text: "CRITICAL: Data (DQ/DQS) signals are NOT routed in Fly-by topology. They are strictly Point-to-Point per byte lane to minimize loading and maximize speed." },
         { type: "info", text: "T-branch (Y-topology) is legacy. At DDR4/5 speeds, the impedance mismatch at the branch point creates multi-reflection noise that prevents high-speed boot." },
-        { type: "warning", text: "Expert Insight: Write Leveling. Fly-by topology creates an intentional skew where the clock (CK) arrives at each DRAM at a different time. The memory controller 'learns' these delays during the 'Write Leveling' phase of training, shifting the DQS strobes to compensate. This allows the layout engineer to focus on intra-byte matching rather than absolute length matching across the entire bus." }
+        { type: "warning", text: "Expert Insight: Write Leveling. Fly-by topology creates an intentional skew where the clock (CK) arrives at each DRAM at a different time. The memory controller 'learns' these delays during the 'Write Leveling' phase of training, shifting the DQS strobes to compensate. This allows the layout engineer to focus on intra-byte matching rather than absolute length matching across the entire bus." },
+        { type: "info", text: "Read Leveling (Read DQS Gate Training). While Write Leveling compensates for CK-to-DQS skew during writes, Read Leveling trains the controller to correctly capture the DQS strobe returning from each DRAM during reads. The controller learns the round-trip delay for each byte lane. Both trainings are mandatory for DDR4/5 and run automatically during every power-on (BIOS POST). Poor routing symmetry within a byte lane will cause training to fail or produce marginal results." }
       ],
       type: "flyby-topology-visual"
     },
@@ -181,7 +209,7 @@ export const content = {
     },
     {
       heading: "Power Integrity & Decoupling Hierarchy",
-      content: "VDDQ noise tolerance is ±22 mV for DDR5. A poorly designed PDN (Power Delivery Network) will cause intermittent memory errors that are impossible to find with standard DRCs.",
+      content: "VDDQ noise tolerance is ±22 mV for DDR5 (DC specification; the AC noise budget is tighter at high frequencies, typically ~15 mV). A poorly designed PDN (Power Delivery Network) will cause intermittent memory errors that are impossible to find with standard DRCs.",
       twoColumnGrid: [
         {
           badge: "Placement",
@@ -190,7 +218,7 @@ export const content = {
           items: [
             "Place caps on BOTTOM side directly under DRAM pins.",
             "Use VIP (Via-in-Pad) for lowest loop inductance.",
-            "100nF + 10nF + 1nF hierarchy per DRAM.",
+            "100nF + 10nF hierarchy minimum per DRAM. 1nF optional — verify Self-Resonant Frequency (SRF) vs. target frequency before adding.",
             "2 vias per capacitor pad to halve parasitic ESL."
           ]
         },
@@ -235,6 +263,99 @@ export const content = {
     },
 
     {
+      heading: "DRAM Placement Guidelines",
+      content: "Component placement determines 80% of your routing success. Poor DRAM placement cannot be fixed by clever routing — you must get placement right first.",
+      ruleCards: [
+        {
+          number: "01",
+          title: "Maximum Distance",
+          severity: "danger",
+          body: "Place all DRAMs within 1.5 inches (38 mm) of the memory controller BGA. Every additional inch adds ~170 ps of propagation delay and increases channel loss."
+        },
+        {
+          number: "02",
+          title: "Linear Alignment",
+          severity: "info",
+          body: "Align DRAMs in a clean straight line for Fly-by topology. Staggered or offset placement makes monotonic delay impossible and increases stub lengths."
+        },
+        {
+          number: "03",
+          title: "Orientation Consistency",
+          severity: "warning",
+          body: "Orient all DRAMs identically (same pin 1 corner direction). Mixed orientation doubles fanout complexity and creates asymmetric byte lane lengths."
+        }
+      ],
+      alerts: [
+        { type: "info", text: "DDR5 Sub-Channel Tip: DDR5 splits the 64-bit bus into two independent 32-bit sub-channels (Channel A and Channel B). Each sub-channel has its own CA (Command/Address) bus and independent timing. Place DRAMs so that each sub-channel's routing has a clean, isolated path — do not interleave sub-channel A and B routing." }
+      ]
+    },
+    {
+      heading: "Crosstalk Spacing Rules",
+      content: "Crosstalk occurs when electromagnetic fields from one trace couple into an adjacent trace. In DDR routing, crosstalk directly adds to timing jitter and reduces the eye opening.",
+      table: {
+        headers: ["Rule", "Spacing", "Application", "Consequence of Violation"],
+        rows: [
+          ["3W Rule (Intra-group)", "3× trace width", "DQ signals within same byte lane", "Tolerable coupling (~1% crosstalk)"],
+          ["5W Rule (Inter-group)", "5× trace width", "CK to DQ, DQ to ADDR/CMD", "Excessive coupling breaks timing"],
+          ["DQS Guard Band", "≥20 mil clearance", "DQS pair to any non-paired signal", "Jitter injection into strobe"],
+          ["CK Isolation", "5W or ground guard", "CK/CK# to all other DDR signals", "Clock jitter → system-wide failure"]
+        ]
+      },
+      alerts: [
+        { type: "warning", text: "The 3W rule means edge-to-edge spacing equals 2× trace width (total center-to-center = 3W). For a 4 mil trace: 3W = 12 mil center-to-center, or 8 mil gap. For DDR5, use 5W between different signal groups to prevent far-end crosstalk (FEXT)." },
+        { type: "info", text: "Practical Tip: If board space is tight, use a ground guard trace (grounded copper pour or a dedicated ground trace) between critical signal groups instead of increasing spacing. This provides >20 dB crosstalk isolation." }
+      ]
+    },
+    {
+      heading: "Via Stub Management & Back-Drilling",
+      content: "When a signal via passes through the entire board but connects on an inner layer, the unused portion below the connection point is called a 'stub.' At DDR5 frequencies, these stubs act as resonant antennas that create deep notches in the signal spectrum.",
+      twoColumnGrid: [
+        {
+          badge: "The Problem",
+          badgeClass: "tool-badge-altium",
+          title: "Stub Resonance",
+          items: [
+            "A via stub resonates at f = c / (4 × stub_length × √εr).",
+            "A 60 mil stub in FR4 resonates at ~12.5 GHz — directly in the DDR5 5th harmonic.",
+            "The resonance creates a 'notch' that kills the signal at that frequency.",
+            "Even 10 mil stubs can degrade margins at DDR5-6400."
+          ]
+        },
+        {
+          badge: "The Fix",
+          badgeClass: "tool-badge-cadence",
+          title: "Back-Drilling / Blind Vias",
+          items: [
+            "Back-drilling: Fab house drills out the unused stub portion after plating.",
+            "Blind vias: Only drill from surface to the target layer (no stub created).",
+            "Target residual stub length after back-drill: < 10 mil.",
+            "Specify back-drilling in fabrication notes for all DDR5 signal vias."
+          ]
+        }
+      ],
+      alerts: [
+        { type: "danger", text: "Back-drilling adds $0.5–$2 per board to fabrication cost but is mandatory for DDR5 designs with board thickness > 1.6 mm. The alternative is to use blind/buried vias, which cost even more but eliminate stubs entirely." }
+      ]
+    },
+    {
+      heading: "Layer Assignment Strategy",
+      content: "Assigning DDR signal groups to specific PCB layers is critical for maintaining isolation between groups and ensuring clean reference planes. A poor layer assignment creates crosstalk between byte lanes and ADDR/CMD groups.",
+      table: {
+        headers: ["Signal Group", "Recommended Layer Type", "Reference Plane", "Rationale"],
+        rows: [
+          ["CK / CK#", "Inner stripline (dedicated)", "GND above + GND below", "Maximum shielding for clock jitter"],
+          ["DQ / DQS (Byte Lanes)", "Inner stripline", "GND reference", "Balanced coupling, low crosstalk"],
+          ["ADDR / CMD", "Inner stripline or microstrip", "GND reference", "Separate from DQ for isolation"],
+          ["Power (VDDQ, VPP)", "Dedicated plane layers", "Adjacent to GND", "Low-impedance PDN"]
+        ]
+      },
+      list: [
+        { label: "Golden Rule", text: "Never route DQ and ADDR/CMD on the same layer. They have different timing domains and will cross-couple." },
+        { label: "Stripline vs Microstrip", text: "Stripline (inner layers) provides natural shielding between two reference planes. Microstrip (outer layer) is exposed and more susceptible to EMI and crosstalk. Use stripline for all DDR4/5 signals when possible." },
+        { label: "Layer Transitions", text: "If a signal must change layers, always place a GND stitching via within 20 mil of the signal via to provide return current continuity." }
+      ]
+    },
+    {
       heading: "DDR5 Power & Sideband Engineering",
       content: "DDR5 introduces the PMIC (Power Management IC) directly on the DIMM/PCB. This requires a dedicated focus on thermal management and I3C sideband signal integrity.",
       filletGrid: [
@@ -251,7 +372,7 @@ export const content = {
           title: "SPD Hub & I3C Sideband",
           color: "blue",
           list: [
-            { label: "Protocol", text: "Uses I3C (up to 12.5 MHz) for module identification." },
+            { label: "Protocol", text: "Uses I3C (typically 1 MHz for SPD Hub; max 12.5 MHz per MIPI spec) for module identification." },
             { label: "Isolation", text: "Separate I3C signals from high-speed DQ lanes by >50 mil." },
             { label: "Reference", text: "Always reference sideband signals to a continuous GND plane." }
           ]
@@ -267,13 +388,45 @@ export const content = {
       refLabel: "Open Fiber Weave Analyzer → Stackup Design",
       refDesc: "Interactive glass weave simulation and Dk variation calculators are canonically located in the Stackup Design module to ensure alignment with material laminate specifications.",
       alerts: [
-        { type: "warning", text: "If using standard FR4 (e.g., 7628 weave), you must rotate the entire DDR layout by 10° or use zig-zag routing to ensure both signals in a pair 'see' the same average Dk." }
+        { type: "warning", text: "If using standard FR4 (e.g., 7628 weave), mitigate fiber weave skew by specifying spread-glass weave (e.g., 1078 or 3313) from the fabricator. Alternative theoretical mitigations include rotating the DDR layout by 10° or using zig-zag routing, but spread-glass is the most practical production solution." }
       ]
     },
     {
       heading: "Interactive: DDR Timing Margin Calculator",
       content: "Quantify how much of your total timing window (UI) is consumed by physical PCB layout choices. Enter your design parameters below to see the impact.",
       type: "ddr-timing-calculator"
+    },
+    {
+      heading: "IBIS/IBIS-AMI Simulation Guidance",
+      content: "IBIS (Input/Output Buffer Information Specification) models describe the electrical behavior of IC pins. IBIS-AMI extends this with algorithmic modeling for DDR4/5 equalization. Pre-layout simulation catches 90% of SI issues before a single trace is routed.",
+      twoColumnGrid: [
+        {
+          badge: "Pre-Layout",
+          badgeClass: "tool-badge-altium",
+          title: "What to Simulate",
+          items: [
+            "Verify channel loss: total insertion loss must be < 5 dB at Nyquist frequency.",
+            "Validate impedance matching: IBIS model drive impedance vs. trace Z₀ vs. ODT.",
+            "Check eye diagram: Eye Height > 200 mV and Eye Width > 0.3 UI at the receiver.",
+            "Simulate worst-case crosstalk: aggressor pattern PRBS-7 on all adjacent lanes."
+          ]
+        },
+        {
+          badge: "Post-Layout",
+          badgeClass: "tool-badge-cadence",
+          title: "Verification Checklist",
+          items: [
+            "Extract S-parameters from routed PCB using 3D field solver (Ansys HFSS, Simbeor).",
+            "Run IBIS-AMI simulation with extracted channel model to validate eye opening.",
+            "Verify that write/read leveling training window is > 25% of UI.",
+            "Document simulation results in the JEDEC compliance report."
+          ]
+        }
+      ],
+      alerts: [
+        { type: "info", text: "Where to get IBIS models: Download from the semiconductor vendor's website (e.g., Intel, AMD, Micron, Samsung). Look for the exact part number. IBIS models are free but may require NDA access for the AMI extensions used in DDR5." },
+        { type: "warning", text: "IBIS models have limitations: they are behavioral (not transistor-level) and may not capture all parasitic effects. For production sign-off on DDR5-6400+, consider requesting SPICE-level models from the vendor or running silicon-correlated simulations." }
+      ]
     },
     {
       heading: "CAD Tool Implementation Tips",
