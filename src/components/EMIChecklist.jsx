@@ -19,10 +19,10 @@ const EMIChecklist = () => {
       id: "grounding",
       title: "2. Grounding & Referencing",
       items: [
-        { id: "unified_gnd", text: "Use a single, unified ground plane (avoid separate 'analog' and 'digital' grounds).", severity: "critical" },
+        { id: "unified_gnd", text: "Use a single, unified ground plane for high-speed digital paths.", severity: "critical" },
         { id: "stitching", text: "Place GND stitching vias at every layer transition for high-speed signals.", severity: "high" },
-        { id: "edge_keepout", text: "Maintain 20H edge-to-plane keepout to minimize fringing fields.", severity: "medium" },
-        { id: "chassis_gnd", text: "Clear separation between chassis ground and signal ground at the I/O.", severity: "high" }
+        { id: "edge_keepout", text: "Use edge-guard via stitching (spaced < λ/20) at board periphery instead of the outdated 20H rule.", severity: "medium" },
+        { id: "topology", text: "Define clear grounding topologies (star, multi-point, hybrid) based on operating frequencies.", severity: "high" }
       ]
     },
     {
@@ -31,17 +31,24 @@ const EMIChecklist = () => {
       items: [
         { id: "connector_shield", text: "Use 360° circular termination for cable shields (avoid pigtails).", severity: "critical" },
         { id: "can_mounting", text: "Include GND pads for RF shields / Faraday cages around sensitive circuits.", severity: "medium" },
-        { id: "slot_antenna", text: "Avoid long slots in ground planes that act as resonant antennas.", severity: "high" }
+        { id: "slot_antenna", text: "Avoid long slots in ground planes or enclosures that act as resonant antennas.", severity: "high" }
       ]
     },
     {
       id: "filtering",
       title: "4. Filtering & Suppression",
       items: [
-        { id: "decoupling", text: "Multi-tier decoupling (100nF, 10nF, 1nF) closest to IC power pins.", severity: "high" },
-        { id: "ferrite_beads", text: "Add ferrite beads on all I/O lines crossing the board boundary.", severity: "high" },
-        { id: "cm_choke", text: "Include common-mode chokes on differential power/data lines (USB, Ethernet).", severity: "high" },
-        { id: "esd_protection", text: "TVS diodes placed at the very entry point of the connector.", severity: "critical" }
+        { id: "decoupling", text: "Multi-tier decoupling closest to IC power pins to keep HF noise off the PDN.", severity: "high" },
+        { id: "conducted_pi", text: "Design robust Pi-filters and Common-Mode chokes for AC mains (LISN compliance).", severity: "critical" },
+        { id: "esd_protection", text: "TVS diodes placed at the very entry point of the connector with direct discharge paths to chassis.", severity: "critical" }
+      ]
+    },
+    {
+      id: "pre_compliance",
+      title: "5. Pre-Compliance Testing",
+      items: [
+        { id: "near_field", text: "Use near-field magnetic probes to sniff SMPS inductors and IC packages.", severity: "medium" },
+        { id: "cable_cm", text: "Measure common-mode current on external cables using an RF current clamp.", severity: "high" }
       ]
     }
   ];
@@ -114,11 +121,11 @@ const EMIChecklist = () => {
           <div style={{ color: '#F59E0B' }}><TriangleAlert size={20} /></div>
           <div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600 }}>Regulatory Compliance Warning</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Failing 'Critical' items typically results in &gt;10dB overshoot in CISPR testing.</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Failing 'Critical' items drastically increases the risk of radiated or conducted emission failures.</div>
           </div>
         </div>
         <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--border-light)' }}>
-          J-STD-001 Compliant Audit
+          IPC-D-317A / CISPR 32 Compliant Audit
         </div>
       </div>
     </div>
