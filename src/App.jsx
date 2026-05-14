@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 import OnboardingModal from './components/OnboardingModal';
 import AIBot from './components/AIBot';
@@ -121,6 +122,7 @@ function App() {
                   <Route path="/module/:id" element={<ContentViewer />} />
                 </Routes>
               </Suspense>
+              <Footer />
             </main>
           </div>
           {/* Mobile Overlay */}
