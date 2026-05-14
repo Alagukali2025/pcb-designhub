@@ -5,7 +5,7 @@ export const content = {
       heading: "IPC-7351 Land Pattern Methodology",
       standard: {
         title: "IPC-7351B (2010)",
-        note: "⚠️ Superseded by IPC-7352 (2022) for modern land pattern modeling."
+        note: "⚠️ IPC-7351B remains the calculation standard. IPC-7352 (2022) governs naming conventions and component-family mapping."
       },
       content: "IPC-7351B defines a mathematical framework for calculating copper land patterns based on component body dimensions, lead dimensions, and assembly class. The standard introduces three density levels:",
       table: {
@@ -24,7 +24,7 @@ export const content = {
       heading: "Land Pattern Calculation — Core Equations",
       standard: {
         title: "IPC-7351B (2010)",
-        note: "⚠️ Industry transition to IPC-7352 (2022) for proportional pad modeling."
+        note: "⚠️ IPC-7351B remains the calculation standard. IPC-7352 (2022) governs naming conventions and component-family mapping."
       },
       content: "IPC-7351B defines land dimensions through three dimensional extensions. All variables carry tolerance bands from the component datasheet.",
       formula: {
@@ -49,9 +49,9 @@ export const content = {
       heading: "Interactive Land Pattern Solver",
       standard: {
         title: "IPC-7351B (2010)",
-        note: "⚠️ Note: IPC-7351C draft concepts merged into IPC-7352 (2022)."
+        note: "⚠️ IPC-7351B remains the calculation standard. IPC-7352 (2022) governs naming conventions and component-family mapping."
       },
-      content: "A 'Land Pattern' is the copper shape on your board where the component's legs will be soldered. This solver ensures those shapes are perfectly sized so the solder can flow correctly without causing short circuits.",
+      content: "A 'Land Pattern' is the copper shape on your board where the component's legs will be soldered. This solver ensures pad geometry provides correct fillet goals (Jt/Jh/Js) per density class.",
       list: [
         { label: "The Footprint", text: "Designing the copper pads to match the component's physical legs." },
         { label: "Density Levels", text: "Choosing between 'Most Material' (safe/large) and 'Least Material' (tight/small)." },
@@ -165,7 +165,7 @@ export const content = {
       content: "When datasheet recommendations conflict with IPC calculations:",
       list: [
         { label: "Step 1", text: "Document both values explicitly with full traceability." },
-        { label: "Step 2", text: "Back-calculate manufacturer density level to identify discrepancy." },
+        { label: "Step 2", text: "Back-calculate manufacturer density level to identify discrepancy (e.g., did they use Density C parameters instead of Density B?)." },
         { label: "Step 3", text: "Apply project-mandated density level (usually B)." },
         { label: "Step 4", text: "Flag deviations >15% for engineering review before release." }
       ]
@@ -177,9 +177,9 @@ export const content = {
         headers: ["Constraint", "Min Value", "Standard", "Risk"],
         rows: [
           ["Min pad width", "0.20 mm (7.9 mil)", "CM Capability", "Trace definition failure"],
-          ["Min pad-to-pad gap", "0.15 mm (5.9 mil)", "IPC-2221A", "Solder bridging"],
-          ["Min annular ring", "0.05 mm (1.97 mil)", "IPC-2221A", "Breakout / Open circuit"],
-          ["Min drill size", "0.20 mm (7.9 mil)", "IPC-2221A", "Drill breakage"]
+          ["Min pad-to-pad gap", "0.15 mm (5.9 mil)", "IPC-2221B", "Solder bridging"],
+          ["Min annular ring", "0.05mm(C1), 0.13mm(C2), 0.20mm(C3)", "IPC-2221B", "Breakout / Open circuit / Fab Failure"],
+          ["Min drill size", "0.20 mm (7.9 mil)", "IPC-2221B", "Drill breakage"]
         ]
       }
     },
@@ -261,7 +261,7 @@ export const content = {
       table: {
         headers: ["Feature", "Class 1 (General)", "Class 2 (Dedicated)", "Class 3 (High Performance)"],
         rows: [
-          ["Min Toe Fillet Height", "Lead thickness + wetting", "Lead thickness + wetting", "Lead thickness + 25% Lead Thickness"],
+          ["Min Toe Fillet Height", "25% lead thickness, min detectable", "Lead thickness + wetting", "Lead thickness + 25% Lead Thickness"],
           ["Min Side Fillet Width", "Not specified", "50% Lead Width", "75% Lead Width"],
           ["Max Lead Overhang", "50% Lead Width", "50% Lead Width", "25% Lead Width (max 0.5mm)"],
           ["Wetting Angle", "≤ 90° (Target)", "≤ 90° (Required)", "≤ 90° (Critical)"]
@@ -273,11 +273,79 @@ export const content = {
     },
     {
       heading: "The Courtyard & Keepout (Symmetry)",
-      content: "A professional footprint requires a defined Courtyard — the area encompassing the component body and pads, plus a safety buffer for assembly pick-and-place tolerances."
+      content: "A professional footprint requires a defined Courtyard — the area encompassing the component body and pads, plus a safety buffer for assembly pick-and-place tolerances.",
+      table: {
+        headers: ["Density Level", "Courtyard Excess", "Application Notes"],
+        rows: [
+          ["A (Most Material)", "0.50 mm (19.7 mil)", "Large buffer for hand-assembly / heavy rework"],
+          { type: 'highlight', data: ["B (Nominal)", "0.25 mm (9.8 mil)", "Standard CM tolerance for pick-and-place"] },
+          ["C (Least Material)", "0.10 mm (3.9 mil)", "High-density mobile/HDI (requires precise CM capability)"]
+        ]
+      },
+      alerts: [
+        { type: 'info', text: "The Courtyard must be a closed polygon on its dedicated layer (e.g., Place_Bound_Top) to allow the EDA tool to perform reliable Component Clearance DRC checks." }
+      ]
     },
     {
-      heading: "Advanced Footprint Engineering (BGA/QFN)",
-      content: "High-pin-count and exposed-pad components require specialized landing strategies. Inadequate thermal via design or stencil apertures can result in 100% rework rates."
+      heading: "Advanced Footprint Engineering: BGA & QFN",
+      content: "High-pin-count and exposed-pad components require specialized landing strategies. Inadequate thermal via design or stencil apertures can result in 100% rework rates.",
+      ruleCards: [
+        {
+          number: "01",
+          title: "BGA Pad Definition: NSMD vs SMD",
+          severity: "warning",
+          body: "For fine-pitch BGAs (≤ 0.5mm), use Non-Solder-Mask-Defined (NSMD) pads. The mask opening must be larger than the copper pad (typically +0.05mm radius), exposing the pad side-walls for stronger solder ball adhesion."
+        },
+        {
+          number: "02",
+          title: "QFN Thermal Vias (IPC-7093A)",
+          severity: "danger",
+          body: "Exposed pads must have thermal vias (1.2mm pitch, 0.2-0.3mm drill). Vias MUST be plugged/capped (IPC-4761 Type VII) or tented on the bottom to prevent solder wicking from the pad, causing QFN float/voiding."
+        },
+        {
+          number: "03",
+          title: "QFN Paste Mask Aperture",
+          severity: "warning",
+          body: "Never apply 100% paste coverage to a large QFN thermal pad. Break the paste mask into a grid/window-pane pattern to achieve 50% to 80% volumetric coverage. Full coverage causes the IC to float and tilt during reflow."
+        }
+      ]
+    },
+    {
+      heading: "Through-Hole Footprint Rules (IPC-2222)",
+      content: "Through-hole (TH) components require precise calculation of the finished hole size (FHS) and annular ring to guarantee solder fill and mechanical stability.",
+      list: [
+        { label: "Hole Size Calculation", text: "FHS = Maximum Lead Diameter + Clearance. Standard clearance is 0.20mm (8 mil) for Level B, or 0.25mm (10 mil) for Level A." },
+        { label: "Plating Tolerance", text: "Always specify the hole size as Finished Hole Size. The fabricator will drill slightly larger to accommodate the ~1 mil (25 µm) of copper barrel plating." },
+        { label: "Annular Ring Classes", text: "The pad diameter must guarantee a minimum annular ring after drill wander. Class 2 requires ≥ 0.13mm (5 mil); Class 3 requires ≥ 0.20mm (8 mil)." }
+      ]
+    },
+    {
+      heading: "Fiducial Mark Requirements (IPC-7351B)",
+      content: "Fiducials provide optical registration points for automated pick-and-place vision systems. Both global (panel) and local (component) fiducials are required.",
+      table: {
+        headers: ["Fiducial Type", "Copper Diameter", "Mask Clearance", "Placement Rule"],
+        rows: [
+          ["Global (Board/Panel)", "1.0 mm (40 mil)", "2.0 mm (80 mil)", "3 points in an L-shape on corners"],
+          { type: 'highlight', data: ["Local (Component)", "1.0 mm (40 mil)", "2.0 mm (80 mil)", "2 points diagonally across fine-pitch ICs"] }
+        ]
+      },
+      alerts: [
+        { type: 'info', text: "Local fiducials are mandatory for any QFP or BGA with a pitch of 0.5mm or smaller. Do not place silkscreen or traces inside the mask clearance zone." }
+      ]
+    },
+    {
+      heading: "Step-by-Step: KiCad",
+      content: "Standard workflow for creating a footprint in KiCad's Footprint Editor:",
+      list: [
+        "File → New Footprint and set footprint name/type.",
+        "Add pads using the 'Add a pad' tool. Edit pad properties for dimensions (IPC calculated) and shape.",
+        "Draw component body on F.Fab (Fabrication) layer at exact datasheet nominal dimensions.",
+        "Draw silkscreen outline on F.Silkscreen, offset outwards by at least 0.10mm from pads.",
+        "Draw a closed polygon on F.Courtyard using the IPC density boundary clearance.",
+        "Set Footprint Anchor (Origin) to the component centroid.",
+        "Link the 3D model (.step) in Footprint Properties → 3D Models.",
+        "Run the Footprint Checker (DRC) to verify pad clearances and courtyard integrity."
+      ]
     }
   ],
   checklists: [

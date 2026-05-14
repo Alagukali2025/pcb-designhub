@@ -98,6 +98,55 @@ export const content = {
       ]
     },
     {
+      heading: "Creepage vs. Clearance — Design Decision",
+      content: "Clearance and creepage address different failure modes: Air breakdown vs. Surface tracking. This determines safe spacing between high-voltage nets.",
+      filletGrid: [
+        {
+          title: "Clearance (Air)",
+          color: "blue",
+          list: [
+            { label: "Definition", text: "Shortest distance through air." },
+            { label: "Failure", text: "Arc discharge / flashover." },
+            { label: "Standard", text: "IPC-2221B Table 6-1." }
+          ]
+        },
+        {
+          title: "Creepage (Surface)",
+          color: "orange",
+          list: [
+            { label: "Definition", text: "Shortest distance along surface." },
+            { label: "Failure", text: "Surface tracking." },
+            { label: "Standard", text: "IEC 62368-1." }
+          ]
+        }
+      ]
+    },
+    {
+      heading: "Electrical Clearance & Creepage (IPC-2221B)",
+      standard: {
+        title: "IPC-2221B (2012)",
+        note: "⚠️ Note: High-voltage creepage is also governed by IEC 62368-1."
+      },
+      content: "Minimum conductor spacing is determined by the working voltage difference between conductors and the operating environment. IPC-2221B Table 6-1 defines clearance (through air) while creepage (along surfaces) is governed by pollution degree per IEC 62368-1.",
+      table: {
+        headers: ["Voltage (DC/AC Peak)", "B1 — Internal (mil)", "B2 — Ext. Uncoated (mil)", "B3 — Coated (mil)", "B4 — >3050m Alt. (mil)"],
+        rows: [
+          ["0–15 V", "2.0", "4.0", "0.8", "4.0"],
+          ["16–30 V", "2.0", "4.0", "0.8", "4.0"],
+          ["31–50 V", "4.0", "8.0", "1.5", "8.0"],
+          ["51–100 V", "4.0", "8.0", "2.0", "8.0"],
+          { type: 'highlight', data: ["101–150 V", "8.0", "16.0", "4.0", "16.0"] },
+          ["151–170 V", "8.0", "20.0", "4.0", "20.0"],
+          ["171–250 V", "8.0", "30.0", "4.0", "30.0"],
+          ["251–500 V", "16.0", "60.0", "8.0", "60.0"]
+        ]
+      },
+      alerts: [
+        { type: 'warning', text: "These values are for IPC-2221B. Safety-critical products (mains, medical, automotive) MUST also comply with IEC 62368-1/60950 requirements." },
+        { type: 'info', text: "B1 = Internal. B2 = External (std). B3 = Coated. B4 = High-altitude derating (>3050m)." }
+      ]
+    },
+    {
       heading: "Assembly & Thermal Profiles (J-STD-020 MSL)",
       standard: {
         title: "IPC/JEDEC J-STD-020F",
