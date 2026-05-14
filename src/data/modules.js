@@ -6,7 +6,8 @@ import {
   Cpu, 
   ShieldAlert, 
   Factory, 
-  Thermometer 
+  Thermometer,
+  Layers
 } from 'lucide-react';
 
 export const modulesData = [
@@ -42,6 +43,12 @@ export const modulesData = [
       "Interactive Layer Stackup Generator",
       "Standard 8-Layer PCB Construction",
       "Core vs. Foil Construction",
+      "Flex PCB Fundamentals (IPC-2223D)",
+      "Flex DFM — Bending Radius & Routing Rules",
+      "Rigid-Flex Architecture (IPC-2223D)",
+      "HDI Fundamentals — IPC-2226 Type Definitions",
+      "HDI Microvia Design Rules",
+      "HDI Material Selection",
       "Copper Balancing for Lamination Quality",
       "Routing Topologies & Impedance Control",
       "Universal Impedance Solver",
@@ -155,6 +162,24 @@ export const modulesData = [
       "Simulation & Validation Pipeline"
     ],
     loadContent: () => import('./modules/si_pi.js')
+  },
+  { 
+    id: "flex_hdi_routing", 
+    icon: Layers,    
+    title: "Advanced Flex & HDI Routing",   
+    desc: "Master fine-pitch BGA escape strategies and dynamic flex layout rules.",
+    prerequisites: ['stackup', 'high_speed'],
+    sections: [
+      "Flex Routing: The 'No 90°' Rule",
+      "Teardrops: Preventing Pad Fractures",
+      "Cross-Hatched Planes vs. Solid Copper",
+      "The 'I-Beam' Avoidance Strategy",
+      "HDI: Fine-Pitch BGA Breakout",
+      "Via-in-Pad (VIP) vs. Dog-Bone Routing",
+      "Trace Neck-Downs",
+      "Plane Voiding & Return Paths"
+    ],
+    loadContent: () => import('./modules/flex_hdi_routing.js')
   },
   { 
     id: "emi_emc",    

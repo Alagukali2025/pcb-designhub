@@ -32,7 +32,7 @@ export default function Dashboard() {
   const phaseToModules = {
     'Library': ['footprint'],
     'Stackup': ['stackup', 'thermal'],
-    'Routing': ['high_speed', 'diff_pair', 'ddr', 'si_pi'],
+    'Routing': ['high_speed', 'diff_pair', 'ddr', 'si_pi', 'flex_hdi_routing'],
     'DFM': ['emi_emc', 'dfm_dft'],
     'Output': ['pcb_output_system']
   };

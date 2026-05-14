@@ -139,6 +139,94 @@ export const content = {
       }
     },
     {
+      heading: "Flex PCB Fundamentals (IPC-2223D)",
+      standard: {
+        title: "IPC-2223D",
+        note: "✅ Standard for Flexible/Rigid-Flex PWBs."
+      },
+      content: "Flexible PCBs replace rigid FR4 with dynamic materials like Polyimide (PI). Understanding adhesive vs. adhesiveless construction and the use of Coverlays (instead of Solder Mask) is critical for reliable flex design.",
+      table: {
+        headers: ["Material", "Thickness Range", "Dk (@1GHz)", "Application"],
+        rows: [
+          ["Kapton (PI)", "12.5–125 µm", "3.4", "Standard flex base, high temp"],
+          ["UPILEX (PI)", "12.5–75 µm", "3.5", "High-temp/aerospace, stiff"],
+          ["PET", "25–125 µm", "3.2", "Low-cost consumer, non-reflow"],
+          ["LCP", "25–100 µm", "2.9", "RF/mmWave flex, extreme SI"]
+        ]
+      },
+      alerts: [
+        { type: 'info', text: "Adhesiveless PI is preferred over Adhesive-based PI for high-speed signals because the acrylic adhesive has poor loss characteristics." },
+        { type: 'warning', text: "Flex boards use Coverlay (polyimide film + adhesive) instead of liquid photoimageable (LPI) solder mask. Solder mask is brittle and will crack under dynamic bending." }
+      ]
+    },
+    {
+      heading: "Flex DFM — Bending Radius & Routing Rules",
+      content: "The physical mechanics of bending dictate specific routing rules to prevent copper fracturing. The most critical failure mode in flex design is the 'I-Beam' effect, where stacking traces on top of each other creates massive stress concentrations.",
+      table: {
+        headers: ["Rule", "Static Flex (Bend-to-Install)", "Dynamic Flex (Continuous Bend)"],
+        rows: [
+          ["Min. Bend Radius", "6× board thickness", "10× board thickness"],
+          ["Copper Type", "ED (Electrodeposited) or RA", "RA (Rolled Annealed) ONLY"],
+          ["Via Placement", "≥ 2× bend radius from fold", "Not permitted in flex zone"],
+          ["Trace Direction", "Perpendicular to fold preferred", "Must be perfectly perpendicular"]
+        ]
+      },
+      alerts: [
+        { type: 'danger', text: "The I-Beam Effect: Never route traces directly on top of each other on adjacent flex layers. You must stagger them. Stacked traces act like an I-Beam, resisting bend and causing the outer trace to snap." }
+      ]
+    },
+    {
+      heading: "Rigid-Flex Architecture (IPC-2223D)",
+      content: "Rigid-Flex designs integrate standard rigid zones with flexible zones in a single monolithic board. The transition zone, where the flex layers 'stub out' into the rigid section, requires precise material overlap definitions.",
+      list: [
+        { label: "The Stub-Out Architecture", text: "A rigid-flex board might have 8 layers in the rigid zone, but only layers 4 and 5 extend across the flex zone." },
+        { label: "Coverlay Boundary Rule", text: "The flexible Coverlay MUST extend at least 1mm (40 mil) inside the rigid zone. It cannot end exactly at the rigid boundary, or the transition will fracture." },
+        { label: "Transition Zone", text: "The area where rigid materials end and flex begins. Absolutely no vias, component pads, or solid copper planes are permitted in this zone." }
+      ]
+    },
+    {
+      heading: "HDI Fundamentals — IPC-2226 Type Definitions",
+      standard: {
+        title: "IPC-2226",
+        note: "✅ Standard for High-Density Interconnect (HDI) PWBs."
+      },
+      content: "HDI (High-Density Interconnect) relies on laser-drilled microvias (≤ 150µm) and sequential lamination cycles to achieve massive routing density. HDI architecture is categorized by IPC-2226 Types.",
+      table: {
+        headers: ["IPC-2226 Type", "Structure", "Min. Drill Size", "Sequential Lam Cycles", "Application"],
+        rows: [
+          ["Type I (1+N+1)", "1 blind via layer + N through + 1", "150 µm", "1", "Consumer BGA, cost-effective"],
+          ["Type II (1+N+1 w/ buried)", "Type I + buried vias in core", "150 µm", "2", "Mid-range mobile, dense routing"],
+          ["Type III (2+N+2)", "2 blind via layers each side", "100 µm", "2", "High-density compute, tight pitch"],
+          ["Type IV (ELIC)", "Every Layer Interconnect", "75–100 µm", "N-1", "Advanced packaging, smartphones"]
+        ]
+      }
+    },
+    {
+      heading: "HDI Microvia Design Rules",
+      content: "Microvia design is fundamentally different from mechanical through-hole design. Laser physics dictate depth limits, and component pitch forces specific pad geometries.",
+      list: [
+        { label: "Aspect Ratio Limit (1:1)", text: "Unlike mechanical vias (10:1 ratio), laser-drilled microvias cannot exceed a 1:1 depth-to-diameter ratio. A 100µm microvia can only penetrate 100µm deep (typically 1 dielectric layer)." },
+        { label: "Stacked vs. Staggered", text: "Staggered microvias offset from layer to layer, providing high reliability. Stacked microvias (aligned vertically) save space but MUST be solid copper-filled to prevent failure during reflow." },
+        { label: "Via-in-Pad (VIP)", text: "Mandatory for BGA pitches ≤ 0.5 mm. The via is placed directly inside the BGA pad, then copper-filled and planarized flat so solder paste does not wick down the hole." }
+      ],
+      alerts: [
+        { type: 'info', text: "Via filling types are defined by IPC-4761. Via-in-Pad typically requires IPC-4761 Type VII (Filled and Capped) to ensure a perfectly flat, solderable pad." }
+      ]
+    },
+    {
+      heading: "HDI Material Selection",
+      content: "HDI requires specialized laminates. The Prepreg layers must have Low Resin Content to remain dimensionally stable, and cores must be laser-drillable (without thick glass weave blocking the laser).",
+      table: {
+        headers: ["Material", "Dk (@10GHz)", "Df (@10GHz)", "Key Property", "HDI Application"],
+        rows: [
+          ["Panasonic R-1566W", "3.80", "0.0080", "Laser-drillable, halogen-free", "Standard HDI / any build-up"],
+          ["Isola I-Tera MT40", "3.45", "0.0040", "Ultra-low loss, laser-drillable", "HDI high-speed networking"],
+          ["Shengyi S1000-2M", "4.00", "0.0150", "Cost-effective, drillable", "Consumer electronics HDI"],
+          { type: 'highlight', data: ["Megtron 7", "3.37", "0.0020", "Extreme SI, laser drillable", "Server/AI ELIC architecture"] }
+        ]
+      }
+    },
+    {
       heading: "Copper Balancing for Lamination Quality",
       content: "Resin starvation occurs during the lamination press cycle if one side of the board has significantly higher copper density than the other, leading to board warpage (bow and twist).",
       list: [
@@ -308,9 +396,13 @@ export const content = {
         rows: [
           ["IPC-2221B", "Generic PWB Design", "Electrical clearances, via aspect ratios"],
           ["IPC-2222", "Sectional Standard for Rigid", "Rigid organic board requirements"],
+          { type: 'highlight', data: ["IPC-2223D", "Flex/Rigid-Flex Design", "Bending radius, coverlay, transition rules"] },
+          { type: 'highlight', data: ["IPC-2226", "HDI Design Standard", "Microvia types, sequential lam rules"] },
           ["IPC-4101C", "Rigid Base Materials", "/21 (Std FR4), /24 (High-Tg), /99 (Halogen-Free)"],
           ["IPC-4562A", "Metal Foil Standard", "ED, RA, and VLP copper foil specifications"],
+          { type: 'highlight', data: ["IPC-4761", "Via Protection", "Via fill/cap designation system (e.g. Type VII)"] },
           ["IPC-6012E", "Qualification & Perf.", "Acceptance criteria (Bow/Twist <0.75%)"],
+          { type: 'highlight', data: ["IPC-6013", "Flex Qualification", "Acceptance criteria for flex/rigid-flex PWBs"] },
           ["IPC-1601A", "Handling & Storage", "Mandatory bake-out (125°C) to prevent delamination"]
         ]
       }
@@ -370,6 +462,26 @@ export const content = {
         "Microvia stack/stagger rules follow IPC-2226.",
         "Export format selected: IPC-2581 or ODB++ for stackup parity.",
         "Fabricator confirmation for High-Tg lamination sequence."
+      ]
+    },
+    {
+      category: "5. Flex / Rigid-Flex Design",
+      items: [
+        "Coverlay boundaries extend ≥ 1mm into rigid zone.",
+        "Bend radius confirmed: ≥ 10× thickness (dynamic), ≥ 6× (static).",
+        "Rolled Annealed (RA) copper specified for dynamic flex zones.",
+        "No vias, fills, or cuts placed within the flex transition zone.",
+        "IPC-2223D Class (1/2/3) documented on FAB drawing."
+      ]
+    },
+    {
+      category: "6. HDI Design",
+      items: [
+        "IPC-2226 Type (I/II/III/IV-ELIC) defined and documented.",
+        "Microvia aspect ratio confirmed ≤ 1:1 (laser drill).",
+        "Via-in-Pad (VIP) copper-filled and planarized where pitch ≤ 0.5 mm.",
+        "Stacked vs. staggered microvia strategy documented per class requirement.",
+        "Sequential lamination cycle count confirmed with fabricator."
       ]
     }
   ]
