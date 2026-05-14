@@ -3,7 +3,7 @@ import { Home, ShieldCheck, LayoutGrid } from 'lucide-react';
 import { modulesData } from '../data/modules';
 import { useAuth } from '../context/AuthContext';
 
-export default function Sidebar({ isOpen }) {
+export default function Sidebar({ isOpen, toggleSidebar }) {
   const location = useLocation();
   const { userData } = useAuth();
 

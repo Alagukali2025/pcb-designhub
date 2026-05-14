@@ -82,6 +82,13 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Auto-close sidebar on mobile when location changes (topic clicked)
+  useEffect(() => {
+    if (window.innerWidth <= 1024) {
+      setIsSidebarOpen(false);
+    }
+  }, [location]);
+
   // Handled via Profile Dashboard voluntarily now
 
   const toggleTheme = () => {
