@@ -33,6 +33,7 @@ const ThermalHeatFluxVisualizer = lazy(() => import('./ThermalHeatFluxVisualizer
 const ReturnPathVisualizer = lazy(() => import('./ReturnPathVisualizer'));
 const ViaStubVisualizer = lazy(() => import('./ViaStubVisualizer'));
 const FlybyTopologyVisualizer = lazy(() => import('./FlybyTopologyVisualizer'));
+const BendRadiusCalculator = lazy(() => import('./BendRadiusCalculator'));
 
 // Tool Loading Fallback (Sleek placeholder)
 const ToolFallback = ({ name }) => (
@@ -291,7 +292,8 @@ export default function ContentViewer() {
     'thermal-heat-flux': () => <ThermalHeatFluxVisualizer />,
     'return-path-visual': () => <ReturnPathVisualizer />,
     'via-stub-visual': () => <ViaStubVisualizer />,
-    'flyby-topology-visual': () => <FlybyTopologyVisualizer />
+    'flyby-topology-visual': () => <FlybyTopologyVisualizer />,
+    'bend-radius-calc': () => <BendRadiusCalculator />
   };
 
   return (
