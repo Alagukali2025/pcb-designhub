@@ -53,6 +53,9 @@ export default function DFMRuleChecker() {
   const [topCopper, setTopCopper] = useState(60); // %
   const [padDia, setPadDia]       = useState(0.5); // mm
   const [isManualTrace, setIsManualTrace] = useState(false);
+  const [apertureWidth, setApertureWidth] = useState(0.25); // mm
+  const [apertureLength, setApertureLength] = useState(1.0); // mm
+  const [stencilThickness, setStencilThickness] = useState(0.12); // mm
 
   // 2. SSOT Synchronizers
   useEffect(() => {
@@ -104,30 +107,31 @@ export default function DFMRuleChecker() {
     ? `Moderate imbalance. Consider thieving for Class ${activeStackup.ipcClass} flatness.`
     : `Copper balance satisfies IPC-6012E requirements.`;
 
-  // ─── Rule 4: High-Speed Coupling ─────────────────────────
-  const shRatio = activeStackup.height > 0 ? activeStackup.spacing / activeStackup.height : 0;
-  const cpLimit = activeStackup.ipcClass === 3 ? 2.5 : 3.0;
-  const cpStatus = shRatio > cpLimit ? 'alert' : shRatio < 1 ? 'pass' : 'warn';
-  const cpMessage = shRatio > cpLimit
-    ? `LOOSE COUPLING. Crosstalk risk for Class ${activeStackup.ipcClass} High-Speed protocols.`
-    : shRatio < 1 ? `TIGHT COUPLING. Optimal SI and EMI suppression.` : `MODERATE COUPLING. Verify crosstalk margins.`;
+  // ─── Rule 4: Solder Paste Stencil Area Ratio (IPC-7525) ─────────────────────────
+  const areaRatio = stencilThickness > 0 ? (apertureWidth * apertureLength) / (2 * (apertureWidth + apertureLength) * stencilThickness) : 0;
+  const arStencilStatus = areaRatio >= 0.66 ? 'pass' : areaRatio >= 0.55 ? 'warn' : 'fail';
+  const arStencilMessage = areaRatio < 0.66
+    ? `POOR PASTE RELEASE. Area Ratio ${areaRatio.toFixed(2)} is below the 0.66 IPC-7525 minimum limit. Paste will stick in the aperture.`
+    : `OPTIMAL PASTE RELEASE. Area Ratio ${areaRatio.toFixed(2)} ensures consistent solder volume.`;
 
   // ─── Rule 5: Annular Ring ───────────────────────────────
   const annularRing = (padDia - drill) / 2;
   // IPC-2221B Table 9-2: Min annular ring (external layers)
   // Class 1: 0.05mm (breakout allowed), Class 2: 0.05mm (limited breakout), Class 3: 0.05mm (NO breakout — zero tolerance)
   // IPC-6012E preferred: 0.10mm for Class 3 reliability
-  const ringLimit = activeStackup.ipcClass === 3 ? 0.075 : 0.05; 
-  const ringLimitMil = (ringLimit * 39.3701).toFixed(1);
+  const ringTarget = activeStackup.ipcClass === 3 ? 0.10 : 0.05; 
+  const ringTargetMil = (ringTarget * 39.3701).toFixed(1);
   const annularRingMil = (annularRing * 39.3701).toFixed(2);
-  const ringStatus = annularRing < ringLimit ? 'fail' : annularRing < ringLimit + 0.05 ? 'warn' : 'pass';
-  const ringMessage = annularRing < ringLimit
-    ? `CRITICAL ANNULAR RING. Breakout risk. IPC Class ${activeStackup.ipcClass} requires min ${ringLimit}mm (${ringLimitMil} mil).${activeStackup.ipcClass === 3 ? ' Zero breakout allowed for Class 3 — IPC-6012E recommends 0.10mm.' : ''}`
-    : `Annular ring satisfies IPC Class ${activeStackup.ipcClass} minimums.${activeStackup.ipcClass === 3 ? ' Note: Class 3 permits zero breakout (IPC-6012E).' : ''}`;
+  const ringStatus = annularRing < 0.05 ? 'fail' : annularRing < ringTarget ? 'warn' : 'pass';
+  const ringMessage = annularRing < 0.05
+    ? `CRITICAL ANNULAR RING. Breakout risk. IPC requires absolute min 0.05mm (2 mil).`
+    : annularRing < ringTarget
+    ? `Marginal for Class ${activeStackup.ipcClass}. Target is ${ringTarget}mm (${ringTargetMil} mil).`
+    : `Annular ring satisfies IPC Class ${activeStackup.ipcClass} target of ${ringTarget}mm.`;
 
   // ─── Rule 6: Solder Mask Dam ────────────────────────────
   const maskDam = activeStackup.spacing; 
-  const damLimit = activeStackup.ipcClass === 3 ? 0.125 : activeStackup.ipcClass === 1 ? 0.075 : 0.1; 
+  const damLimit = activeStackup.ipcClass === 3 ? 0.100 : activeStackup.ipcClass === 1 ? 0.075 : 0.100; 
   const damLimitMil = (damLimit * 39.3701).toFixed(1);
   const damStatus = maskDam < damLimit ? 'fail' : maskDam < damLimit + 0.05 ? 'warn' : 'pass';
   const damMessage = maskDam < damLimit
@@ -262,15 +266,23 @@ export default function DFMRuleChecker() {
           <p className="dfm-message">{balMessage}</p>
         </RulePanel>
 
-        {/* Rule 4: High-Speed Coupling */}
-        <RulePanel title="Rule 4 — Signal Coupling (S/H Ratio)" icon={Activity} accentClass="dfm-accent-red" status={cpStatus} result={`${shRatio.toFixed(2)} S/H`}>
-          <div className="p-4 bg-black-20 rounded-xl border border-white-05 mb-4">
-            <div className="flex justify-between text-[10px] font-bold text-tertiary uppercase tracking-widest mb-2"><span>Tight</span><span>Loose</span></div>
-            <div className="h-2 bg-black-40 rounded-full overflow-hidden relative border border-white-05">
-              <div className={`h-full transition-all duration-500 ${shRatio > 3 ? 'bg-red-500' : shRatio < 1 ? 'bg-green-500' : 'bg-orange-500'}`} style={{ width: `${Math.min((shRatio / 5) * 100, 100)}%` }} />
+        {/* Rule 4: Solder Paste Stencil Area Ratio */}
+        <RulePanel title="Rule 4 — Stencil Area Ratio (IPC-7525)" icon={Activity} accentClass="dfm-accent-red" status={arStencilStatus} result={`${areaRatio.toFixed(2)} AR`}>
+          <div className="dfm-inputs-row mb-3">
+            <EngineeringInput label="Aperture W" unit="mm" value={apertureWidth} onChange={e => { const val = Number(e.target.value); if (val) setApertureWidth(val); }} step="0.05" min="0.1" max="2" />
+            <EngineeringInput label="Aperture L" unit="mm" value={apertureLength} onChange={e => { const val = Number(e.target.value); if (val) setApertureLength(val); }} step="0.1" min="0.2" max="5" />
+            <EngineeringInput label="Stencil Thk" unit="mm" value={stencilThickness} onChange={e => { const val = Number(e.target.value); if (val) setStencilThickness(val); }} step="0.01" min="0.05" max="0.2" />
+          </div>
+          <div className="dfm-bar-wrap">
+            <div className="dfm-bar-track">
+              <div className={`dfm-bar-fill dfm-bar-${arStencilStatus}`} style={{ width: `${Math.min((areaRatio / 1.0) * 100, 100)}%` }} />
+              <div className="dfm-bar-marker dfm-bar-marker-red" style={{ left: `66%` }} title="Limit 0.66" />
+            </div>
+            <div className="dfm-bar-labels">
+              <span>0.0</span><span>0.55 Warn</span><span className="text-red-500 font-bold">0.66 Fail</span><span>1.0+</span>
             </div>
           </div>
-          <p className="dfm-message">{cpMessage}</p>
+          <p className="dfm-message mt-2">{arStencilMessage}</p>
         </RulePanel>
 
         {/* Rule 5: Annular Ring */}
@@ -283,8 +295,8 @@ export default function DFMRuleChecker() {
               step="0.05" min="0.1" max="5" 
             />
             <div className="dfm-input-group">
-                <label className="dfm-input-label">Min Threshold</label>
-                <div className="dfm-input-wrap opacity-60"><div className="dfm-input bg-transparent">{ringLimit}mm ({(ringLimit * 39.37).toFixed(1)} mil)</div></div>
+                <label className="dfm-input-label">Target Threshold</label>
+                <div className="dfm-input-wrap opacity-60"><div className="dfm-input bg-transparent">{ringTarget}mm ({(ringTarget * 39.37).toFixed(1)} mil)</div></div>
             </div>
           </div>
           <p className="dfm-message">{ringMessage}</p>
@@ -307,13 +319,13 @@ export default function DFMRuleChecker() {
 
       <div className="dfm-summary">
         <span className="dfm-summary-label">Aggregate DFM Health:</span>
-        {[arStatus, traceStatus, balStatus, cpStatus, ringStatus, damStatus].some(s => s === 'fail' || s === 'alert')
+        {[arStatus, traceStatus, balStatus, arStencilStatus, ringStatus, damStatus].some(s => s === 'fail' || s === 'alert')
           ? <StatusBadge level="fail" />
-          : [arStatus, traceStatus, balStatus, cpStatus, ringStatus, damStatus].some(s => s === 'warn')
+          : [arStatus, traceStatus, balStatus, arStencilStatus, ringStatus, damStatus].some(s => s === 'warn')
           ? <StatusBadge level="warn" />
           : <StatusBadge level="pass" />
         }
-        <span className="dfm-summary-note">Verification active for Design ID: <strong>DFM-7351A-PRO</strong></span>
+        <span className="dfm-summary-note">Verification active for <strong>Current Design</strong></span>
       </div>
     </div>
   );
