@@ -1,9 +1,9 @@
 export const content = {
-  intro: "A signal is considered high-speed not because of its clock frequency, but because its electrical wavelength — or its rise/fall time — is short enough relative to the trace length that the trace must be treated as a transmission line. This guide provides a standards-driven single-source-of-truth for high-speed digital design.",
+  intro: "A signal is considered high-speed not because of its clock frequency, but because its electrical wavelength — or its rise/fall time — is short enough relative to the trace length that the trace must be treated as a transmission line.",
   sections: [
     {
       heading: "What is High-Speed PCB Design?",
-      content: "The standard industry threshold for high-speed design is when trace length exceeds 1/6 of the signal wavelength. Below this, lumped-circuit analysis is valid. Above it, distributed transmission line effects dominate. For digital signals, the rise time (tr) is the primary driver of high-speed behavior.",
+      content: "The standard industry threshold for high-speed design is when trace length exceeds 1/6 of the signal wavelength. Below this, lumped-circuit analysis is valid. Above it, distributed transmission line effects dominate. For digital signals, the rise time (tr) is the primary driver of high-speed behavior. (Note: The more conservative 1/10th rule is often used in margin-critical designs, such as DDR5, to double the safety margin).",
       formula: {
         title: "The Critical Length Rule",
         equations: [
@@ -69,10 +69,10 @@ export const content = {
       formula: {
         title: "Geometry Models",
         equations: [
+          "// Validity: 0.1 < W/H < 2.0 (For both Microstrip & Stripline)",
           "Z₀(Microstrip) ≈ (87/√(εr + 1.41)) × ln(5.98H/(0.8W + T))",
           "εeff ≈ 0.475εr + 0.67 // Effective Dk (accounts for air)",
-          "Z₀(Stripline) ≈ (60/√εr) × ln(1.9B / (0.8W + T))",
-          "// Validity: 0.1 < W/H < 2.0"
+          "Z₀(Stripline) ≈ (60/√εr) × ln(1.9B / (0.8W + T))"
         ],
         variables: [
           { name: "W", desc: "Trace width", tag: "GEOM" },
@@ -88,7 +88,7 @@ export const content = {
           ["USB 2.0 / 3.x", "—", "90Ω", "±10%"],
           ["PCIe Gen 1–5", "—", "100Ω", "±10%"],
           ["HDMI / DP", "—", "100Ω", "±10%"],
-          ["DDR4 Data", "40Ω", "—", "±10%"],
+          ["DDR4 Data", "34–40Ω (ODT-dependent)", "—", "±10%"],
           ["RF (50Ω sys)", "50Ω", "—", "±5%"]
         ]
       },
@@ -154,7 +154,7 @@ export const content = {
           title: "Continuity",
           items: [
             "Signal via + adjacent GND via at transitions",
-            "100nF bypass cap within 100 mils of power transitions",
+            "< 50 mils bypass cap placement, minimize via count",
             "Solid copper pours with no unnecessary cutouts",
             "Connect all GND islands with stitching vias"
           ]
@@ -271,8 +271,7 @@ export const content = {
         { label: "Stripline", text: "FEXT in balanced stripline is zero (homogeneous dielectric), making it superior to microstrip." }
       ],
       alerts: [
-        { type: 'info', text: "Expert Insight: Stripline cancels FEXT because the velocity of propagation is identical in a homogeneous dielectric, causing the inductive and capacitive components to cancel exactly. In Microstrip, the 'Far End' crosstalk grows linearly with trace length." },
-        { type: 'warning', text: "Guard Traces: Often cause more EMI/SI issues than they solve. Only use guard traces if they can be stitched to ground at intervals < λ/10. Otherwise, prefer increased spacing (3W/5W)." }
+        { type: 'info', text: "Expert Insight: Stripline cancels FEXT because the velocity of propagation is identical in a homogeneous dielectric, causing the inductive and capacitive components to cancel exactly. In Microstrip, the 'Far End' crosstalk grows linearly with trace length." }
       ]
     },
     {
@@ -333,17 +332,8 @@ export const content = {
       ]
     },
     {
-      heading: "Via Parasitics (Advanced Modeling)",
-      content: "Every via is a tiny obstacle for high-speed signals. Modeling parasitic capacitance and inductance is essential for designs exceeding 5 Gbps.",
-      type: 'cross-ref',
-      refModuleId: 'si_pi',
-      refTargetHeading: 'Via Stub Resonance & Back-Drilling',
-      refLabel: 'Open Expert Via Analytics →',
-      refDesc: 'Complex via stub resonance modeling and back-drilling depth calculators are canonically located in the Signal Integrity module.'
-    },
-    {
-      heading: "Via Stub Resonance",
-      content: "Calculate the quarter-wave resonant frequency of via stubs to identify potential signal absorption nulls. At rates >10 Gbps, any remaining stub length becomes a parasitic 'antennna' that absorbs energy from the primary signal.",
+      heading: "Via Parasitics & Stub Resonance",
+      content: "Every via is a tiny obstacle for high-speed signals. Modeling parasitic capacitance and inductance is essential. At rates >10 Gbps, any remaining stub length becomes a parasitic 'antenna' that absorbs energy from the primary signal.",
       type: 'cross-ref',
       refModuleId: 'si_pi',
       refTargetHeading: 'Via Stub Resonance & Back-Drilling',
@@ -351,12 +341,68 @@ export const content = {
       refDesc: 'Complex via stub resonance modeling and back-drilling depth calculators are canonically located in the Signal Integrity module for high-fidelity channel analysis.'
     },
     {
+      heading: "Back-Drilling Strategy",
+      content: "When via stubs exceed 100 mils at frequencies >5 GHz, back-drilling (controlled depth drilling) is required to physically remove the unused via plating.",
+      table: {
+        headers: ["Parameter", "Standard Capability", "High-Precision"],
+        rows: [
+          ["Remaining Stub Length", "< 10 mil (0.25mm)", "< 5 mil (0.125mm)"],
+          ["Drill Depth Tolerance", "± 2 mil", "± 1 mil"],
+          ["Clearance to Signal", "10 mil", "8 mil"]
+        ]
+      }
+    },
+    {
+      heading: "S-Parameters: Reading Channel Health",
+      content: "S-parameters are the universal measurement language for high-speed channels. They define how much energy passes through, reflects back, or couples to neighboring traces in the frequency domain.",
+      cards: [
+        { title: "S11 (Return Loss)", text: "Measures reflection. A value of -20 dB means 1% of energy is reflecting back. Target: < -15 dB across the operating bandwidth." },
+        { title: "S21 (Insertion Loss)", text: "Measures attenuation (signal passing through). A value of -3 dB means half the power is lost. Target depends on the standard (e.g., -14 dB for PCIe Gen 4)." },
+        { title: "S31 (FEXT) / S41 (NEXT)", text: "Measures crosstalk isolation from port 1 to neighboring ports. Target: < -40 dB to prevent interference." }
+      ]
+    },
+    {
+      heading: "Channel Budget & Equalization",
+      content: "At >10 Gbps, FR4 dielectric loss completely closes the 'eye diagram'. Hardware engineers must compensate for this physical loss using Tx/Rx Equalization.",
+      list: [
+        { label: "Tx Pre-Emphasis", text: "Boosts the high-frequency components (edges) of the transmitted signal before it travels down the trace." },
+        { label: "Rx CTLE / DFE", text: "Continuous Time Linear Equalization and Decision Feedback Equalization at the receiver mathematically recover closed eyes." },
+        { label: "Design Impact", text: "Even with equalization, channel loss must stay within a strict budget (e.g., -28 dB for PCIe Gen 5 edge-to-edge). You must sum package loss, trace loss, and connector loss." }
+      ]
+    },
+    {
+      heading: "PCIe Gen 3–5 Routing Checklist",
+      content: "Peripheral Component Interconnect Express (PCIe) is the most common multi-gigabit interface. Routing must adhere strictly to the standard's loss budget.",
+      ruleCards: [
+        { number: "PCI-1", severity: "danger", title: "Loss Budget Margin", body: "Gen 3: -10 dB @ 4 GHz. Gen 4: -14 dB @ 8 GHz. Gen 5: -16 dB @ 16 GHz. Use Megtron 6 or similar for Gen 4/5." },
+        { number: "PCI-2", severity: "warning", title: "AC Coupling Caps", body: "Place 100nF (Gen 3) or 220nF (Gen 4/5) AC coupling capacitors symmetrically on TX pairs. Place close to the transmitter to minimize stub effects." },
+        { number: "PCI-3", severity: "info", title: "Intra-pair Skew", body: "Match P/N legs within ±5 mils. Use tight serpentine bends (length ≤ 3x gap) directly at the mismatch point." }
+      ]
+    },
+    {
+      heading: "USB 3.2 / USB4 Routing Rules",
+      content: "Modern USB carries 10 Gbps to 40 Gbps. It requires strict differential impedance and deep isolation.",
+      list: [
+        { label: "Zdiff", text: "USB uses 90Ω differential impedance (unlike PCIe's 85Ω or 100Ω)." },
+        { label: "Common-Mode Chokes", text: "Place CMCs directly at the connector to suppress cable-radiating common-mode noise. Maintain 90Ω through the choke pads." },
+        { label: "ESD Protection", text: "Place ultra-low capacitance TVS diodes (<0.15 pF) before any other component on the data lines." }
+      ]
+    },
+    {
+      heading: "Clock Distribution (H-Tree vs. Daisy Chain)",
+      content: "Clock signals are the most critical nets on the board. They run continuously and contain massive harmonic energy.",
+      cards: [
+        { title: "H-Tree Fanout", text: "Symmetrical branching ensures equal trace lengths to all receivers. Use for synchronous systems like DDR memory." },
+        { title: "Series Termination", text: "Always place a series resistor at the clock source to dampen reflections and slow the edge rate to exactly what is needed—no faster." }
+      ]
+    },
+    {
       heading: "EMI / EMC Compliance",
       content: "PCB layout is the primary determinant of EMI performance. Loop area is the single largest contributor to radiated emissions.",
       list: [
         { label: "Loop Area", text: "Radiation ∝ Loop Area × Freq² × dI/dt. Keep return path directly beneath signal." },
-        { label: "Decoupling", text: "100nF bulk HF, 10nF mid-freq as close as possible to IC power pins." },
-        { label: "Board Edge", text: "20H keepout: no routing within 20× dielectric height of board edge." }
+        { label: "Decoupling", text: "Use thin dielectrics between power and ground to maximize inter-plane capacitance." },
+        { label: "Board Edge", text: "Route over continuous reference plane up to board edge. Use edge-stitching ground vias at 1/20 wavelength intervals." }
       ]
     },
     {
@@ -384,7 +430,10 @@ export const content = {
           ["Insertion Loss (S21)", "Channel attenuation at Nyquist", "<-20 dB (PCIe Gen 4)"],
           ["Jitter (TJ)", "Total timing jitter at BER", "<0.1 UI"]
         ]
-      }
+      },
+      alerts: [
+        { type: 'info', text: "For an interactive deep-dive into Eye Diagrams and Jitter extraction, see the Signal & Power Integrity (SI/PI) module." }
+      ]
     },
     {
       heading: "Design Checklist",

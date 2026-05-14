@@ -120,6 +120,10 @@ export const content = {
         {
           title: "Edge-Guard Vias",
           text: "To prevent edge-fired radiation, use edge-guard via stitching (vias spaced < λ/20) connecting ground planes at the board periphery. (The 20H rule is an outdated myth)."
+        },
+        {
+          title: "Via Gardening (EM Shielding)",
+          text: "A protective 'fence' around signal vias. Provides a cage of ground vias to trap EMI/Crosstalk. Heuristic: Place ground vias within 50 mil of high-speed transitions."
         }
       ]
     },

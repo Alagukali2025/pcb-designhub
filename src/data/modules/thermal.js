@@ -10,8 +10,8 @@ export const content = {
           color: "blue",
           list: [
             { label: "Mechanism", text: "Physical contact. Heat flows from warm to cool through copper and laminate." },
-            { label: "PCB Rule", text: "Copper is ~1000x more conductive than FR4. Use copper pours as primary conduits." },
-            { label: "Key Value", text: "Copper Conductivity ≈ 400 W/m·K." }
+            { label: "PCB Rule", text: "Copper is highly conductive. Use copper pours as primary conduits." },
+            { label: "Key Value", text: "Copper Conductivity ≈ 385–400 W/m·K (electrodeposited foil ≈ 385 W/m·K)." }
           ]
         },
         {
@@ -19,8 +19,8 @@ export const content = {
           color: "cyan",
           list: [
             { label: "Mechanism", text: "Heat transfer to air. Can be Natural (passive) or Forced (fans)." },
-            { label: "Critical Rule", text: "Air is an insulator. Still air restricts heat escape; moving air increases efficiency exponentially." },
-            { label: "Standard", text: "Most IPC-2152 charts assume natural convection in still air." }
+            { label: "Critical Rule", text: "Air is a poor thermal conductor. Still air restricts heat escape; moving air increases efficiency exponentially." },
+            { label: "Standard", text: "Most IPC-2152 charts assume natural convection in still air (25°C, sea level, horizontal board, no adjacent planes)." }
           ]
         },
         {
@@ -28,8 +28,8 @@ export const content = {
           color: "orange",
           list: [
             { label: "Mechanism", text: "Electromagnetic emission. Significant at higher temperatures (>80°C)." },
-            { label: "Emissivity", text: "Matte black solder mask radiates heat better than clear or white finishes." },
-            { label: "Impact", text: "Often contributes 10-20% of total board cooling in open-air environments." }
+            { label: "Emissivity", text: "Matte black solder mask radiates heat slightly better than clear or white finishes (ε ≈ 0.85–0.92 for black vs. ε ≈ 0.85–0.88 for white — difference is marginal below 80°C)." },
+            { label: "Impact", text: "Contributes to total board cooling in open-air environments." }
           ]
         }
       ]
@@ -56,17 +56,40 @@ export const content = {
       ]
     },
     {
+      heading: "The 10°C Rule: Reliability Impact",
+      content: "Thermal management isn't just about preventing melting; it is about Mean Time Between Failures (MTBF). According to the Arrhenius acceleration factor, for every 10°C increase in junction temperature (Tj), the operating lifespan of a semiconductor component is roughly halved. Managing heat is managing reliability.",
+      alerts: [
+        { type: 'warning', text: "Exceeding Tj_max (typically 125°C or 150°C) results in immediate performance throttling or permanent silicon damage." },
+        { type: 'info', text: "Expert Note: Rθja is a JEDEC comparative tool. For real-world prediction, you must account for the PCB acting as a primary heatsink through the Rθjb path." }
+      ]
+    },
+    {
+      heading: "Copper Spreading Resistance",
+      content: "Designers rely on copper pours as heat spreaders, but heat does not spread infinitely. Spreading resistance increases as the heat moves further from the point source.",
+      formula: {
+        title: "Copper Spreading Resistance (Point Source Approximation)",
+        equations: [
+          "R_spread = 1 / (2 × K × √(π × A))"
+        ],
+        variables: [
+          { name: "K", desc: "Thermal Conductivity (e.g., 385 W/m·K for Cu)", tag: "CONST" },
+          { name: "A", desc: "Area of the heat source", tag: "INPUT" },
+          { name: "R_spread", desc: "Spreading resistance (°C/W)", tag: "OUTPUT" }
+        ]
+      }
+    },
+    {
       heading: "Copper Weight & Thermal Spreading",
       content: "Increasing copper weight (oz) increases the cross-sectional area for current and the surface area for thermal spreading. Primary Metric: Current Density & Heat Spreading.",
       table: {
         headers: ["Copper Weight", "Foil Thickness µm (mil)", "Approx. Capacity", "Typical Usage"],
         rows: [
-          ["0.25 oz (Quarter)", "8.75 (0.34)", "~0.5 A", "RF shields, impedance tuning"],
-          ["0.5 oz (Half)", "17.5 (0.69)", "~1.0 A", "High-density signal layers, HDI"],
-          { type: 'highlight', data: ["1.0 oz (Standard)", "35.0 (1.37)", "~1.5 A", "Default signal and power planes"] },
-          ["2.0 oz (Heavy)", "70.0 (2.74)", "~2.5 A", "Power distribution, bus bars"],
-          ["3.0 oz (Extreme)", "105.0 (4.11)", "~3.5 A", "High-current switching, EV power"],
-          ["4.0 oz (Exotic)", "140.0 (5.51)", "~4.5 A", "Defense, extreme power busbars"]
+          ["0.25 oz (Quarter)", "8.75 (0.34)", "Low capacity", "RF shields, impedance tuning"],
+          ["0.5 oz (Half)", "17.5 (0.69)", "Medium capacity", "High-density signal layers, HDI"],
+          { type: 'highlight', data: ["1.0 oz (Standard)", "35.0 (1.37)", "Base baseline", "Default signal and power planes"] },
+          ["2.0 oz (Heavy)", "70.0 (2.74)", "High capacity", "Power distribution, bus bars"],
+          ["3.0 oz (Extreme)", "105.0 (4.11)", "Very high capacity", "High-current switching, EV power"],
+          ["4.0 oz (Exotic)", "140.0 (5.51)", "Maximum capacity", "Defense, extreme power busbars"]
         ]
       }
     },
@@ -110,7 +133,7 @@ export const content = {
     },
     {
       heading: "Quick Reference: Current Limits",
-      content: "Estimated current capacity for 1oz (35µm) copper traces at +10°C and +20°C temperature rise.",
+      content: "Estimated current capacity for 1oz (35µm) copper traces at +10°C and +20°C temperature rise (Per IPC-2152, in still air).",
       table: {
         headers: ["Trace Width", "Area (sq mil)", "10°C Rise", "20°C Rise"],
         rows: [
@@ -133,12 +156,12 @@ export const content = {
         ]
       },
       alerts: [
-        { type: 'info', text: "Internal traces rely entirely on conduction to adjacent GND planes. Ensure a thin dielectric (<5 mil) to the nearest plane for better heat sinking." }
+        { type: 'info', text: "Internal traces rely entirely on conduction to adjacent GND planes. Ensure a thin dielectric (<5 mil) to the nearest plane for better heat sinking. Expert Note: IPC-2152 shows that internal traces carry approximately 50% of the current of an equivalent external trace for the same ΔT." }
       ]
     },
     {
-      heading: "Via Gardening & Thermal Stitching",
-      content: "Vias are the 'heat pipes' and 'shielding posts' of a high-performance PCB. While they look the same, their design intent—Thermal vs. Signal—requires different placement strategies.",
+      heading: "Thermal Stitching (Via Heat Pipes)",
+      content: "Vias are the 'heat pipes' of a high-performance PCB. Their design intent is to move heat from hot SMT pads to internal planes. (Note: One standard via with 0.3mm drill and 1oz plating contributes ~100°C/W of thermal resistance).",
       filletGrid: [
         {
           title: "Thermal Stitching (Heat Pipes)",
@@ -148,20 +171,11 @@ export const content = {
             { label: "Physics", text: "Moves heat from hot SMT pads to internal planes." },
             { label: "Heuristic", text: "0.3mm drill at 1.0mm pitch under thermal pads." }
           ]
-        },
-        {
-          title: "Via Gardening (EM Shielding)",
-          color: "blue",
-          list: [
-            { label: "Analogy", text: "A protective 'fence' around signal vias." },
-            { label: "Physics", text: "Provides a cage of ground vias to trap EMI/Crosstalk." },
-            { label: "Heuristic", text: "Place ground vias within 50 mil of high-speed transitions." }
-          ]
         }
       ],
       type: "thermal-tool",
       alerts: [
-        { type: 'info', text: "Expert Heuristic: For Thermal Stitching, use VIPPO (Via-In-Pad Plated Over) to prevent solder wicking while maximizing heat transfer area." }
+        { type: 'info', text: "Expert Heuristic: For Thermal Stitching, use VIPPO (Via-In-Pad Plated Over) to prevent solder wicking while maximizing heat transfer area. For Via Gardening (EMI shielding), see the EMI / EMC Compliance module." }
       ]
     },
     {
@@ -173,7 +187,7 @@ export const content = {
       heading: "Heatsink & TIM Strategy",
       content: "When copper plane dissipation is insufficient, external heatsinks are required. The interface between the component and the heatsink is the primary bottleneck due to microscopic air gaps.",
       alerts: [
-        { type: 'info', text: "Expert Heuristic: The air trapped between two 'flat' surfaces represents 95-99% of the interface. TIM is not just a conductor; it is an air-displacement medium." }
+        { type: 'info', text: "Expert Heuristic: The microscopic air gaps trapped between two 'flat' surfaces dramatically increase thermal resistance. TIM is not just a conductor; it is an air-displacement medium." }
       ]
     },
     {
@@ -281,6 +295,30 @@ export const content = {
       ]
     },
     {
+      heading: "Thermal Placement Rules",
+      content: "The physical arrangement of components dictates your thermal baseline before routing even begins. Adhering to structured placement rules prevents unsolvable hotspots.",
+      ruleCards: [
+        {
+          number: "P-01",
+          severity: "danger",
+          title: "Isolate Sensitive Components",
+          body: "Keep temperature-sensitive parts (e.g., Crystal Oscillators, Voltage References) physically isolated from high-heat power components (MOSFETs, CPUs) and upstream of the airflow."
+        },
+        {
+          number: "P-02",
+          severity: "warning",
+          title: "Power Stage Outer Routing",
+          body: "Place high-power switching components on outer layers where heat can dissipate via convection/radiation, rather than trapping it internally."
+        },
+        {
+          number: "P-03",
+          severity: "info",
+          title: "BGA Thermal Symmetry",
+          body: "Maintain copper symmetry under BGAs to ensure uniform heat distribution, preventing package warpage during reflow and operation."
+        }
+      ]
+    },
+    {
       heading: "Placement & Airflow Strategy",
       content: "The physical arrangement of components determines if your cooling strategy actually works. Avoid 'Thermal Shadowing' to ensure fresh air reaches hot components.",
       filletGrid: [
@@ -317,8 +355,8 @@ export const content = {
         {
           number: "T-01",
           severity: "danger",
-          title: "Solder Joint Fatigue",
-          body: "PCB bowing puts tensile stress on BGA/QFN solder joints. Over thermal cycles, this leads to micro-cracking and intermittent failures."
+          title: "Solder Joint Fatigue (IPC-9701)",
+          body: "PCB bowing puts tensile stress on BGA/QFN solder joints. Over thermal cycles, this leads to micro-cracking. Keep PCB bow/twist < 0.75% for SMT boards (IPC-7711/7721)."
         },
         {
           number: "T-02",
@@ -332,8 +370,35 @@ export const content = {
       heading: "Expert DFM: The Soldering Paradox",
       content: "High thermal conductivity is great for cooling, but terrible for manufacturing. Solid plane connections cause 'cold solder joints' during assembly.",
       mistakeList: [
-        { mistake: "Solid connections to large planes on SMT pads.", fix: "Use 4-spoke thermal relief for all components < 1206 size." },
+        { mistake: "Solid connections to large planes on SMT pads.", fix: "Use 4-spoke thermal relief for components < 1206 size (Exempt QFN/BTC center pads, which require solid connections)." },
         { mistake: "Oversized thermal vias on QFN pads.", fix: "Limit via drill to 0.3mm and use 'Windowpane' stencil apertures to prevent solder wicking." }
+      ]
+    },
+    {
+      heading: "QFN / BTC Thermal Via Design (IPC-7093)",
+      content: "Bottom Terminated Components (BTCs) like QFNs and DFNs rely entirely on their center pad for thermal transfer. Designing this via array correctly is critical for manufacturing yield and thermal performance.",
+      list: [
+        { label: "Via Array Pitch", text: "Typically 1.0mm to 1.2mm pitch. Do not over-pack vias; FR4 webbing is required for structural integrity." },
+        { label: "Solder Paste Voiding", text: "Target < 25-30% voiding. Use window-pane paste printing (50-80% coverage) to allow outgassing." },
+        { label: "Via Treatment", text: "Unplugged vias will wick solder, causing voids and component tilt. Use VIPPO (Via-In-Pad Plated Over) or tented vias from the bottom side if cost is constrained." }
+      ]
+    },
+    {
+      heading: "Expert: Thermal Cycling & CTE Fatigue",
+      content: "PCBs in industrial, aerospace, or automotive applications undergo severe thermal cycling. This causes Coefficient of Thermal Expansion (CTE) mismatch fatigue, leading to cracked solder joints and fractured vias.",
+      list: [
+        { label: "FR4 CTE Mismatch", text: "FR4 expands at ~16 ppm/°C in X/Y but ~55 ppm/°C in the Z-axis. Silicon is ~3 ppm/°C. This mismatch shears BGA solder balls during temperature swings." },
+        { label: "Coffin-Manson Model", text: "Predicts low-cycle fatigue life. Strain is proportional to ΔT and distance from neutral center (DNP). Larger components fail first." },
+        { label: "HALT / HASS", text: "Highly Accelerated Life Testing (HALT) pushes designs beyond specifications to find these fatigue limits quickly in development." }
+      ]
+    },
+    {
+      heading: "Thermal Simulation Strategy",
+      content: "Mathematical estimates are insufficient for complex modern boards. Thermal simulation (CFD) is required to validate designs.",
+      phaseList: [
+        { num: "1", title: "Trace Ampacity Solver", desc: "Use 2D field solvers or IPC-2152 tools to verify individual high-current trace widths." },
+        { num: "2", title: "Board-Level Conduction (PDN-Thermal)", desc: "Co-simulate voltage drop (IR Drop) with thermal heating to map copper plane bottlenecks." },
+        { num: "3", title: "System-Level CFD", desc: "Use tools like Ansys Icepak or SimScale to model chassis airflow, heatsinks, and 3D conjugate heat transfer." }
       ]
     }
   ],
