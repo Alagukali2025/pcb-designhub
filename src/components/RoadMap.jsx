@@ -55,10 +55,11 @@ export default function RoadMap({ activePhase, onPhaseClick }) {
           const Icon = step.icon;
           const isActive = activePhase === step.id;
           return (
-            <div 
+            <button 
               key={step.id} 
               className={`roadmap-step ${isActive ? 'active' : ''}`}
               onClick={() => onPhaseClick(isActive ? null : step.id)}
+              aria-pressed={isActive}
             >
               <div className="roadmap-tooltip">
                 <ul>
@@ -75,7 +76,7 @@ export default function RoadMap({ activePhase, onPhaseClick }) {
                 <span className="roadmap-subtitle">{step.subtitle}</span>
                 <span className="roadmap-desc">{step.description}</span>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, Sun, Moon, Menu, X, BookOpen, Hash, ArrowRight, ShieldCheck, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Search, User, Sun, Moon, Menu, X, BookOpen, Hash, ArrowRight, ShieldCheck, PanelLeftClose, PanelLeftOpen, Settings, LogOut } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { modulesData } from '../data/modules';
 import { useAuth } from '../context/AuthContext';
-import ProfileMenu from './ProfileMenu';
+import { getIconForAvatarUrl } from '../data/constants';
 
 
 export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpen }) {
@@ -16,7 +16,7 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
   const profileRef = useRef(null);
   const location = useLocation();
   const { isLoggedIn, userData, logout } = useAuth();
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isIdentityVisible, setIsIdentityVisible] = useState(false);
 
 
   // Close results when clicking outside
@@ -26,7 +26,7 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
         setIsResultsVisible(false);
       }
       if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setIsProfileOpen(false);
+        setIsIdentityVisible(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -205,34 +205,63 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
           )}
 
           {isLoggedIn ? (
-            <div className="user-profile-nav" ref={profileRef}>
-              <div 
-                className={`user-avatar ${userData?.isOwner ? 'owner-avatar' : ''} clickable`} 
-                title={`Account: ${userData?.name}`}
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-              >
-                {userData?.picture ? (
-                  <img src={userData.picture} alt="" className="user-avatar-img" />
-                ) : (
-                  userData?.initials || <User size={20} />
-                )}
-                
-                {userData?.isOwner && (
-                  <div className="owner-badge-overlay">
-                    <ShieldCheck size={12} fill="currentColor" />
+            <div className="header-user-controls">
+              <div className="user-profile-nav" ref={profileRef}>
+                <div 
+                  className={`user-avatar ${userData?.isOwner ? 'owner-avatar' : ''} clickable`} 
+                  title={`Account: ${userData?.name}`}
+                  onClick={() => setIsIdentityVisible(!isIdentityVisible)}
+                >
+                  {(() => {
+                    const iconLook = getIconForAvatarUrl(userData?.picture);
+                    if (iconLook) {
+                      const Icon = iconLook.icon;
+                      return (
+                        <div className="branded-icon-wrapper small">
+                          <Icon size={20} color="rgba(255,255,255,0.04)" />
+                          <span className="branded-initials" style={{ color: '#fff' }}>{userData?.initials}</span>
+                        </div>
+                      );
+                    }
+                    if (userData?.picture) {
+                      return <img src={userData.picture} alt="" className="user-avatar-img" />;
+                    }
+                    return userData?.initials || <User size={20} />;
+                  })()}
+                  
+                  {userData?.isOwner && (
+                    <div className="owner-badge-overlay">
+                      <ShieldCheck size={12} fill="currentColor" />
+                    </div>
+                  )}
+                </div>
+
+                {isIdentityVisible && (
+                  <div className="identity-popup glass-morphism fade-in">
+                    <div className="identity-email">{userData?.email}</div>
                   </div>
                 )}
               </div>
-              
-              {isProfileOpen && (
-                <ProfileMenu 
-                  userData={userData}
-                  logout={logout}
-                  theme={theme}
-                  toggleTheme={toggleTheme}
-                  onClose={() => setIsProfileOpen(false)}
-                />
-              )}
+
+              <Link to="/profile" className="icon-btn" title="Settings">
+                <Settings size={20} />
+              </Link>
+
+              <button 
+                className="icon-btn theme-toggle" 
+                onClick={toggleTheme}
+                title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              >
+                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+
+              <button 
+                className="icon-btn logout-header-btn" 
+                onClick={logout}
+                title="Sign Out"
+              >
+                <LogOut size={20} />
+              </button>
             </div>
           ) : (
             <Link to="/login" className="login-btn-header">

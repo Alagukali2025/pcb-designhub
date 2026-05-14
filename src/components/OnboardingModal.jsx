@@ -9,17 +9,11 @@ import {
   Factory, 
   ShieldCheck,
   ChevronRight,
-  Cpu
+  Cpu,
+  AlertTriangle,
+  CheckCircle2
 } from 'lucide-react';
-
-const SECTORS = [
-  { id: 'Aerospace', title: 'Aerospace & Defense', icon: Rocket, color: '#3b82f6', desc: 'Focus on mission-critical Class 3 reliability standards.' },
-  { id: 'Automotive', title: 'Automotive Systems', icon: Car, color: '#ef4444', desc: 'AEC-Q100 compliance and thermal-mechanical ruggedness.' },
-  { id: 'Medical', title: 'Medical Electronics', icon: Activity, color: '#10b981', desc: 'Life-critical signal integrity and low-noise diagnostics.' },
-  { id: 'Power', title: 'Power & Energy', icon: Zap, color: '#f59e0b', desc: 'High-voltage layout, busbars, and thermal management.' },
-  { id: 'Consumer', title: 'Consumer Tech', icon: Smartphone, color: '#a855f7', desc: 'High-density interconnect (HDI) and cost-optimized layout.' },
-  { id: 'Industrial', title: 'Industrial Controls', icon: Factory, color: '#6366f1', desc: 'EMI/EMC ruggedness and resilient connectivity solutions.' },
-];
+import { INDUSTRIAL_SECTORS } from '../data/constants';
 
 export default function OnboardingModal() {
   const { userData, updateProfileData } = useAuth();
@@ -67,7 +61,7 @@ export default function OnboardingModal() {
         </div>
 
         <div className="sectors-grid">
-          {SECTORS.map((sector) => {
+          {INDUSTRIAL_SECTORS.map((sector) => {
             const Icon = sector.icon;
             const isSelected = selected === sector.id;
             
@@ -86,7 +80,7 @@ export default function OnboardingModal() {
                   <p>{sector.desc}</p>
                 </div>
                 <div className="selection-indicator">
-                  <CheckCircle size={16} />
+                  <CheckCircle2 size={16} />
                 </div>
               </div>
             );
@@ -95,7 +89,7 @@ export default function OnboardingModal() {
 
         {error && (
           <div className="onboarding-error slide-up">
-            <ShieldCheck size={16} className="error-icon" />
+            <AlertTriangle size={16} className="error-icon" />
             <span>{error}</span>
           </div>
         )}
@@ -119,22 +113,5 @@ export default function OnboardingModal() {
         </div>
       </div>
     </div>
-  );
-}
-
-function CheckCircle({ size }) {
-  return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="3" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
   );
 }

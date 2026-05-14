@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Cpu, ShieldCheck, Lock, ChevronRight, Mail, Phone, User as UserIcon, Factory, Eye, EyeOff, LogIn, ArrowLeft } from 'lucide-react';
+import { Cpu, ShieldCheck, Lock, ChevronRight, Mail, Phone, User as UserIcon, Factory, Eye, EyeOff, LogIn, ArrowLeft, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import { INDUSTRIAL_SECTORS } from '../data/constants';
 
 export default function Login() {
   const [mode, setMode] = useState('login'); // 'login', 'register'
@@ -22,15 +23,15 @@ export default function Login() {
 
   const [authStatus, setAuthStatus] = useState('idle'); // 'idle', 'checking', 'google_transition', 'ready'
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const { isLoggedIn, login, register, loginWithGoogle, checkEmailStatus } = useAuth();
+  const { isLoggedIn, login, register, loginWithGoogle, checkEmailStatus, resetPassword } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   // 🚨 AUTO-REDIRECT: If user is already logged in, push them to dashboard
   useEffect(() => {
     if (isLoggedIn) {
-      console.log('✅ User is already logged in, redirecting to dashboard...');
       navigate('/');
     }
   }, [isLoggedIn, navigate]);
@@ -48,6 +49,7 @@ export default function Login() {
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
+    setSuccessMessage('');
     setAuthStatus('checking');
 
     try {
@@ -74,7 +76,7 @@ export default function Login() {
           setAuthStatus('ready');
         } else {
           // Success
-          alert('Registration successful! Please check your email for verification. You must click the link in your email before you can sign in.');
+          setSuccessMessage('Registration successful! Please check your email for verification. You must click the link in your email before you can sign in.');
           setMode('login');
           setAuthStatus('ready');
         }
@@ -90,8 +92,26 @@ export default function Login() {
       await loginWithGoogle();
       // Supabase handles the redirection to Google automatically
     } catch (error) {
-      console.error('Login failed:', error);
+      setErrorMessage('Google Login failed. Please try again.');
     }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+    if (!email) {
+      setErrorMessage('Please enter your email address to reset your password.');
+      return;
+    }
+    setAuthStatus('checking');
+    const result = await resetPassword(email);
+    if (result.success) {
+      setSuccessMessage('Password reset link sent! Check your email.');
+    } else {
+      setErrorMessage(result.error || 'Failed to send reset link.');
+    }
+    setAuthStatus('ready');
   };
 
   return (
@@ -127,8 +147,15 @@ export default function Login() {
 
             {errorMessage && (
               <div className="auth-error-alert slide-up" style={{ color: '#ff4d4d', backgroundColor: 'rgba(255, 77, 77, 0.1)', padding: '10px', borderRadius: '4px', marginBottom: '15px', border: '1px solid rgba(255, 77, 77, 0.2)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={16} />
+                <AlertTriangle size={16} />
                 <span>{errorMessage}</span>
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="auth-error-alert slide-up" style={{ color: 'var(--accent-primary)', backgroundColor: 'var(--accent-light)', padding: '10px', borderRadius: '4px', marginBottom: '15px', border: '1px solid var(--accent-border)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={16} />
+                <span>{successMessage}</span>
               </div>
             )}
 
@@ -176,7 +203,7 @@ export default function Login() {
                   </div>
 
                   <div className="forgot-password">
-                    <a href="#">FORGOT PASSWORD?</a>
+                    <a href="#" onClick={handleForgotPassword}>FORGOT PASSWORD?</a>
                   </div>
 
                   <button 
@@ -279,10 +306,9 @@ export default function Login() {
                         required
                         className="auth-select"
                       >
-                        <option value="Aerospace">Aerospace Sector</option>
-                        <option value="Automotive">Automotive Systems</option>
-                        <option value="Industrial">Industrial Controls</option>
-                        <option value="Military">Defense & Military</option>
+                        {INDUSTRIAL_SECTORS.map((sector) => (
+                          <option key={sector.id} value={sector.id}>{sector.title}</option>
+                        ))}
                       </select>
                     </div>
                   </div>

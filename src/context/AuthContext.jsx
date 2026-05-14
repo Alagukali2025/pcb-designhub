@@ -251,6 +251,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const resetPassword = async (email) => {
+    if (!email) return { success: false, error: "Please enter an email address first." };
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase().trim(), {
+        redirectTo: `${window.location.origin}/create-password`,
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Reset password error:', error.message);
+      return { success: false, error: error.message };
+    }
+  };
+
   // Implementation of email/password registration with metadata
   const register = async (regData) => {
     try {
@@ -334,12 +348,26 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfileData = async (newData) => {
     try {
+      // 🛠️ DEV BYPASS: If on localhost bypass, just update state and return
+      if (userData?.authMethod === 'localhost_bypass') {
+        console.log('🛠️ AUTH_BYPASS: Simulating profile update on localhost');
+        setUserData(prev => ({
+          ...prev,
+          name: newData.full_name || prev.name,
+          phone: newData.phone || prev.phone,
+          industry: newData.industry || prev.industry,
+          picture: newData.avatar_url || prev.picture
+        }));
+        return { success: true };
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .update({
           full_name: newData.full_name,
           phone: newData.phone,
-          industry: newData.industry
+          industry: newData.industry,
+          avatar_url: newData.avatar_url
         })
         .eq('id', userData.id)
         .select()
@@ -357,7 +385,8 @@ export const AuthProvider = ({ children }) => {
         ...prev,
         name: data.full_name,
         phone: data.phone,
-        industry: data.industry
+        industry: data.industry,
+        picture: data.avatar_url
       }));
 
       return { success: true };
@@ -379,6 +408,7 @@ export const AuthProvider = ({ children }) => {
     updateProfileData,
     completePasswordSetup,
     changePassword,
+    resetPassword,
     needsPasswordSetup: isLoggedIn && userData && !userData.hasPassword
   };
 

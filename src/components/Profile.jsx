@@ -13,9 +13,13 @@ import {
   LogOut,
   ChevronRight,
   ShieldAlert,
-  ArrowLeft
+  ArrowLeft,
+  Bell,
+  Trash2,
+  ShieldQuestion
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { INDUSTRIAL_SECTORS } from '../data/constants';
 
 export default function Profile() {
   const location = useLocation();
@@ -29,6 +33,11 @@ export default function Profile() {
     full_name: '',
     phone: '',
     industry: 'Aerospace'
+  });
+
+  const [notifSettings, setNotifSettings] = useState({
+    newModules: true,
+    securityAlerts: true
   });
 
   useEffect(() => {
@@ -72,6 +81,17 @@ export default function Profile() {
       setSaveStatus('error');
     }
     setIsSaving(false);
+  };
+
+  const handleDeleteAccount = () => {
+    const confirmed = window.confirm(
+      "CRITICAL ACTION: Are you absolutely sure you want to delete your account? \n\nThis will permanently erase all your data, progress, and settings. This action cannot be undone."
+    );
+    if (confirmed) {
+      console.log('🚮 Account deletion requested');
+      // Logic for deletion would go here
+      alert("In this demo version, account deletion is logged but not executed on the server.");
+    }
   };
 
   return (
@@ -181,10 +201,9 @@ export default function Profile() {
                       value={formData.industry}
                       onChange={(e) => setFormData({...formData, industry: e.target.value})}
                     >
-                      <option value="Aerospace">Aerospace Sector</option>
-                      <option value="Automotive">Automotive Systems</option>
-                      <option value="Industrial">Industrial Controls</option>
-                      <option value="Military">Defense & Military</option>
+                      {INDUSTRIAL_SECTORS.map((sector) => (
+                        <option key={sector.id} value={sector.id}>{sector.title}</option>
+                      ))}
                     </select>
                   ) : (
                     <input type="text" value={formData.industry} readOnly />
@@ -235,8 +254,73 @@ export default function Profile() {
 
           <button className="profile-logout-btn" onClick={logout}>
             <LogOut size={18} />
-            <span>TERMINATE SESSION</span>
+            <span>SIGN OUT</span>
           </button>
+        </div>
+      </div>
+
+      {/* New Professional Sections */}
+      <div className="profile-content-grid" style={{ marginTop: '2rem' }}>
+        {/* Notifications */}
+        <div className="profile-section glass-morphism">
+          <div className="section-header">
+            <div className="title-with-icon">
+              <Bell size={20} />
+              <h2>Noise Control (Notifications)</h2>
+            </div>
+          </div>
+          
+          <div className="notification-list">
+            <div className="notif-item">
+              <div className="notif-info">
+                <span className="notif-label">New Module Releases</span>
+                <p className="notif-desc">Get notified when we add new technical PCB design content.</p>
+              </div>
+              <label className="toggle-switch">
+                <input 
+                  type="checkbox" 
+                  checked={notifSettings.newModules}
+                  onChange={() => setNotifSettings(prev => ({...prev, newModules: !prev.newModules}))}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div className="notif-item">
+              <div className="notif-info">
+                <span className="notif-label">Security Alerts</span>
+                <p className="notif-desc">Important notifications about your account access and safety.</p>
+              </div>
+              <label className="toggle-switch">
+                <input 
+                  type="checkbox" 
+                  checked={notifSettings.securityAlerts}
+                  onChange={() => setNotifSettings(prev => ({...prev, securityAlerts: !prev.securityAlerts}))}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="profile-section glass-morphism danger-zone-section">
+          <div className="section-header">
+            <div className="title-with-icon destructive">
+              <ShieldQuestion size={20} />
+              <h2>The Danger Zone</h2>
+            </div>
+          </div>
+          
+          <div className="danger-content">
+            <p className="danger-notice">
+              Once you delete your account, there is no going back. Please be certain.
+            </p>
+            <button className="delete-account-btn" onClick={handleDeleteAccount}>
+              <Trash2 size={18} />
+              <span>PERMANENTLY DELETE ACCOUNT</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

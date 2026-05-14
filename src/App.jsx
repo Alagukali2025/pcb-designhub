@@ -34,7 +34,7 @@ const RouteFallback = () => (
 
 function App() {
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'dark';
+    return localStorage.getItem('theme') || 'light';
   });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -52,12 +52,8 @@ function App() {
 
 
   useEffect(() => {
-    // Simulate engine bootstrapping / loading models
-    const timer = setTimeout(() => {
-      setIsFadingOut(true);
-      setTimeout(() => setIsLoading(false), 800); // Wait for fade out animation
-    }, 1500);
-    return () => clearTimeout(timer);
+    setIsFadingOut(true);
+    setTimeout(() => setIsLoading(false), 800); // Wait for fade out animation
   }, []);
 
   useEffect(() => {
@@ -88,8 +84,6 @@ function App() {
       setIsSidebarOpen(false);
     }
   }, [location]);
-
-  // Handled via Profile Dashboard voluntarily now
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));

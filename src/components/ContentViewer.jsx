@@ -58,6 +58,46 @@ const ToolFallback = ({ name }) => (
   </div>
 );
 
+const TabsViewer = ({ tabs }) => {
+  const [activeTab, setActiveTab] = useState(0);
+
+  if (!tabs || tabs.length === 0) return null;
+
+  return (
+    <div className="tabs-container slide-up">
+      <div className="tabs-header-row" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-light)', paddingBottom: '8px', marginBottom: '16px' }}>
+        {tabs.map((tab, i) => (
+          <button
+            key={i}
+            onClick={() => setActiveTab(i)}
+            style={{
+              padding: '8px 16px',
+              background: activeTab === i ? 'var(--accent-primary)' : 'var(--bg-secondary)',
+              color: activeTab === i ? '#fff' : 'var(--text-secondary)',
+              border: activeTab === i ? '1px solid var(--accent-primary)' : '1px solid var(--border-light)',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 600,
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {tab.title}
+          </button>
+        ))}
+      </div>
+      <div className="tabs-content-area">
+        <div className="tab-panel">
+          <ul className="tab-list">
+            {tabs[activeTab].content.map((item, ii) => (
+              <li key={ii}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 
 export default function ContentViewer() {
@@ -198,7 +238,7 @@ export default function ContentViewer() {
     return (
       <div className="content-not-found fade-in">
         <h2>Module not found</h2>
-        <Link to="/" className="back-link mt-4"><ArrowLeft size={16} /> Return to Back</Link>
+        <Link to="/" className="back-link mt-4"><ArrowLeft size={16} /> Return to Dashboard</Link>
       </div>
     );
   }
@@ -533,22 +573,7 @@ export default function ContentViewer() {
                     </div>
                   )}
 
-                  {sec.tabs && (
-                    <div className="tabs-container slide-up">
-                      <div className="tabs-content">
-                        {sec.tabs.map((tab, ti) => (
-                          <div key={ti} className="tab-panel">
-                            <div className="tab-header">
-                              <span className="tool-tag">{tab.title}</span>
-                            </div>
-                            <ul className="tab-list">
-                              {tab.content.map((item, ii) => <li key={ii}>{item}</li>)}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {sec.tabs && <TabsViewer tabs={sec.tabs} />}
 
                   {sec.cards && (
                     <div className="section-cards-grid">
