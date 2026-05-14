@@ -54,46 +54,94 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
     const lowerQuery = query.toLowerCase();
 
     modulesData.forEach(module => {
-      // Match Module Title
-      if (module.title.toLowerCase().includes(lowerQuery)) {
+      // 1. Match Module Title (Highest Priority)
+      const titleMatch = module.title.toLowerCase().indexOf(lowerQuery);
+      if (titleMatch !== -1) {
         results.push({
           type: 'module',
-          id: module.id,
+          moduleId: module.id,
           title: module.title,
           desc: module.desc,
-          icon: module.icon
+          icon: module.icon,
+          score: 100 - titleMatch
         });
       }
 
-      // Match Section Headings
+      // 2. Match Module Description
+      if (module.desc.toLowerCase().includes(lowerQuery)) {
+        results.push({
+          type: 'module',
+          moduleId: module.id,
+          title: module.title,
+          desc: module.desc,
+          icon: module.icon,
+          score: 80
+        });
+      }
+
+      // 3. Match Section Headings
       if (module.sections) {
         module.sections.forEach((section, index) => {
-          if (section.toLowerCase().includes(lowerQuery)) {
+          const sectionText = typeof section === 'string' ? section : (section.heading || '');
+          if (sectionText.toLowerCase().includes(lowerQuery)) {
             results.push({
               type: 'topic',
-              id: module.id,
               moduleId: module.id,
               moduleTitle: module.title,
-              title: section,
-              sectionIndex: index
+              title: sectionText,
+              sectionIndex: index,
+              score: 70
             });
           }
         });
       }
+
+      // 4. Expert Keywords
+      const technicalKeywords = [
+        { key: 'ipc', target: 'stackup', label: 'IPC Standards Reference' },
+        { key: 'impedance', target: 'high_speed', label: 'Impedance Control & Solving' },
+        { key: 'dfm', target: 'dfm_dft', label: 'Design for Manufacturing' },
+        { key: 'gerber', target: 'pcb_output_system', label: 'Gerber & Fabrication Files' },
+        { key: 'si/pi', target: 'si_pi', label: 'Signal & Power Integrity' }
+      ];
+
+      technicalKeywords.forEach(kw => {
+        if (kw.key.includes(lowerQuery) && module.id === kw.target) {
+          results.push({
+            type: 'expert',
+            moduleId: kw.target,
+            moduleTitle: module.title,
+            title: kw.label,
+            score: 95
+          });
+        }
+      });
     });
 
-    setSearchResults(results.slice(0, 8)); // Limit to 8 results
-    setIsResultsVisible(true);
+    // Deduplicate and Sort
+    const uniqueResults = [];
+    const seen = new Set();
+
+    results
+      .sort((a, b) => b.score - a.score)
+      .forEach(res => {
+        const key = `${res.moduleId}-${res.title}`;
+        if (!seen.has(key)) {
+          uniqueResults.push(res);
+          seen.add(key);
+        }
+      });
+
+    setSearchResults(uniqueResults.slice(0, 8));
+    setIsResultsVisible(uniqueResults.length > 0);
   };
 
   const handleResultClick = (result) => {
-    if (result.type === 'module') {
-      navigate(`/module/${result.id}`);
+    if (result.type === 'module' || result.type === 'expert') {
+      navigate(`/module/${result.moduleId}`);
     } else {
       navigate(`/module/${result.moduleId}`, { 
-        state: { 
-          scrollTo: result.sectionIndex
-        } 
+        state: { scrollTo: result.sectionIndex } 
       });
     }
     setIsResultsVisible(false);
@@ -145,7 +193,7 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
           />
           
           {isResultsVisible && (
-            <div className="search-results-overlay glass-morphism slide-up">
+            <div className="search-results-overlay glass-morphism-premium slide-up">
               {searchResults.length > 0 ? (
                 <div className="search-results-list">
                   {searchResults.map((result, index) => (
@@ -155,12 +203,16 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
                       onClick={() => handleResultClick(result)}
                     >
                       <div className="result-icon">
-                        {result.type === 'module' ? <BookOpen size={16} /> : <Hash size={16} />}
+                        {result.type === 'module' ? <BookOpen size={16} /> : 
+                         result.type === 'expert' ? <ShieldCheck size={16} className="text-accent" /> :
+                         <Hash size={16} />}
                       </div>
                       <div className="result-info">
                         <div className="result-title">{result.title}</div>
                         <div className="result-meta">
-                          {result.type === 'module' ? 'Main Module' : `In ${result.moduleTitle}`}
+                          {result.type === 'module' ? 'Main Module' : 
+                           result.type === 'expert' ? `Expert Reference` :
+                           `In ${result.moduleTitle}`}
                         </div>
                       </div>
                       <ArrowRight size={14} className="result-arrow" />

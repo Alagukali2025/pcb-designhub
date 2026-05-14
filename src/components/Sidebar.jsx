@@ -11,10 +11,12 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     <aside className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
         <div className="sidebar-brand">
-          <img src="/logo.webp" alt="PCB Design Hub Logo" className="sidebar-logo-img" />
+          <img src="/logo.webp" alt="PCB RULES Logo" className="sidebar-logo-img" />
           <div className="sidebar-brand-text">
-            <span className="brand-title">PCB Design</span>
-            <span className="brand-subtitle">LAYOUT</span>
+            <span className="brand-title">
+              <span className="text-pcb-green">PCB</span> <span className="text-copper">RULES</span>
+            </span>
+            <span className="brand-subtitle">Engineering</span>
           </div>
         </div>
       </div>

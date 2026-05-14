@@ -349,7 +349,58 @@ a:hover {
   }
 }
 
-/* Sidebar */
+
+.sidebar-header {
+  padding: 1.5rem 1.25rem 1rem;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.brand-title {
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  display: flex;
+  gap: 0.25rem;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.3));
+}
+
+.text-pcb-green {
+  background: linear-gradient(180deg, #4ade80 0%, #166534 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 5px rgba(74, 222, 128, 0.2));
+}
+
+.text-copper {
+  background: linear-gradient(180deg, #fb923c 0%, #c2410c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 5px rgba(251, 146, 60, 0.2));
+}
+
+.brand-subtitle {
+  color: var(--text-tertiary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 4px;
+  opacity: 0.6;
+  font-family: ui-monospace, monospace;
+}
+
 .sidebar {
   width: 280px;
   background-color: var(--bg-primary);
@@ -360,6 +411,12 @@ a:hover {
   flex-shrink: 0;
   overflow: hidden;
   transition: transform var(--transition-normal), width var(--transition-normal);
+}
+
+.sidebar-logo-img {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
 }
 
 @media (max-width: 1024px) {
@@ -388,42 +445,6 @@ a:hover {
     transform: translateX(-100%);
     border-right: none;
   }
-}
-
-.sidebar-header {
-  padding: 1.5rem 1.25rem 1rem;
-}
-
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.sidebar-brand-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-}
-
-.brand-title {
-  color: var(--accent-primary);
-  font-weight: 700;
-  font-size: 1.4rem;
-}
-
-.brand-subtitle {
-  color: var(--text-tertiary);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.sidebar-logo-img {
-  height: 48px;
-  width: auto;
-  object-fit: contain;
 }
 
 .sidebar-nav {
@@ -622,6 +643,7 @@ a:hover {
   width: 100%;
   max-width: 450px;
   transition: all var(--transition-normal);
+  position: relative;
   min-height: 44px;
 }
 

@@ -26,7 +26,7 @@ const LoadingScreen = ({ isFadingOut }) => {
           </div>
           
           <h1 className="main-logo-title">
-            PCB Design Hub
+            <span className="text-pcb-green">PCB</span> <span className="text-copper">RULES</span>
           </h1>
           
           <div className="loading-subtitle-wrapper">
@@ -164,16 +164,26 @@ const LoadingScreen = ({ isFadingOut }) => {
         }
 
         .main-logo-title {
-          font-size: clamp(2rem, 5vw, 3rem);
+          font-size: clamp(2.5rem, 6vw, 4rem);
           font-weight: 900;
-          color: var(--accent-primary);
-          letter-spacing: -0.05em;
+          letter-spacing: -0.04em;
           text-transform: uppercase;
-          font-style: italic;
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+          gap: 1rem;
+          filter: drop-shadow(0 0 15px rgba(0,0,0,0.5));
+        }
+
+        .text-pcb-green {
+          background: linear-gradient(180deg, #4ade80 0%, #166534 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        .text-copper {
+          background: linear-gradient(180deg, #fb923c 0%, #c2410c 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
         }
 
         .loading-subtitle-wrapper {
