@@ -18,9 +18,10 @@ const INTERFACE_PRESETS = [
 const MM_TO_MIL = 39.3701;
 const IN_TO_MM = 25.4;
 
-// ─── IPC-2141A Formulas ───────────────────────────────────────────────────────
+// ─── IPC-2141A & Hammerstad Formulas ──────────────────────────────────────────
 function calcResults(inputs, topology, isRefined = false) {
   const h  = parseFloat(inputs.height)   || 0;
+  const h2 = parseFloat(inputs.height2)  || 0;
   const w  = parseFloat(inputs.width)    || 0;
   const t  = parseFloat(inputs.thickness)|| 0;
   const s  = parseFloat(inputs.spacing)  || 0;
@@ -36,32 +37,73 @@ function calcResults(inputs, topology, isRefined = false) {
   let zdiff = 0;
 
   if (topology === 'microstrip') {
-    const u = w / h;
-    const aU = 1 + (1/49) * Math.log((Math.pow(u, 4) + Math.pow(u/52, 2)) / (Math.pow(u, 4) + 0.432)) + (1/18.7) * Math.log(1 + Math.pow(u/18.1, 3));
-    const bEr = 0.564 * Math.pow((er - 0.9) / (er + 3), 0.053);
-    effDk = (er + 1) / 2 + ((er - 1) / 2) * Math.pow(1 + 10 / u, -(aU * bEr));
-    
-    // Refined Hammerstad accounts for trace thickness effect on Z0
-    const w_prime = isRefined ? w + (t / Math.PI) * (1 + Math.log((4 * Math.PI * w) / t)) : w;
-    z0 = (60 / Math.sqrt(effDk)) * Math.log((5.98 * h) / (0.8 * w_prime + t));
-    
-    // Zdiff with refined coupling coefficient
-    const k = isRefined 
-      ? 0.48 * Math.exp(-0.96 * (s / h)) * (1 + 0.1 * (t / h)) 
-      : 0.48 * Math.exp(-0.96 * (s / h));
-    zdiff = 2 * z0 * (1 - k);
-    delay = 84.72 * Math.sqrt(effDk);
-  } else {
+    if (isRefined) {
+      // Hammerstad & Jensen model for effDk
+      const u = w / h;
+      const aU = 1 + (1/49) * Math.log((Math.pow(u, 4) + Math.pow(u/52, 2)) / (Math.pow(u, 4) + 0.432)) + (1/18.7) * Math.log(1 + Math.pow(u/18.1, 3));
+      const bEr = 0.564 * Math.pow((er - 0.9) / (er + 3), 0.053);
+      effDk = (er + 1) / 2 + ((er - 1) / 2) * Math.pow(1 + 10 / u, -(aU * bEr));
+      
+      const deltaW = (t / Math.PI) * (1 + Math.log((4 * Math.PI * w) / t));
+      const w_prime = w + deltaW;
+      const u_prime = w_prime / h;
+      
+      // Hammerstad Impedance Z0 (Air)
+      const fU = 6 + (2 * Math.PI - 6) * Math.exp(-Math.pow(30.666 / u_prime, 0.7528));
+      const z0_air = 60 * Math.log(fU / u_prime + Math.sqrt(1 + Math.pow(2 / u_prime, 2)));
+      z0 = z0_air / Math.sqrt(effDk);
+      
+      // Coupling coefficient k
+      const k = 0.48 * Math.exp(-0.96 * (s / h)) * (1 + 0.1 * (t / h));
+      zdiff = 2 * z0 * (1 - k);
+      delay = 84.72 * Math.sqrt(effDk);
+    } else {
+      // Pure IPC-2141A Formula
+      effDk = 0.475 * er + 0.67; // IPC-2141A approximation of effDk
+      z0 = (87 / Math.sqrt(er + 1.41)) * Math.log((5.98 * h) / (0.8 * w + t));
+      const k = 0.48 * Math.exp(-0.96 * (s / h));
+      zdiff = 2 * z0 * (1 - k);
+      delay = 84.72 * Math.sqrt(effDk);
+    }
+  } else if (topology === 'stripline') {
     // Symmetric Stripline: B = 2H + T
     const b = 2 * h + t;
     effDk = er;
-    const w_prime = isRefined ? w + (t / (Math.PI * 0.8)) * (1 + Math.log(4 / (t/b))) : w;
-    z0 = (60 / Math.sqrt(er)) * Math.log((1.9 * b) / (0.8 * w_prime + t));
+    if (isRefined) {
+      // Refined Stripline with thickness correction
+      const w_prime = w + (t / (Math.PI * 0.8)) * (1 + Math.log(4 / (t/b)));
+      z0 = (60 / Math.sqrt(er)) * Math.log((1.9 * b) / (0.8 * w_prime + t));
+      const k = 0.347 * Math.exp(-2.9 * (s / b)) * (1 + 0.05 * (t / b));
+      zdiff = 2 * z0 * (1 - k);
+    } else {
+      // Pure IPC-2141A Stripline
+      z0 = (60 / Math.sqrt(er)) * Math.log((1.9 * b) / (0.8 * w + t));
+      const k = 0.347 * Math.exp(-2.9 * (s / b));
+      zdiff = 2 * z0 * (1 - k);
+    }
+    delay = 84.75 * Math.sqrt(er);
+  } else if (topology === 'asymmetric-stripline') {
+    // Asymmetric Stripline: b = h + h2 + t
+    const b = h + h2 + t;
+    effDk = er;
     
-    const k = isRefined
-      ? 0.347 * Math.exp(-2.9 * (s / b)) * (1 + 0.05 * (t / b))
-      : 0.347 * Math.exp(-2.9 * (s / b));
-    zdiff = 2 * z0 * (1 - k);
+    // Height ratio term
+    const h_lower = Math.min(h, h2);
+    const h_upper = Math.max(h, h2);
+    
+    if (isRefined) {
+      // Refined Asymmetric Stripline
+      const w_prime = w + (t / (Math.PI * 0.8)) * (1 + Math.log(4 / (t/b)));
+      const z0_sym = (60 / Math.sqrt(er)) * Math.log((1.9 * b) / (0.8 * w_prime + t));
+      z0 = z0_sym * (1 - h_lower / (4 * h_upper));
+      const k = 0.347 * Math.exp(-2.9 * (s / b)) * (1 + 0.05 * (t / b));
+      zdiff = 2 * z0 * (1 - k);
+    } else {
+      // Pure IPC-2141A Asymmetric Stripline
+      z0 = (80 / Math.sqrt(er)) * Math.log((1.9 * (2 * h_lower + t)) / (0.8 * w + t)) * (1 - h_lower / (4 * h_upper));
+      const k = 0.347 * Math.exp(-2.9 * (s / b));
+      zdiff = 2 * z0 * (1 - k);
+    }
     delay = 84.75 * Math.sqrt(er);
   }
 
@@ -78,28 +120,37 @@ function calcResults(inputs, topology, isRefined = false) {
 
 // ─── SVG Cross-Section Diagram ────────────────────────────────────────────────
 function CrossSection({ topology, inputs, coupling, showFields }) {
-  const isStrip = topology === 'stripline';
+  const isStrip = topology === 'stripline' || topology === 'asymmetric-stripline';
+  const isAsymmetric = topology === 'asymmetric-stripline';
   
   // Normalized dimensions for visual scaling (Base values)
   const hVal = parseFloat(inputs.height) || 0.2;
+  const h2Val = parseFloat(inputs.height2) || 0.2;
   const wVal = parseFloat(inputs.width)  || 0.18;
   const sVal = parseFloat(inputs.spacing)|| 0.2;
 
   // Scale factors (Clamped for visual stability)
   const hScale = Math.min(Math.max(hVal / 0.2, 0.5), 2.5);
+  const h2Scale = Math.min(Math.max(h2Val / 0.2, 0.5), 2.5);
   const wScale = Math.min(Math.max(wVal / 0.18, 0.3), 1.8);
   const sScale = Math.min(Math.max(sVal / 0.2, 0.2), 3.0);
 
   // SVG Geometric calculations
   const groundY = 107;
   const traceHeight = 8;
-  const dielectricH = isStrip ? (42 * hScale * 2 + traceHeight) : 42 * hScale;
+  
+  // Total dielectric height
+  const dielectricH = isStrip 
+    ? (42 * hScale + 42 * h2Scale + traceHeight) 
+    : 42 * hScale;
   
   // Vertical positioning
   const dielectricY = groundY - dielectricH;
   const topGroundY = dielectricY; 
   const traceY = isStrip 
-    ? groundY - (dielectricH / 2) - (traceHeight / 2) 
+    ? (isAsymmetric 
+       ? groundY - (42 * hScale) - traceHeight 
+       : groundY - (dielectricH / 2) - (traceHeight / 2))
     : groundY - dielectricH - traceHeight;
   
   // Horizontal positioning (Dynamic spacing and width)
@@ -117,18 +168,25 @@ function CrossSection({ topology, inputs, coupling, showFields }) {
     <svg viewBox="0 0 320 130" className="zdiff-svg" aria-label="Differential pair cross-section diagram">
       {/* Top Ground Plane (stripline only) */}
       {isStrip && (
-        <rect x="20" y={topGroundY} width="280" height="5" fill="var(--accent-primary)" rx="2" fillOpacity="0.75" />
+        <rect x="20" y={topGroundY} width="280" height="5" fill="url(#copperMetal)" rx="1.5" />
       )}
       {/* Bottom Ground Plane */}
-      <rect x="20" y={groundY} width="280" height="5" fill="var(--accent-primary)" rx="2" fillOpacity="0.75" />
+      <rect x="20" y={groundY} width="280" height="5" fill="url(#copperMetal)" rx="1.5" />
 
       {/* Dielectric fill */}
       <rect
         x="20" y={dielectricY}
         width="280"
         height={dielectricH}
-        fill="var(--accent-primary)"
-        fillOpacity="0.04"
+        fill="var(--bg-secondary)"
+        rx="2"
+        style={{ transition: 'all 0.4s ease-in-out' }}
+      />
+      <rect
+        x="20" y={dielectricY}
+        width="280"
+        height={dielectricH}
+        fill="url(#dielectricPattern)"
         rx="2"
         style={{ transition: 'all 0.4s ease-in-out' }}
       />
@@ -151,9 +209,9 @@ function CrossSection({ topology, inputs, coupling, showFields }) {
       })}
 
       {/* D+ Trace */}
-      <rect x={traceP_X} y={traceY} width={traceW} height={traceHeight} fill="var(--warning)" rx="2" style={{ transition: 'all 0.4s ease-in-out' }} />
+      <rect x={traceP_X} y={traceY} width={traceW} height={traceHeight} fill="url(#copperMetal)" rx="1.5" style={{ transition: 'all 0.4s ease-in-out' }} />
       {/* D− Trace */}
-      <rect x={traceN_X} y={traceY} width={traceW} height={traceHeight} fill="var(--warning)" rx="2" style={{ transition: 'all 0.4s ease-in-out' }} />
+      <rect x={traceN_X} y={traceY} width={traceW} height={traceHeight} fill="url(#copperMetal)" rx="1.5" style={{ transition: 'all 0.4s ease-in-out' }} />
 
       {/* Trace labels */}
       <text x={traceP_X + traceW / 2} y={traceY - 5} fill="var(--warning)" fontSize="8" fontWeight="700" textAnchor="middle" style={{ transition: 'all 0.4s ease-in-out' }}>D+</text>
@@ -179,10 +237,25 @@ function CrossSection({ topology, inputs, coupling, showFields }) {
 
       {/* Topology label */}
       <text x="160" y="124" fill="var(--text-tertiary)" fontSize="7" textAnchor="middle" fillOpacity="0.6" fontStyle="italic">
-        {isStrip ? 'Symmetric Stripline — embedded between two GND planes' : 'Edge-Coupled Microstrip — surface layer above GND plane'}
+        {topology === 'microstrip' 
+          ? 'Edge-Coupled Microstrip — surface layer above GND plane' 
+          : topology === 'stripline'
+            ? 'Symmetric Stripline — embedded between two GND planes'
+            : 'Asymmetric Stripline — offset between two GND planes'}
       </text>
 
       <defs>
+        <linearGradient id="copperMetal" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#d97706" />
+          <stop offset="50%" stopColor="#f59e0b" />
+          <stop offset="100%" stopColor="#b45309" />
+        </linearGradient>
+        
+        <pattern id="dielectricPattern" width="8" height="8" patternUnits="userSpaceOnUse">
+          <rect width="8" height="8" fill="rgba(26, 107, 58, 0.08)" />
+          <path d="M 0 0 L 8 8 M 8 0 L 0 8" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+        </pattern>
+
         <marker id="arr"  markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4" fill="var(--warning)" fillOpacity="0.6" /></marker>
         <marker id="arrL" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto-start-reverse"><path d="M0,0 L4,2 L0,4" fill="var(--warning)" fillOpacity="0.6" /></marker>
       </defs>
@@ -350,6 +423,7 @@ export default function ZdiffCalculator() {
           <div className="zdiff-toggle-group">
             <button className={`zdiff-toggle-btn ${topology === 'microstrip' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setTopology('microstrip')}>Microstrip</button>
             <button className={`zdiff-toggle-btn ${topology === 'stripline' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setTopology('stripline')}>Stripline</button>
+            <button className={`zdiff-toggle-btn ${topology === 'asymmetric-stripline' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setTopology('asymmetric-stripline')}>Asymmetric</button>
           </div>
         </div>
       </div>
@@ -373,11 +447,19 @@ export default function ZdiffCalculator() {
 
           <div className="zdiff-input-grid">
             <EngineeringInput
-              label="H — Height"
+              label={topology === 'asymmetric-stripline' ? "H1 — Lower H" : "H — Height"}
               unit={unitSystem}
               value={convertValue(activeStackup.height)}
               onChange={e => handleChange('height', e.target.value)}
             />
+            {topology === 'asymmetric-stripline' && (
+              <EngineeringInput
+                label="H2 — Upper H"
+                unit={unitSystem}
+                value={convertValue(activeStackup.height2)}
+                onChange={e => handleChange('height2', e.target.value)}
+              />
+            )}
             <EngineeringInput
               label="W — Width"
               unit={unitSystem}
@@ -521,12 +603,18 @@ export default function ZdiffCalculator() {
                 
                 <div className="zdiff-popover-code-box">
                   <div className="zdiff-popover-code-label">Implemented Equation (Microstrip)</div>
-                  <code>Z0 = [60 / √(0.475·εr + 0.67)] × ln(5.98h / (0.8w + t))</code>
+                  <code>{refinedMode ? 'Z0 = Hammerstad & Jensen Analytical Model' : 'Z0 = [87 / √(εr + 1.41)] × ln(5.98h / (0.8w + t))'}</code>
                 </div>
                 <div className="zdiff-popover-code-box" style={{ marginTop: '8px' }}>
-                  <div className="zdiff-popover-code-label">Implemented Equation (Stripline)</div>
-                  <code>Z0 = [60 / √εr] × ln(1.9·B / (0.8w + t))</code>
+                  <div className="zdiff-popover-code-label">Implemented Equation (Symmetric Stripline)</div>
+                  <code>{refinedMode ? 'Z0 = Hammerstad Stripline (Width Correction)' : 'Z0 = [60 / √εr] × ln(1.9·B / (0.8w + t))'}</code>
                 </div>
+                {topology === 'asymmetric-stripline' && (
+                  <div className="zdiff-popover-code-box" style={{ marginTop: '8px' }}>
+                    <div className="zdiff-popover-code-label">Implemented Equation (Asymmetric Stripline)</div>
+                    <code>{refinedMode ? 'Z0 = Hammerstad Asymmetric (Offset scaling)' : 'Z0 = [80 / √εr] × ln(1.9·(2h1 + t) / (0.8w + t)) × (1 - h1 / 4h2)'}</code>
+                  </div>
+                )}
 
                 <div className="zdiff-popover-disclaimer">
                   <span className="font-bold">Note:</span> Hammerstad & Jensen model is accurate within ±2% for typical geometries. Use a 2D Field Solver (Polar Si9000) for critical 25 Gbps+ channels.

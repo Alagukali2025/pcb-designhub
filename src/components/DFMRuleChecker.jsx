@@ -56,6 +56,9 @@ export default function DFMRuleChecker() {
   const [apertureWidth, setApertureWidth] = useState(0.25); // mm
   const [apertureLength, setApertureLength] = useState(1.0); // mm
   const [stencilThickness, setStencilThickness] = useState(0.12); // mm
+  const [maskColor, setMaskColor] = useState('green'); // 'green' | 'other'
+  const [isManualDam, setIsManualDam] = useState(false);
+  const [damVal, setDamVal] = useState(0.2); // mm
 
   // 2. SSOT Synchronizers
   useEffect(() => {
@@ -74,6 +77,12 @@ export default function DFMRuleChecker() {
       else setCopperOz(0.5);
     }
   }, [activeStackup.width, activeStackup.thickness, isManualOz, isManualTrace]);
+
+  useEffect(() => {
+    if (!isManualDam) {
+      setDamVal(activeStackup.spacing);
+    }
+  }, [activeStackup.spacing, isManualDam]);
 
   // 3. Derived Engineering Variables
   const bottomCopper = 100 - topCopper;
@@ -130,13 +139,15 @@ export default function DFMRuleChecker() {
     : `Annular ring satisfies IPC Class ${activeStackup.ipcClass} target of ${ringTarget}mm.`;
 
   // ─── Rule 6: Solder Mask Dam ────────────────────────────
-  const maskDam = activeStackup.spacing; 
-  const damLimit = activeStackup.ipcClass === 3 ? 0.100 : activeStackup.ipcClass === 1 ? 0.075 : 0.100; 
+  const maskDam = damVal; 
+  const damLimit = maskColor === 'green'
+    ? (activeStackup.ipcClass === 3 ? 0.100 : 0.075)
+    : (activeStackup.ipcClass === 3 ? 0.125 : 0.100);
   const damLimitMil = (damLimit * 39.3701).toFixed(1);
   const damStatus = maskDam < damLimit ? 'fail' : maskDam < damLimit + 0.05 ? 'warn' : 'pass';
   const damMessage = maskDam < damLimit
-    ? `BRIDGE RISK. Solder mask dam < ${damLimit}mm (${damLimitMil} mil) fails Class ${activeStackup.ipcClass} standards.`
-    : `Solder mask dam satisfies ${damLimit}mm (${damLimitMil} mil) reliability threshold.`;
+    ? `BRIDGE RISK. ${maskColor.toUpperCase()} solder mask dam is ${maskDam.toFixed(3)}mm (${(maskDam * 39.37).toFixed(1)} mil), which is less than the ${damLimit}mm limit for Class ${activeStackup.ipcClass}.`
+    : `Solder mask dam satisfies the ${damLimit}mm (${damLimitMil} mil) reliability threshold for ${maskColor} mask.`;
 
   return (
     <div className="dfm-card slide-up">
@@ -303,7 +314,53 @@ export default function DFMRuleChecker() {
         </RulePanel>
 
         {/* Rule 6: Solder Mask Dam */}
-        <RulePanel title="Rule 6 — Mask Bridge / Dam" icon={AlertTriangle} accentClass="dfm-accent-purple" status={damStatus} result={`${maskDam.toFixed(2)} mm (${(maskDam * 39.37).toFixed(1)} mil)`}>
+        <RulePanel title="Rule 6 — Mask Bridge / Dam" icon={AlertTriangle} accentClass="dfm-accent-purple" status={damStatus} result={`${maskDam.toFixed(3)} mm (${(maskDam * 39.37).toFixed(1)} mil)`}>
+          <div className="flex items-center justify-between mb-3">
+             <p className={`text-[10px] font-bold italic flex items-center gap-1 ${isManualDam ? 'text-orange-500' : 'text-blue-500'}`}>
+              {isManualDam ? (
+                <>🚧 Manual "What-if" Mode active</>
+              ) : (
+                <>⚡ Auto-synced from Stackup Engine</>
+              )}
+            </p>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => { setIsManualDam(!isManualDam); }}
+                className={`px-2 py-0.5 rounded-md text-[9px] font-black border transition-all ${isManualDam ? 'bg-orange-500 text-white border-orange-600' : 'bg-black-40 text-tertiary border-white-10'}`}
+              >
+                {isManualDam ? 'SYNC TO LIVE' : 'ENABLE MANUAL'}
+              </button>
+            </div>
+          </div>
+
+          <div className="dfm-inputs-row mb-3">
+            <div className="dfm-input-group">
+              <label className="dfm-input-label">Mask Color</label>
+              <div className="dfm-select-group">
+                <button 
+                  className={`dfm-oz-btn ${maskColor === 'green' ? 'dfm-oz-active' : ''}`} 
+                  onClick={() => setMaskColor('green')}
+                > 
+                  Green/Blue
+                </button>
+                <button 
+                  className={`dfm-oz-btn ${maskColor === 'other' ? 'dfm-oz-active' : ''}`} 
+                  onClick={() => setMaskColor('other')}
+                > 
+                  Other
+                </button>
+              </div>
+            </div>
+            <div className="dfm-input-group">
+              <EngineeringInput 
+                label="Mask Dam Width" unit="mm" value={damVal} 
+                onChange={e => { if (isManualDam) setDamVal(Number(e.target.value)); }}
+                step="0.01" min="0.01" max="1.0"
+                disabled={!isManualDam}
+              />
+            </div>
+          </div>
+
           <div className="p-4 bg-black-20 rounded-xl border border-white-05 mb-4 flex items-center gap-4">
               <div className="flex-1">
                 <div className="h-1 bg-black-40 rounded-full overflow-hidden">

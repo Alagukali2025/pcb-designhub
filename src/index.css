@@ -278,6 +278,7 @@ a:hover {
   background-color: var(--bg-primary);
   position: relative;
   transition: padding var(--transition-normal);
+  min-width: 0;
 }
 
 .page-content {
@@ -1085,6 +1086,7 @@ a:hover {
 /* Dashboard Page */
 .dashboard-container {
   max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -9956,4 +9958,79 @@ input[type=number] {
 .bg-accent-primary { background-color: var(--accent-primary) !important; }
 .bg-accent-secondary { background-color: var(--accent-secondary) !important; }
 .bg-accent-light { background-color: var(--accent-light) !important; }
+
+/* ─── Premium Senior UI/UX Engineer Polish ─── */
+
+/* 1. High contrast secondary/tertiary colors for WCAG compliance */
+:root {
+  --text-tertiary: #cbd5e1; /* Shifting to brighter slate for contrast in dark mode */
+}
+:root.light-theme {
+  --text-tertiary: #475569;
+}
+
+/* 2. Enhanced Input & Select Interactions */
+.input-engineering-wrapper {
+  position: relative;
+  transition: all var(--transition-fast) ease-in-out;
+}
+
+.input-engineering {
+  transition: all var(--transition-fast) ease-in-out !important;
+  border: 1px solid var(--border-light) !important;
+}
+
+.input-engineering:focus {
+  outline: none !important;
+  border-color: var(--accent-secondary) !important;
+  box-shadow: 0 0 0 3px rgba(200, 117, 51, 0.25), 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-1px);
+}
+
+/* 3. Micro-animations for Buttons & Selectors */
+.zdiff-toggle-btn, .btn-primary, .btn--primary, .btn--secondary, .btn {
+  transition: all var(--transition-fast) cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer;
+}
+
+.zdiff-toggle-btn:hover, .btn-primary:hover, .btn--primary:hover, .btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.zdiff-toggle-btn:active, .btn-primary:active, .btn--primary:active, .btn:active {
+  transform: scale(0.97) translateY(0);
+}
+
+/* 4. Elegant Glassmorphism Card Hover Effects */
+.zdiff-result-card, .dfm-rule-panel, .zdiff-diagram-box, .zdiff-presets-box {
+  transition: all var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.zdiff-result-card:hover, .dfm-rule-panel:hover {
+  border-color: rgba(200, 117, 51, 0.4) !important;
+  box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.3), 0 0 15px 0 rgba(200, 117, 51, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+/* 5. Custom styling to unify grid layouts vertically */
+.zdiff-body {
+  display: flex !important;
+  gap: var(--space-4) !important;
+  align-items: stretch !important;
+}
+
+.zdiff-left, .zdiff-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: auto;
+}
+
+@media (max-width: 1024px) {
+  .zdiff-body {
+    flex-direction: column !important;
+  }
+}
 
