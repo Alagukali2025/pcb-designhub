@@ -13,6 +13,8 @@ const DDRTimingCalculator = () => {
   const [generation, setGeneration] = useState('DDR4');
   const [mts, setMts] = useState(3200);
   const [skew, setSkew] = useState(25); // Internal in MILS
+  const [layerPlacement, setLayerPlacement] = useState('internal'); // 'surface' | 'internal'
+  const [signalGroup, setSignalGroup] = useState('data'); // 'data' | 'addr'
 
   const er = activeStackup.dk;
 
@@ -24,22 +26,27 @@ const DDRTimingCalculator = () => {
 
   const stats = useMemo(() => {
     const ui = 1000000 / mts; // ps
-    const vp = 11.8 / Math.sqrt(er); // mil/ps
+    
+    // Effective dielectric constant er_eff depending on microstrip vs stripline
+    const effEr = layerPlacement === 'surface' ? (0.64 * er + 0.36) : er;
+    const vp = 11.8 / Math.sqrt(effEr); // mil/ps
     const skewPs = skew / vp;
     const closurePct = (skewPs / ui) * 100;
     
+    const limitPct = signalGroup === 'data' ? 5.0 : 20.0;
+    
     let status = 'Safe';
     let statusColor = 'var(--success)';
-    if (closurePct > 15) {
+    if (closurePct > limitPct) {
       status = 'Critical Failure';
       statusColor = 'var(--danger)';
-    } else if (closurePct > 5) {
+    } else if (closurePct > limitPct * 0.5) {
       status = 'Marginal Risk';
       statusColor = 'var(--warning)';
     }
 
-    return { ui, skewPs, closurePct, status, statusColor, vp };
-  }, [mts, skew, er]);
+    return { ui, skewPs, closurePct, status, statusColor, vp, limitPct };
+  }, [mts, skew, er, layerPlacement, signalGroup]);
 
   const handleInputChange = (key, value) => {
     if (value === "" || isNaN(parseFloat(value))) return;
@@ -136,12 +143,12 @@ const DDRTimingCalculator = () => {
                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                           <div 
                             className="h-full transition-all duration-500" 
-                            style={{ width: `${Math.min(100, stats.closurePct)}%`, backgroundColor: stats.statusColor }} 
+                            style={{ width: `${Math.min(100, (stats.closurePct / stats.limitPct) * 100)}%`, backgroundColor: stats.statusColor }} 
                           />
                        </div>
                        <div className="flex justify-between mt-1">
                           <span className="text-[8px] uppercase font-bold text-tertiary">Ideal (0%)</span>
-                          <span className="text-[8px] uppercase font-bold text-tertiary">Limit (20%)</span>
+                          <span className="text-[8px] uppercase font-bold text-tertiary">Limit ({stats.limitPct}%)</span>
                        </div>
                     </div>
                  </div>
@@ -171,6 +178,22 @@ const DDRTimingCalculator = () => {
                     className="zdiff-input w-full p-0"
                     style={{ accentColor: generations[generation].color }}
                   />
+                </div>
+
+                <div className="zdiff-input-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="engineering-label">Signal Bus Group</label>
+                  <div className="zdiff-toggle-group w-full">
+                    <button className={`zdiff-toggle-btn flex-1 ${signalGroup === 'data' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setSignalGroup('data')}>Data Lane (DQ/DQS) [5% UI]</button>
+                    <button className={`zdiff-toggle-btn flex-1 ${signalGroup === 'addr' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setSignalGroup('addr')}>Address/CK [20% UI]</button>
+                  </div>
+                </div>
+
+                <div className="zdiff-input-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="engineering-label">Trace Layer Placement</label>
+                  <div className="zdiff-toggle-group w-full">
+                    <button className={`zdiff-toggle-btn flex-1 ${layerPlacement === 'surface' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setLayerPlacement('surface')}>Surface (Microstrip)</button>
+                    <button className={`zdiff-toggle-btn flex-1 ${layerPlacement === 'internal' ? 'zdiff-toggle-btn--active-orange' : ''}`} onClick={() => setLayerPlacement('internal')}>Internal (Stripline)</button>
+                  </div>
                 </div>
 
                 <EngineeringInput
@@ -222,14 +245,16 @@ const DDRTimingCalculator = () => {
                 </div>
 
                 {/* Verdict */}
-                <div className={`zdiff-verdict ${stats.closurePct > 10 ? 'zdiff-verdict--warn' : 'zdiff-verdict--ok'}`}>
-                  <div className="zdiff-verdict-icon">{stats.closurePct > 10 ? <ShieldAlert size={16} /> : <CheckCircle2 size={16} />}</div>
+                <div className={`zdiff-verdict ${stats.closurePct > stats.limitPct * 0.5 ? 'zdiff-verdict--warn' : 'zdiff-verdict--ok'}`}>
+                  <div className="zdiff-verdict-icon">{stats.closurePct > stats.limitPct * 0.5 ? <ShieldAlert size={16} /> : <CheckCircle2 size={16} />}</div>
                   <div>
                     <p className="zdiff-verdict-title">Timing Analysis Verdict</p>
                     <p className="zdiff-verdict-body">
-                       {stats.closurePct > 10 
-                         ? 'Skew exceeds 10% UI limit. This will likely cause setup/hold violations. Reduce track length mismatch.' 
-                         : 'Electrical delay skew is well within industrial unit interval margins.'}
+                       {stats.closurePct > stats.limitPct 
+                         ? `Skew exceeds the strict ${stats.limitPct}% UI limit. This will likely cause setup/hold violations. Reduce track length mismatch.` 
+                         : stats.closurePct > stats.limitPct * 0.5
+                           ? `Skew is within limits but exceeds standard 50% safety margin of ${stats.limitPct}%. Monitor eye integrity.`
+                           : `Electrical delay skew is well within industrial unit interval margins.`}
                     </p>
                   </div>
                 </div>
@@ -342,12 +367,12 @@ const DDRTimingCalculator = () => {
                              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                                 <div 
                                   className="h-full transition-all duration-500" 
-                                  style={{ width: `${Math.min(100, stats.closurePct)}%`, backgroundColor: stats.statusColor }} 
+                                  style={{ width: `${Math.min(100, (stats.closurePct / stats.limitPct) * 100)}%`, backgroundColor: stats.statusColor }} 
                                 />
                              </div>
                              <div className="flex justify-between mt-1">
                                 <span className="text-[8px] uppercase font-bold text-tertiary">Ideal (0%)</span>
-                                <span className="text-[8px] uppercase font-bold text-tertiary">Limit (20%)</span>
+                                <span className="text-[8px] uppercase font-bold text-tertiary">Limit ({stats.limitPct}%)</span>
                              </div>
                           </div>
                        </div>
@@ -375,14 +400,16 @@ const DDRTimingCalculator = () => {
                     </div>
                   </div>
 
-                  <div className={`zdiff-verdict mt-4 ${stats.closurePct > 10 ? 'zdiff-verdict--warn' : 'zdiff-verdict--ok'}`}>
-                    <div className="zdiff-verdict-icon">{stats.closurePct > 10 ? <ShieldAlert size={16} /> : <CheckCircle2 size={16} />}</div>
+                  <div className={`zdiff-verdict mt-4 ${stats.closurePct > stats.limitPct * 0.5 ? 'zdiff-verdict--warn' : 'zdiff-verdict--ok'}`}>
+                    <div className="zdiff-verdict-icon">{stats.closurePct > stats.limitPct * 0.5 ? <ShieldAlert size={16} /> : <CheckCircle2 size={16} />}</div>
                     <div>
                       <p className="zdiff-verdict-title">Timing Analysis Verdict</p>
                       <p className="zdiff-verdict-body">
-                         {stats.closurePct > 10 
-                           ? 'Skew exceeds 10% UI limit. This will likely cause setup/hold violations. Reduce track length mismatch.' 
-                           : 'Electrical delay skew is well within industrial unit interval margins.'}
+                         {stats.closurePct > stats.limitPct 
+                           ? `Skew exceeds the strict ${stats.limitPct}% UI limit. This will likely cause setup/hold violations. Reduce track length mismatch.` 
+                           : stats.closurePct > stats.limitPct * 0.5
+                             ? `Skew is within limits but exceeds standard 50% safety margin of ${stats.limitPct}%. Monitor eye integrity.`
+                             : `Electrical delay skew is well within industrial unit interval margins.`}
                       </p>
                     </div>
                   </div>

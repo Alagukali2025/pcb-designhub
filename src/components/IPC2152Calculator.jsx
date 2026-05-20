@@ -27,24 +27,32 @@ const IPC2152Calculator = () => {
   const [traceLength, setTraceLength] = useState(1000); // 1000 mil = 1 inch
 
   const stats = useMemo(() => {
-    // ... existing math ...
-    // ── Stage 1: IPC-2221A Base Model ──────────────────
-    const k = isInternal ? 0.024 : 0.048;
-    const b = 0.44;
-    const c = 0.725;
-    const baseArea = Math.pow(current / (k * Math.pow(tempRise, b)), 1/c);
+    // Clamping inputs to avoid domain errors
+    const dT = Math.max(0.1, tempRise);
+    const I = Math.max(0.01, current);
 
-    // ── Stage 2: IPC-2152 Correction Factors ────────────────────────────
-    const thicknessFactor = Math.pow(boardThickness / 62, 0.25);
-    const planeFactor = hasAdjacentPlane ? 0.75 : 1.0;
-    const convectionFactor = isInternal ? 1.0 : 0.90;
+    // ── Stage 1: True IPC-2152 Baseline Curve Fit (Still Air) ──
+    const baseArea = (117.555 * Math.pow(dT, -0.913) + 1.15) * Math.pow(I, 0.84 * Math.pow(dT, -0.108) + 1.159);
 
-    const crossSectionArea = baseArea * thicknessFactor * planeFactor * convectionFactor;
+    // ── Stage 2: IPC-2152 Modifier Coefficients ──
+    // Thickness modifier: thicker board = better heatsink = smaller area needed
+    const thicknessFactor = Math.pow(boardThickness / 62, -0.25);
+    
+    // Plane modifier: ground plane reduces temperature rise, reducing required area to ~50%
+    const planeFactor = hasAdjacentPlane ? 0.50 : 1.0;
+    
+    // Internal layer multiplier: heat retention is higher internally if no planes are nearby (1.5x area), 
+    // but benefits if adjacent to plane (1.5 * 0.5 = 0.75x net area)
+    const internalMultiplier = isInternal ? 1.5 : 1.0;
+
+    const crossSectionArea = baseArea * thicknessFactor * planeFactor * internalMultiplier;
+    
+    // Copper weight to thickness in mils: 1 oz/ft² = 1.37 mils
     const thicknessMil = copperWeight * 1.37;
     const widthMil = crossSectionArea / thicknessMil;
     const widthMm = widthMil / MM_TO_MIL;
 
-    // ── Stage 3: DC Power Analysis ─────────────────────────────────────
+    // ── Stage 3: DC Power Analysis ──
     const absoluteTemp = ambientTemp + tempRise;
     
     // Resistance Calculation (R = rho * L / A)
@@ -55,12 +63,13 @@ const IPC2152Calculator = () => {
     const baseResistance = (COPPER_RESISTIVITY * lengthMeters) / areaSqMeters;
     const resistanceAtTemp = baseResistance * (1 + THERMAL_COEFF * (absoluteTemp - 20));
     
-    const voltageDrop = current * resistanceAtTemp;
-    const powerLoss = current * current * resistanceAtTemp;
+    const voltageDrop = I * resistanceAtTemp;
+    const powerLoss = I * I * resistanceAtTemp;
     
     // Fusing Current (Onderdonk - Simplified 1 sec)
     const fusingCurrent = 0.188 * (crossSectionArea) * Math.sqrt(Math.log10((1083 - ambientTemp) / (234 + ambientTemp) + 1) / 1);
 
+    // Derating represents relative change from baseline
     const derating = ((crossSectionArea / baseArea) - 1) * 100;
 
     return { 

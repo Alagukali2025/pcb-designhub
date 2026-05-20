@@ -8,6 +8,9 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .roadmap-title {
@@ -55,9 +58,13 @@
   justify-content: space-between;
   gap: 0.5rem;
   overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
   padding-bottom: 0.5rem;
   padding-top: 1rem;
   position: relative;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 
 .roadmap-line {
@@ -207,5 +214,35 @@
 @media (max-width: 800px) {
   .roadmap-flow {
     justify-content: flex-start;
+  }
+
+  /* ── Critical mobile fix ────────────────────────────────────
+     The global * { max-width: 100% } reset crushes flex children
+     inside a scroll container. We must explicitly override it so
+     each step retains its natural min-width and the container
+     can scroll horizontally as intended.
+  ─────────────────────────────────────────────────────────── */
+  .roadmap-step {
+    max-width: none;   /* override global * { max-width: 100% } */
+    min-width: 130px;  /* keep each step readable on small phones */
+    flex-shrink: 0;    /* prevent flex from squeezing steps */
+  }
+
+  /* Visual scroll-hint: fade-out right edge so user knows to swipe */
+  .roadmap-container {
+    position: relative;
+  }
+
+  .roadmap-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(to right, transparent, var(--bg-primary, #1e293b));
+    pointer-events: none;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    z-index: 2;
   }
 }
