@@ -82,7 +82,7 @@ export const content = {
       heading: "Copper Weight & Thermal Spreading",
       content: "Increasing copper weight (oz) increases the cross-sectional area for current and the surface area for thermal spreading. Primary Metric: Current Density & Heat Spreading.",
       table: {
-        headers: ["Copper Weight", "Foil Thickness µm (mil)", "Approx. Capacity", "Typical Usage"],
+        headers: ["Copper Weight", "Foil Thickness microns (mil)", "Approx. Capacity", "Typical Usage"],
         rows: [
           ["0.25 oz (Quarter)", "8.75 (0.34)", "Low capacity", "RF shields, impedance tuning"],
           ["0.5 oz (Half)", "17.5 (0.69)", "Medium capacity", "High-density signal layers, HDI"],
