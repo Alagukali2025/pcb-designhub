@@ -11,7 +11,9 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     <aside className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
         <div className="sidebar-brand">
-          <img src="/logo.webp" alt="PCB RULES Logo" className="sidebar-logo-img" />
+          <div className="sidebar-logo-container" style={{ width: '40px', height: '44px', clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', filter: 'drop-shadow(0 0 8px rgba(74, 222, 128, 0.4))' }}>
+            <img src="/logo-new.png" alt="PCB RULES Logo" style={{ width: '135%', height: '135%', objectFit: 'cover', minWidth: '135%', minHeight: '135%' }} />
+          </div>
           <div className="sidebar-brand-text">
             <span className="brand-title">
               <span className="text-pcb-green">PCB</span> <span className="text-copper">RULES</span>

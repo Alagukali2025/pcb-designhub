@@ -18,7 +18,9 @@ const LoadingScreen = ({ isFadingOut }) => {
             
             {/* Central Hexagon Core (Green/Copper Mix) */}
             <div className="hex-core">
-              <img src="/logo.webp" alt="Engineering Core" className="core-logo-img" />
+              <div className="core-logo-container" style={{ width: '80px', height: '88px', clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', margin: 'auto', filter: 'drop-shadow(0 0 12px rgba(74, 222, 128, 0.45))' }}>
+                <img src="/logo-new.png" alt="Engineering Core" style={{ width: '135%', height: '135%', objectFit: 'cover', minWidth: '135%', minHeight: '135%' }} />
+              </div>
             </div>
 
             {/* Orbiting particles */}
