@@ -133,7 +133,7 @@ export default function Login() {
               <Cpu size={32} className="logo-icon-svg" />
             </div>
             <div className="logo-text-group">
-              <h1 className="login-title">PCB DESIGN HUB</h1>
+              <h1 className="login-title">PCBRULES</h1>
               <p className="login-subtitle">SECURE ENGINEERING HUB</p>
             </div>
           </div>
@@ -346,7 +346,7 @@ export default function Login() {
             <div className="auth-footer">
               {mode === 'login' ? (
                 <>
-                  <span className="footer-message">NEW TO PCB DESIGN HUB?</span>
+                  <span className="footer-message">NEW TO PCBRULES?</span>
                   <button className="auth-switch-btn" onClick={() => setMode('register')}>
                     CREATE ACCOUNT
                   </button>
@@ -365,7 +365,7 @@ export default function Login() {
         </div>
 
         <p className="auth-copyright">
-          © 2026 PCB DESIGN HUB | SECURE ENGINEERING SYSTEMS
+          © 2026 PCBRULES | SECURE ENGINEERING SYSTEMS
         </p>
       </div>
     </div>
