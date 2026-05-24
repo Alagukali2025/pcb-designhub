@@ -356,12 +356,6 @@ export default function ContentViewer() {
       </button>
 
       <div className="content-layout fade-in">
-        <div className="back-link-wrapper">
-          <Link to="/" className="back-link">
-            <ArrowLeft size={16} /> Back
-          </Link>
-        </div>
-
         {/* Left Column - Main Content */}
         <div className="reading-column">
           <header className="content-hero">
