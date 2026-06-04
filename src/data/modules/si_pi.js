@@ -10,8 +10,9 @@ export const content = {
           ["Single-ended (General)", "50 Ω", "±10%", "IPC-2141A"],
           ["DDR4/5 Data (DQ)", "40–50 Ω SE", "±10%", "JEDEC JESD79-5B"],
           ["DDR4/5 CLK / DQS", "100 Ω Diff", "±10%", "JEDEC JESD79-5B"],
-          ["PCIe Gen 1–5 (PCB Trace)", "100 Ω Diff", "±10%", "PCI-SIG CEM Spec §4.3.2"],
-          ["PCIe Gen 1–5 (Connector)", "85 Ω Diff", "Per CEM Spec", "PCI-SIG CEM (at gold-finger interface)"],
+          ["PCIe Gen 1 & 2 (PCB Trace)", "100 Ω Diff", "±10%", "PCI-SIG CEM Spec"],
+          ["PCIe Gen 3–5 (PCB Trace)", "85 Ω Diff", "±10%", "PCI-SIG CEM Spec"],
+          ["PCIe Gen 3–5 (Connector)", "85 Ω Target", "Per Spec", "At gold-finger interface"],
           ["USB 3.x / 4", "90 Ω Diff", "±15%", "USB 3.2 §6.7"],
           ["1000BASE-T (GbE)", "100 Ω Diff", "±15%", "IEEE 802.3"]
         ]

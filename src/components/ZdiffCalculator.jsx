@@ -9,7 +9,7 @@ const INTERFACE_PRESETS = [
   { name: 'USB 2.0',         zdiff: 90,  w: 0.18, s: 0.18, h: 0.17, t: 0.035, dk: 4.2,  tol: 15 },
   { name: 'USB 3.x',         zdiff: 90,  w: 0.18, s: 0.18, h: 0.17, t: 0.035, dk: 4.2,  tol: 10 },
   { name: 'PCIe Gen 1–2',    zdiff: 100, w: 0.20, s: 0.20, h: 0.20, t: 0.035, dk: 4.17, tol: 15 },
-  { name: 'PCIe Gen 3–5',    zdiff: 100, w: 0.18, s: 0.16, h: 0.17, t: 0.035, dk: 3.1,  tol: 10 },
+  { name: 'PCIe Gen 3–5',    zdiff: 85,  w: 0.18, s: 0.16, h: 0.17, t: 0.035, dk: 3.1,  tol: 10 },
   { name: 'HDMI 2.x / DP',  zdiff: 100, w: 0.20, s: 0.20, h: 0.20, t: 0.035, dk: 4.17, tol: 15 },
   { name: 'LVDS',            zdiff: 100, w: 0.20, s: 0.20, h: 0.20, t: 0.035, dk: 4.17, tol: 20 },
   { name: '1G/10G Ethernet', zdiff: 100, w: 0.20, s: 0.20, h: 0.20, t: 0.035, dk: 4.17, tol: 15 },
