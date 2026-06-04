@@ -242,7 +242,7 @@ export const content = {
       heading: "Interface Impedance Reference Table",
       content: "Not every high-speed connection is the same. This cheat sheet gives you the standard 'Target Values' for common interfaces like USB, HDMI, and PCIe so you know exactly what numbers to aim for.",
       list: [
-        { label: "The Goal", text: "USB uses 90Ω; PCIe uses 100Ω. Mixing them up causes data errors." },
+        { label: "The Goal", text: "USB uses 90Ω; PCIe Gen 1/2 uses 100Ω, Gen 3–5 uses 85Ω. Mixing them up causes data errors." },
         { label: "The Standard", text: "These values are defined by the groups that invent the technology (like USB-IF)." },
         { label: "The Tolerance", text: "Stay within ±10% of these values for a professional design." }
       ],
@@ -281,7 +281,7 @@ export const content = {
     {
       category: "1. Geometry Setup",
       items: [
-        "Zdiff target confirmed for the interface standard (USB: 90Ω, PCIe/Ethernet: 100Ω, LVDS: 100Ω, HDMI: 100Ω).",
+        "Zdiff target confirmed for the interface standard (USB: 90Ω, PCIe Gen 1/2: 100Ω, PCIe Gen 3–5: 85Ω, Ethernet: 100Ω, LVDS: 100Ω, HDMI: 100Ω).",
         "Trace width (W) and spacing (S) calculated via IPC-2141A formula or field solver.",
         "Dielectric height (H) locked in SSOT stackup — not modified per-signal.",
         "Intra-pair spacing (S) maintained as a fixed DRC rule in the EDA tool.",

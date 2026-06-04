@@ -86,7 +86,8 @@ export const content = {
         headers: ["Interface", "Z₀ Single-Ended", "Z₀ Differential", "Tolerance"],
         rows: [
           ["USB 2.0 / 3.x", "—", "90Ω", "±10%"],
-          ["PCIe Gen 1–5", "—", "100Ω", "±10%"],
+          ["PCIe Gen 1 & 2", "—", "100Ω", "±10%"],
+          ["PCIe Gen 3, 4 & 5", "—", "85Ω", "±10%"],
           ["HDMI / DP", "—", "100Ω", "±10%"],
           ["DDR4 Data", "34–40Ω (ODT-dependent)", "—", "±10%"],
           ["RF (50Ω sys)", "50Ω", "—", "±5%"]
