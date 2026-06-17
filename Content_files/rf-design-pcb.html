@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RF Design for PCB — PCBRules</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── TOKENS ───────────────────────────────────────────────── */
+    :root {
+      --bg:       #0a0d12;
+      --bg2:      #111620;
+      --bg3:      #181e2b;
+      --border:   #1e2840;
+      --accent:   #00d4ff;
+      --accent2:  #7c3aed;
+      --accent3:  #f59e0b;
+      --warn:     #ef4444;
+      --text:     #e2e8f0;
+      --muted:    #64748b;
+      --mono:     'JetBrains Mono', monospace;
+      --sans:     'Inter', sans-serif;
+      --display:  'Space Grotesk', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── LAYOUT ──────────────────────────────────────────────── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── HERO ────────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      padding: 80px 24px 64px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.35;
+    }
+
+    /* Animated RF wave in hero */
+    .hero-wave {
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: 50%;
+      opacity: 0.08;
+    }
+
+    .hero-content {
+      position: relative;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.2);
+      padding: 4px 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-family: var(--display);
+      font-size: clamp(2rem, 5vw, 3.6rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin-bottom: 36px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-stat .val {
+      font-family: var(--mono);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .hero-stat .lbl {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 4px;
+    }
+
+    /* ── NAV PILLS ───────────────────────────────────────────── */
+    .nav-bar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-pills {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      gap: 2px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-pills::-webkit-scrollbar { display: none; }
+
+    .nav-pill {
+      padding: 14px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+      background: none;
+      border-radius: 0;
+      outline: none;
+      font-family: var(--sans);
+    }
+
+    .nav-pill:hover { color: var(--text); border-bottom-color: var(--border); }
+    .nav-pill.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── SECTION ─────────────────────────────────────────────── */
+    .section {
+      padding: 64px 24px;
+      border-bottom: 1px solid var(--border);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .section-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .section-icon.cyan  { background: rgba(0,212,255,0.1);  border: 1px solid rgba(0,212,255,0.2); }
+    .section-icon.violet{ background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3);}
+    .section-icon.amber { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);}
+    .section-icon.red   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.25); }
+    .section-icon.green { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.25); }
+
+    .section-title {
+      font-family: var(--display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    /* ── CARDS GRID ──────────────────────────────────────────── */
+    .cards { display: grid; gap: 16px; }
+    .cards.col2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .cards.col3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color .2s, transform .2s;
+    }
+
+    .card:hover {
+      border-color: rgba(0,212,255,0.25);
+      transform: translateY(-2px);
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .card-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .badge-cyan   { background: rgba(0,212,255,0.12); color: var(--accent); }
+    .badge-violet { background: rgba(124,58,237,0.15); color: #a78bfa; }
+    .badge-amber  { background: rgba(245,158,11,0.12); color: var(--accent3); }
+    .badge-red    { background: rgba(239,68,68,0.12);  color: #f87171; }
+    .badge-green  { background: rgba(34,197,94,0.12);  color: #4ade80; }
+
+    .card h3 {
+      font-family: var(--display);
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── FORMULA BOX ─────────────────────────────────────────── */
+    .formula-box {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 16px 0;
+      font-family: var(--mono);
+      font-size: 13px;
+      overflow-x: auto;
+    }
+
+    .formula-box .formula-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .formula-box .formula-main {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .formula-box .formula-where {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    /* ── RULE TABLE ──────────────────────────────────────────── */
+    .rule-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 16px;
+    }
+
+    .rule-table th {
+      background: var(--bg3);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .rule-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+    }
+
+    .rule-table tr:last-child td { border-bottom: none; }
+    .rule-table tr:hover td { background: var(--bg3); }
+
+    .rule-table td:first-child {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    /* ── CALLOUT ─────────────────────────────────────────────── */
+    .callout {
+      display: flex;
+      gap: 14px;
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    .callout.tip   { background: rgba(0,212,255,0.06); border: 1px solid rgba(0,212,255,0.15); }
+    .callout.warn  { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); }
+    .callout.note  { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2); }
+
+    .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .callout p { color: var(--muted); }
+    .callout strong { color: var(--text); }
+
+    /* ── MICROSTRIP CALCULATOR ───────────────────────────────── */
+    .calc-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+    }
+
+    .calc-box h3 {
+      font-family: var(--display);
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
+
+    .calc-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .calc-field input, .calc-field select {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .calc-field input:focus, .calc-field select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+    }
+
+    .calc-field select option { background: var(--bg2); }
+
+    .calc-btn {
+      background: linear-gradient(135deg, var(--accent), #0099cc);
+      color: #000;
+      font-family: var(--display);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+    }
+
+    .calc-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .calc-btn:active { transform: translateY(0); }
+
+    .calc-result {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 13px;
+      display: none;
+    }
+
+    .calc-result.visible { display: block; }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-row:last-child { border-bottom: none; }
+    .result-row .rlabel { color: var(--muted); font-size: 12px; }
+    .result-row .rval { color: var(--accent); font-size: 14px; font-weight: 600; }
+
+    /* ── LAYER DIAGRAM ───────────────────────────────────────── */
+    .layer-diagram { margin: 20px 0; }
+
+    .layer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .layer-bar {
+      flex: 1;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .layer-label {
+      font-size: 11px;
+      color: var(--muted);
+      width: 100px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .layer-val {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+      width: 70px;
+    }
+
+    /* ── CHECKLIST ───────────────────────────────────────────── */
+    .checklist { list-style: none; display: grid; gap: 8px; }
+
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.875rem;
+      color: var(--muted);
+      padding: 10px 14px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color .15s;
+    }
+
+    .checklist li:hover { border-color: rgba(0,212,255,0.2); color: var(--text); }
+
+    .check-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── FREQ TABLE ──────────────────────────────────────────── */
+    .freq-band-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .freq-band {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      transition: border-color .2s;
+    }
+
+    .freq-band:hover { border-color: rgba(124,58,237,0.4); }
+
+    .freq-band .band-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: #a78bfa;
+      margin-bottom: 4px;
+    }
+
+    .freq-band .band-range {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .freq-band .band-use {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── SUBSTRATE TABLE ─────────────────────────────────────── */
+    .substrate-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .substrate-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+
+    .sub-name {
+      font-family: var(--display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .sub-prop {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sub-prop:last-child { border-bottom: none; }
+    .sub-prop .pk { color: var(--muted); }
+    .sub-prop .pv { color: var(--accent); font-family: var(--mono); font-weight: 600; }
+
+    /* ── TIPS GRID ───────────────────────────────────────────── */
+    .tip-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 14px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-size: 0.875rem;
+    }
+
+    .tip-row:hover { border-color: rgba(245,158,11,0.25); }
+    .tip-row .tip-num {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent3);
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 4px;
+      padding: 2px 8px;
+      flex-shrink: 0;
+      height: fit-content;
+      margin-top: 1px;
+    }
+
+    .tip-row .tip-body strong { color: var(--text); display: block; margin-bottom: 2px; font-size: 0.9rem; }
+    .tip-row .tip-body { color: var(--muted); }
+
+    /* ── FOOTER ──────────────────────────────────────────────── */
+    .page-footer {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+    }
+
+    .page-footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── RESPONSIVE ──────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 2rem; }
+      .hero-stats { gap: 24px; }
+      .section { padding: 48px 16px; }
+      .section-header { flex-direction: column; gap: 12px; }
+      .calc-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── SCROLL REVEAL ───────────────────────────────────────── */
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity .5s, transform .5s; }
+    .revealed { opacity: 1; transform: none; }
+  </style>
+</head>
+<body>
+
+<!-- ── HERO ──────────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <svg class="hero-wave" viewBox="0 0 500 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,150 C50,80 100,220 150,150 C200,80 250,220 300,150 C350,80 400,220 450,150 L450,300 L0,300Z" fill="none" stroke="#00d4ff" stroke-width="1.5"/>
+    <path d="M0,150 C50,60 100,240 150,150 C200,60 250,240 300,150 C350,60 400,240 450,150 L450,300 L0,300Z" fill="none" stroke="#7c3aed" stroke-width="1"/>
+  </svg>
+
+  <div class="hero-content">
+    <div class="hero-tag">⚡ RF Design</div>
+    <h1>RF Design<br/><span>for PCB Engineers</span></h1>
+    <p>Transmission lines, impedance matching, substrate selection, via fencing, shielding, and layout rules for microwave and RF circuits from MHz to mmWave.</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="val">300 GHz</span>
+        <span class="lbl">mmWave upper limit</span>
+      </div>
+      <div class="hero-stat">
+        <span class="val">50 Ω</span>
+        <span class="lbl">Standard RF impedance</span>
+      </div>
+      <div class="hero-stat">
+        <span class="val">λ/20</span>
+        <span class="lbl">Min feature rule</span>
+      </div>
+      <div class="hero-stat">
+        <span class="val">0.001</span>
+        <span class="lbl">Tan δ Rogers RO4003C</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── STICKY NAV ─────────────────────────────────────────────── -->
+<nav class="nav-bar">
+  <div class="nav-pills">
+    <button class="nav-pill active" onclick="scrollTo('freq')">Frequency Bands</button>
+    <button class="nav-pill" onclick="scrollTo('substrates')">Substrates</button>
+    <button class="nav-pill" onclick="scrollTo('transmission')">Transmission Lines</button>
+    <button class="nav-pill" onclick="scrollTo('calculator')">Impedance Calc</button>
+    <button class="nav-pill" onclick="scrollTo('stackup')">RF Stackup</button>
+    <button class="nav-pill" onclick="scrollTo('layout')">Layout Rules</button>
+    <button class="nav-pill" onclick="scrollTo('shielding')">Shielding & Vias</button>
+    <button class="nav-pill" onclick="scrollTo('matching')">Impedance Matching</button>
+    <button class="nav-pill" onclick="scrollTo('common')">Common Mistakes</button>
+  </div>
+</nav>
+
+<!-- ── 1. FREQUENCY BANDS ─────────────────────────────────────── -->
+<section id="freq">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon violet">📡</div>
+      <div>
+        <div class="section-title">RF Frequency Bands</div>
+        <div class="section-subtitle">How frequency determines your PCB material, trace width, via design, and shielding strategy</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <p><strong>Key rule:</strong> When your PCB trace length exceeds λ/20 (one-twentieth of the wavelength in the substrate), it must be treated as a transmission line — not just a wire. At 2.4 GHz in FR-4 (ε<sub>r</sub> ≈ 4.4), λ/20 ≈ 14 mm.</p>
+    </div>
+
+    <div class="freq-band-grid">
+      <div class="freq-band">
+        <div class="band-name">HF</div>
+        <div class="band-range">3 – 30 MHz</div>
+        <div class="band-use">Amateur radio, shortwave. Standard FR-4 acceptable. Lumped elements dominate.</div>
+      </div>
+      <div class="freq-band">
+        <div class="band-name">VHF/UHF</div>
+        <div class="band-range">30 – 960 MHz</div>
+        <div class="band-use">FM radio, cellular 2G/3G, RFID. FR-4 still usable, watch dielectric loss at UHF upper end.</div>
+      </div>
+      <div class="freq-band">
+        <div class="band-name">L-Band</div>
+        <div class="band-range">1 – 2 GHz</div>
+        <div class="band-use">GPS (1.575 GHz), GLONASS, cellular LTE Band 1. Low-loss material preferred for high-performance designs.</div>
+      </div>
+      <div class="freq-band">
+        <div class="band-name">S-Band</div>
+        <div class="band-range">2 – 4 GHz</div>
+        <div class="band-use">Wi-Fi 2.4 GHz, Bluetooth, ZigBee, WLAN. Rogers RO4003C or equivalent strongly recommended.</div>
+      </div>
+      <div class="freq-band">
+        <div class="band-name">C-Band</div>
+        <div class="band-range">4 – 8 GHz</div>
+        <div class="band-use">Satellite uplink, Wi-Fi 5 GHz (802.11a/n/ac). PTFE substrates give better results above 6 GHz.</div>
+      </div>
+      <div class="freq-band">
+        <div class="band-name">X-Band</div>
+        <div class="band-range">8 – 12 GHz</div>
+        <div class="band-use">Radar, satellite comms. Requires tightly controlled ε<sub>r</sub> and tan δ. ENIG finish reduces skin-effect loss.</div>
+      </div>
+      <div class="freq-band">
+        <div class="band-name">Ku/K/Ka</div>
+        <div class="band-range">12 – 40 GHz</div>
+        <div class="band-use">5G mmWave (24–39 GHz), automotive radar (24/77 GHz). Via drill tolerance and copper roughness are critical.</div>
+      </div>
+      <div class="freq-band">
+        <div class="band-name">V/W-Band</div>
+        <div class="band-range">40 – 110 GHz</div>
+        <div class="band-use">60 GHz Wi-Fi, imaging radar. Smooth copper foil (RTF/VLP), sub-mil tolerances, and cavity-backed designs essential.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;">
+      <div class="formula-box">
+        <div class="formula-label">Wavelength in PCB substrate</div>
+        <div class="formula-main">λ<sub>pcb</sub> = c / (f × √ε<sub>eff</sub>)</div>
+        <div class="formula-where">
+          c = 3 × 10⁸ m/s (speed of light)<br/>
+          f = signal frequency (Hz)<br/>
+          ε<sub>eff</sub> = effective permittivity of the substrate (≈ 3.0–3.5 for microstrip on Rogers RO4003C)<br/>
+          <br/>
+          Example: At 5 GHz on RO4003C (ε<sub>eff</sub> ≈ 3.1): λ<sub>pcb</sub> = 3×10⁸ / (5×10⁹ × √3.1) ≈ 34 mm → λ/20 ≈ 1.7 mm
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 2. SUBSTRATES ───────────────────────────────────────────── -->
+<section id="substrates">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon amber">🧱</div>
+      <div>
+        <div class="section-title">RF Substrate Selection</div>
+        <div class="section-subtitle">Dielectric constant (ε<sub>r</sub>), loss tangent (tan δ), and thermal performance across materials</div>
+      </div>
+    </div>
+
+    <p style="color:var(--muted); margin-bottom:20px; font-size:0.9rem;">FR-4 is a cost-effective workhorse for digital PCBs, but its high loss tangent (tan δ ≈ 0.02) and loose ε<sub>r</sub> tolerance (±10–20%) make it unsuitable for precision RF work above ~2 GHz. Low-loss materials pay for themselves in reduced filter stages, lower noise figures, and reliable impedance control.</p>
+
+    <div class="substrate-cards">
+      <div class="substrate-card">
+        <div class="sub-name">FR-4 (Isola/Generic)</div>
+        <div class="sub-prop"><span class="pk">ε<sub>r</sub> @ 1 GHz</span><span class="pv">4.2 – 4.8</span></div>
+        <div class="sub-prop"><span class="pk">tan δ @ 1 GHz</span><span class="pv">0.018 – 0.024</span></div>
+        <div class="sub-prop"><span class="pk">Max Freq (pract.)</span><span class="pv">~2 GHz</span></div>
+        <div class="sub-prop"><span class="pk">Rel. cost</span><span class="pv">1× (baseline)</span></div>
+        <div class="sub-prop"><span class="pk">Best for</span><span class="pv">Digital, sub-GHz RF</span></div>
+      </div>
+      <div class="substrate-card">
+        <div class="sub-name">Rogers RO4003C</div>
+        <div class="sub-prop"><span class="pk">ε<sub>r</sub> @ 10 GHz</span><span class="pv">3.55 ± 0.05</span></div>
+        <div class="sub-prop"><span class="pk">tan δ @ 10 GHz</span><span class="pv">0.0027</span></div>
+        <div class="sub-prop"><span class="pk">Max Freq (pract.)</span><span class="pv">~40 GHz</span></div>
+        <div class="sub-prop"><span class="pk">Rel. cost</span><span class="pv">4–6×</span></div>
+        <div class="sub-prop"><span class="pk">Best for</span><span class="pv">Wi-Fi, 5G sub-6, LNA</span></div>
+      </div>
+      <div class="substrate-card">
+        <div class="sub-name">Rogers RO4350B</div>
+        <div class="sub-prop"><span class="pk">ε<sub>r</sub> @ 10 GHz</span><span class="pv">3.66 ± 0.05</span></div>
+        <div class="sub-prop"><span class="pk">tan δ @ 10 GHz</span><span class="pv">0.0037</span></div>
+        <div class="sub-prop"><span class="pk">Max Freq (pract.)</span><span class="pv">~35 GHz</span></div>
+        <div class="sub-prop"><span class="pk">Rel. cost</span><span class="pv">4–5×</span></div>
+        <div class="sub-prop"><span class="pk">Best for</span><span class="pv">Phased arrays, radar</span></div>
+      </div>
+      <div class="substrate-card">
+        <div class="sub-name">Taconic TLX-8</div>
+        <div class="sub-prop"><span class="pk">ε<sub>r</sub> @ 10 GHz</span><span class="pv">2.55 ± 0.04</span></div>
+        <div class="sub-prop"><span class="pk">tan δ @ 10 GHz</span><span class="pv">0.0019</span></div>
+        <div class="sub-prop"><span class="pk">Max Freq (pract.)</span><span class="pv">~60 GHz</span></div>
+        <div class="sub-prop"><span class="pk">Rel. cost</span><span class="pv">6–8×</span></div>
+        <div class="sub-prop"><span class="pk">Best for</span><span class="pv">VSAT, X/Ku-band</span></div>
+      </div>
+      <div class="substrate-card">
+        <div class="sub-name">Rogers RT/duroid 5880</div>
+        <div class="sub-prop"><span class="pk">ε<sub>r</sub> @ 10 GHz</span><span class="pv">2.20 ± 0.02</span></div>
+        <div class="sub-prop"><span class="pk">tan δ @ 10 GHz</span><span class="pv">0.0009</span></div>
+        <div class="sub-prop"><span class="pk">Max Freq (pract.)</span><span class="pv">&gt;100 GHz</span></div>
+        <div class="sub-prop"><span class="pk">Rel. cost</span><span class="pv">10–15×</span></div>
+        <div class="sub-prop"><span class="pk">Best for</span><span class="pv">mmWave, V-band, W-band</span></div>
+      </div>
+      <div class="substrate-card">
+        <div class="sub-name">Isola I-Tera MT40</div>
+        <div class="sub-prop"><span class="pk">ε<sub>r</sub> @ 10 GHz</span><span class="pv">3.45 ± 0.05</span></div>
+        <div class="sub-prop"><span class="pk">tan δ @ 10 GHz</span><span class="pv">0.0031</span></div>
+        <div class="sub-prop"><span class="pk">Max Freq (pract.)</span><span class="pv">~30 GHz</span></div>
+        <div class="sub-prop"><span class="pk">Rel. cost</span><span class="pv">3–4×</span></div>
+        <div class="sub-prop"><span class="pk">Best for</span><span class="pv">High-speed digital + RF</span></div>
+      </div>
+    </div>
+
+    <div class="callout warn" style="margin-top:24px;">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Copper roughness matters at mmWave:</strong> Standard electrodeposited (ED) copper has an Rz of 8–12 µm, which adds 15–30% conductor loss at 30 GHz. Use Reverse-Treated Foil (RTF) or Very Low Profile (VLP) copper for Ka-band and above. Some Rogers laminates specify HF/VLP foil for exactly this reason.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. TRANSMISSION LINES ──────────────────────────────────── -->
+<section id="transmission">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon cyan">〰️</div>
+      <div>
+        <div class="section-title">Transmission Line Structures</div>
+        <div class="section-subtitle">Microstrip, stripline, GCPW — choosing and designing each structure</div>
+      </div>
+    </div>
+
+    <div class="cards col2">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-badge badge-cyan">MICROSTRIP</span>
+        </div>
+        <h3>Microstrip</h3>
+        <p>Signal trace on the top copper layer with a ground plane directly below, separated by dielectric. The most common RF structure — easy to probe and connect to SMA connectors.</p>
+        <div class="formula-box" style="margin-top:12px;">
+          <div class="formula-label">Characteristic Impedance (Hammerstad simplified)</div>
+          <div class="formula-main">Z₀ ≈ (87 / √(ε<sub>r</sub> + 1.41)) × ln(5.98·h / (0.8·W + t))</div>
+          <div class="formula-where">
+            W = trace width, h = dielectric height, t = copper thickness, ε<sub>r</sub> = substrate permittivity
+          </div>
+        </div>
+        <p style="margin-top:10px;">⚠️ Open top surface makes microstrip susceptible to radiation losses above 10 GHz and sensitive to solder mask (Δε ≈ 0.5–0.7 increase).</p>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-badge badge-violet">STRIPLINE</span>
+        </div>
+        <h3>Stripline</h3>
+        <p>Signal trace buried between two ground planes. Fully shielded — no radiation, no coupling to other layers. Used for sensitive IF signals and filters where isolation is critical.</p>
+        <div class="formula-box" style="margin-top:12px;">
+          <div class="formula-label">Characteristic Impedance (centered stripline)</div>
+          <div class="formula-main">Z₀ ≈ (60 / √ε<sub>r</sub>) × ln(4b / (0.67π·(0.8W + t)))</div>
+          <div class="formula-where">
+            b = total dielectric thickness between ground planes, W = trace width, t = copper thickness
+          </div>
+        </div>
+        <p style="margin-top:10px;">✅ Best isolation. Slower wave propagation (lower ε<sub>eff</sub>) means narrower trace width than microstrip for the same impedance.</p>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-badge badge-amber">GCPW</span>
+        </div>
+        <h3>Grounded Coplanar Waveguide (GCPW)</h3>
+        <p>Signal trace flanked by coplanar ground conductors on the same layer, plus a back ground plane. Offers wide bandwidth, easy transition to IC pads, and lower dispersion than microstrip at mmWave.</p>
+        <div class="formula-box" style="margin-top:12px;">
+          <div class="formula-label">Effective permittivity (GCPW)</div>
+          <div class="formula-main">ε<sub>eff</sub> = (ε<sub>r</sub> + 1) / 2</div>
+          <div class="formula-where">
+            Z₀ computed via conformal mapping — use a 2.5D EM solver (Sonnet, HFSS, AWR Microwave Office) for production accuracy. Gap width G typically equals trace width W.
+          </div>
+        </div>
+        <p style="margin-top:10px;">🔑 Via stitching between coplanar grounds and back ground every λ/20 is mandatory to prevent parasitic slotline modes.</p>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-badge badge-green">DIFFERENTIAL</span>
+        </div>
+        <h3>Differential Coupled Lines</h3>
+        <p>Two microstrip or stripline traces routed in parallel with controlled gap. Used for baluns, mixers, differential LNA inputs, and high-speed serial links at RF frequencies.</p>
+        <div class="formula-box" style="margin-top:12px;">
+          <div class="formula-label">Odd-mode impedance (target: Z<sub>odd</sub> = Z<sub>diff</sub>/2)</div>
+          <div class="formula-main">Z<sub>diff</sub> = 2 × Z<sub>odd</sub> = 100 Ω (typical)</div>
+          <div class="formula-where">
+            Coupling coefficient K = (Z<sub>even</sub> - Z<sub>odd</sub>) / (Z<sub>even</sub> + Z<sub>odd</sub>)<br/>
+            Keep S/W ratio ≥ 2 for weak coupling; ≤ 0.5 for tight coupling (&gt;10 dB)
+          </div>
+        </div>
+        <p style="margin-top:10px;">Matched routing length to within ±50 mil at GHz; ±5 mil for multi-GHz serial links.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. CALCULATOR ───────────────────────────────────────────── -->
+<section id="calculator">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon cyan">🔢</div>
+      <div>
+        <div class="section-title">Microstrip Impedance Calculator</div>
+        <div class="section-subtitle">Estimate trace width or characteristic impedance for a given stackup</div>
+      </div>
+    </div>
+
+    <div class="calc-box">
+      <h3>⚡ Microstrip Z₀ Calculator</h3>
+      <div class="calc-grid">
+        <div class="calc-field">
+          <label>Trace Width W (mm)</label>
+          <input type="number" id="cW" value="1.90" step="0.01" min="0.05" />
+        </div>
+        <div class="calc-field">
+          <label>Dielectric Height h (mm)</label>
+          <input type="number" id="cH" value="0.635" step="0.001" min="0.05" />
+        </div>
+        <div class="calc-field">
+          <label>Copper Thickness t (mm)</label>
+          <input type="number" id="cT" value="0.035" step="0.001" min="0.005" />
+        </div>
+        <div class="calc-field">
+          <label>Substrate ε<sub>r</sub></label>
+          <select id="cEr">
+            <option value="4.5">FR-4 (4.5)</option>
+            <option value="3.55" selected>Rogers RO4003C (3.55)</option>
+            <option value="3.66">Rogers RO4350B (3.66)</option>
+            <option value="2.55">Taconic TLX-8 (2.55)</option>
+            <option value="2.20">RT/duroid 5880 (2.20)</option>
+            <option value="custom">Custom…</option>
+          </select>
+        </div>
+        <div class="calc-field" id="customErWrap" style="display:none;">
+          <label>Custom ε<sub>r</sub></label>
+          <input type="number" id="cErCustom" value="3.5" step="0.01" min="1" />
+        </div>
+        <div class="calc-field">
+          <label>Frequency (GHz)</label>
+          <input type="number" id="cFreq" value="2.4" step="0.1" min="0.001" />
+        </div>
+      </div>
+      <button class="calc-btn" onclick="calcMicrostrip()">Calculate</button>
+
+      <div class="calc-result" id="calcResult">
+        <div class="result-row">
+          <span class="rlabel">Characteristic Impedance Z₀</span>
+          <span class="rval" id="rZ0">—</span>
+        </div>
+        <div class="result-row">
+          <span class="rlabel">Effective Permittivity ε<sub>eff</sub></span>
+          <span class="rval" id="rEeff">—</span>
+        </div>
+        <div class="result-row">
+          <span class="rlabel">Phase Velocity v<sub>p</sub></span>
+          <span class="rval" id="rVp">—</span>
+        </div>
+        <div class="result-row">
+          <span class="rlabel">Wavelength λ<sub>pcb</sub> at freq</span>
+          <span class="rval" id="rLambda">—</span>
+        </div>
+        <div class="result-row">
+          <span class="rlabel">λ/4 stub length</span>
+          <span class="rval" id="rQuarterWave">—</span>
+        </div>
+        <div class="result-row">
+          <span class="rlabel">λ/20 transmission line threshold</span>
+          <span class="rval" id="rTwentieth">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout note" style="margin-top:16px;">
+      <span class="callout-icon">📐</span>
+      <p><strong>For production designs</strong> always validate with a 2.5D or 3D EM simulator (Sonnet Lite, ADS Momentum, or Ansys HFSS). This calculator uses the Hammerstad–Jensen closed-form model accurate to ~2% for W/h between 0.1 and 10.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. RF STACKUP ───────────────────────────────────────────── -->
+<section id="stackup">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon violet">📚</div>
+      <div>
+        <div class="section-title">RF PCB Stackup Design</div>
+        <div class="section-subtitle">Layer ordering strategies for RF + digital mixed boards and pure RF designs</div>
+      </div>
+    </div>
+
+    <p style="color:var(--muted);margin-bottom:24px;font-size:0.9rem;">Stackup determines how much control you have over RF trace impedance, signal isolation, and heat dissipation. For mixed RF/digital boards, the goal is a dedicated RF layer sandwiched between unbroken ground planes.</p>
+
+    <div class="cards col2">
+      <div class="card">
+        <div class="card-head"><span class="card-badge badge-cyan">4-LAYER RF</span></div>
+        <h3>4-Layer RF Stackup</h3>
+        <div class="layer-diagram" style="margin-top:14px;">
+          <div class="layer"><span class="layer-label">L1 — RF/Signal</span><div class="layer-bar" style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.3);color:#7dd3fc;">Microstrip RF traces, connectors</div><span class="layer-val">18–35 µm Cu</span></div>
+          <div class="layer"><span class="layer-label">L2 — GND</span><div class="layer-bar" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.2);color:#86efac;">Solid copper ground plane</div><span class="layer-val">h₁ = 0.2–0.5 mm</span></div>
+          <div class="layer"><span class="layer-label">L3 — PWR/Dig</span><div class="layer-bar" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);color:#fcd34d;">Digital signals, power routing</div><span class="layer-val">18 µm Cu</span></div>
+          <div class="layer"><span class="layer-label">L4 — GND</span><div class="layer-bar" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.2);color:#86efac;">Return path / heatspreader</div><span class="layer-val">35 µm Cu</span></div>
+        </div>
+        <p style="margin-top:12px;font-size:0.85rem;">L1–L2 dielectric sets Z₀. Keep L2 as unbroken solid ground — no routing, no cutouts under RF traces.</p>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-badge badge-violet">6-LAYER RF</span></div>
+        <h3>6-Layer RF + Digital Mixed</h3>
+        <div class="layer-diagram" style="margin-top:14px;">
+          <div class="layer"><span class="layer-label">L1 — RF</span><div class="layer-bar" style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.3);color:#7dd3fc;">RF microstrip, antennas</div><span class="layer-val">18 µm Cu</span></div>
+          <div class="layer"><span class="layer-label">L2 — GND</span><div class="layer-bar" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.2);color:#86efac;">RF ground reference</div><span class="layer-val">h = 0.127–0.25 mm</span></div>
+          <div class="layer"><span class="layer-label">L3 — Signal</span><div class="layer-bar" style="background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;">Stripline digital signals</div><span class="layer-val">18 µm Cu</span></div>
+          <div class="layer"><span class="layer-label">L4 — PWR</span><div class="layer-bar" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);color:#fcd34d;">Power planes, RF power</div><span class="layer-val">35 µm Cu</span></div>
+          <div class="layer"><span class="layer-label">L5 — GND</span><div class="layer-bar" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.2);color:#86efac;">Digital return plane</div><span class="layer-val">18 µm Cu</span></div>
+          <div class="layer"><span class="layer-label">L6 — Digital</span><div class="layer-bar" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;">Component side, MCU signals</div><span class="layer-val">18 µm Cu</span></div>
+        </div>
+        <p style="margin-top:12px;font-size:0.85rem;">RF and digital sections should have a physical copper guard between them. Place RF circuitry in one quadrant of the board.</p>
+      </div>
+    </div>
+
+    <div class="callout tip" style="margin-top:24px;">
+      <span class="callout-icon">✅</span>
+      <p><strong>Mixed-signal partition rule:</strong> Draw a physical line on your board separating the RF section from digital. No digital trace should cross under an RF trace. No power trace should pass through the RF ground plane. Use a single-point or bridge connection between RF and digital grounds to avoid ground loops.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. LAYOUT RULES ─────────────────────────────────────────── -->
+<section id="layout">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon amber">📏</div>
+      <div>
+        <div class="section-title">RF PCB Layout Rules</div>
+        <div class="section-subtitle">Critical routing, placement, and copper pour rules for RF circuits</div>
+      </div>
+    </div>
+
+    <table class="rule-table">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Rule / Value</th>
+          <th>Rationale</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Trace-to-trace clearance (RF)</td>
+          <td>Minimum 3× trace width; ideally ≥ 5× for isolation &gt; 20 dB</td>
+          <td>Prevents capacitive coupling and unwanted resonances between adjacent RF lines</td>
+        </tr>
+        <tr>
+          <td>RF trace bends</td>
+          <td>Use circular arcs or 45° miters; never 90° corners</td>
+          <td>90° corners cause discontinuities (reflection ≈ −35 dB equivalent at 10 GHz) and excess inductance</td>
+        </tr>
+        <tr>
+          <td>Decoupling cap placement</td>
+          <td>Within 0.5–1 mm of device power pin; series inductor (ferrite bead) between RF and digital supply</td>
+          <td>Minimises supply impedance at RF frequency; prevents digital noise from coupling to LNA/PA bias</td>
+        </tr>
+        <tr>
+          <td>Ground via spacing (beneath RF trace)</td>
+          <td>≤ λ/20 at highest operating frequency</td>
+          <td>Prevents ground plane resonance and reduces return path impedance</td>
+        </tr>
+        <tr>
+          <td>Reference plane void under RF</td>
+          <td>Zero voids under RF trace for the full signal path length</td>
+          <td>Any void/cutout changes ε<sub>eff</sub> locally, creating an impedance bump and reflection</td>
+        </tr>
+        <tr>
+          <td>Via stub suppression</td>
+          <td>Back-drill or blind/buried vias for layers above 10 GHz</td>
+          <td>A 1 mm via stub resonates near 30 GHz and causes deep notch in insertion loss</td>
+        </tr>
+        <tr>
+          <td>Solder mask on RF traces</td>
+          <td>Open mask (no solder mask over RF traces) or specify ε<sub>r</sub> of mask material</td>
+          <td>LPI solder mask adds 0.5–1 to local ε<sub>eff</sub>, shifting Z₀ by 3–8 Ω if uncorrected</td>
+        </tr>
+        <tr>
+          <td>Copper pour (flooding)</td>
+          <td>Hatch or avoid pour within 3× trace width of RF traces; solid pour only where properly stitched to ground</td>
+          <td>Unconnected or poorly stitched copper shapes act as parasitic patches and resonators</td>
+        </tr>
+        <tr>
+          <td>RF component keep-out</td>
+          <td>Place LNA, PA, mixer before routing; minimum 5 mm from board edge</td>
+          <td>Edge discontinuities and connector launch geometry must be accounted for from the start</td>
+        </tr>
+        <tr>
+          <td>Thermal relief on RF GND pads</td>
+          <td>Avoid thermal relief on ground pads of RF components — use direct connection</td>
+          <td>Thermal relief adds inductance to ground pad; at GHz frequencies this introduces series resonance</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── 7. SHIELDING & VIAS ──────────────────────────────────────── -->
+<section id="shielding">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon red">🛡️</div>
+      <div>
+        <div class="section-title">Via Fencing, Stitching & Shielding</div>
+        <div class="section-subtitle">Ground vias are the RF designer's most powerful layout tool — and the most abused</div>
+      </div>
+    </div>
+
+    <div class="cards col3">
+      <div class="card">
+        <div class="card-head"><span class="card-badge badge-cyan">VIA FENCE</span></div>
+        <h3>Via Fence (Guard Ring)</h3>
+        <p>A row of ground vias on both sides of an RF trace, spaced ≤ λ/20 apart. Suppresses surface wave propagation and reduces radiation. Essential for GCPW and above 6 GHz microstrip.</p>
+        <div class="formula-box" style="margin-top:12px;">
+          <div class="formula-label">Max via pitch</div>
+          <div class="formula-main">p ≤ λ<sub>pcb</sub> / 20</div>
+          <div class="formula-where">Example at 10 GHz on RO4003C: p ≤ 1.6 mm</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-badge badge-violet">STITCHING</span></div>
+        <h3>Ground Plane Stitching</h3>
+        <p>Connects multiple ground planes together to maintain equipotential ground references across layers. Prevents low-frequency resonances in the ground structure. Distribute uniformly across board, especially around RF components.</p>
+        <p style="margin-top:8px;">Standard rule: one stitch via per 50–100 mm² of ground area on low-freq boards; every 5–10 mm² for mmWave designs.</p>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-badge badge-amber">CAVITY SHIELD</span></div>
+        <h3>Metal Cavity / Can Shield</h3>
+        <p>A soldered metal enclosure over the RF circuit provides 40–80 dB additional isolation. Required for LNA, VCO, and filter blocks in products that must pass FCC Part 15 or CE RED.</p>
+        <p style="margin-top:8px;">Design the shield can footprint into the schematic from day one. Ensure keep-out matches the can boundary. Add castellated vias at shield perimeter.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;">
+      <div class="formula-box">
+        <div class="formula-label">Aperture shielding effectiveness (SE)</div>
+        <div class="formula-main">SE<sub>aperture</sub> ≈ 20·log₁₀(λ / (2·L)) dB</div>
+        <div class="formula-where">
+          L = longest aperture dimension (hole, slot, or gap in shield wall)<br/>
+          λ = wavelength at frequency of concern<br/>
+          Rule of thumb: any aperture (connector hole, ventilation slot) should be ≤ λ/20 for SE &gt; 20 dB<br/>
+          A 10 mm slot reduces SE to ~20 dB at 3 GHz — a common and costly mistake
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 8. IMPEDANCE MATCHING ──────────────────────────────────── -->
+<section id="matching">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon green">⚖️</div>
+      <div>
+        <div class="section-title">Impedance Matching Networks</div>
+        <div class="section-subtitle">L-match, π-match, T-match, and transmission-line matching on PCB</div>
+      </div>
+    </div>
+
+    <div class="cards col2" style="margin-bottom:24px;">
+      <div class="card">
+        <div class="card-head"><span class="card-badge badge-cyan">L-MATCH</span></div>
+        <h3>L-Network (Narrowband)</h3>
+        <p>The simplest matching network — one series element and one shunt element. Transforms from source impedance Z<sub>S</sub> to load Z<sub>L</sub>.</p>
+        <div class="formula-box" style="margin-top:12px;">
+          <div class="formula-label">Q-factor (transformation ratio)</div>
+          <div class="formula-main">Q = √((R<sub>high</sub> / R<sub>low</sub>) − 1)</div>
+          <div class="formula-where">
+            Series element (X<sub>s</sub>) = Q × R<sub>low</sub><br/>
+            Shunt element (X<sub>p</sub>) = R<sub>high</sub> / Q<br/>
+            Higher Q → narrower bandwidth, greater transformation ratio
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-badge badge-violet">π & T MATCH</span></div>
+        <h3>π / T Networks (Wideband)</h3>
+        <p>Three-element networks that allow independent control of bandwidth (Q) and impedance ratio. Standard in PA output networks and filter designs.</p>
+        <p style="margin-top:8px;">π-match: two shunt elements + one series element. T-match: two series + one shunt. Use π-match when Z<sub>source</sub> and Z<sub>load</sub> are both high; T-match for both low.</p>
+        <p style="margin-top:8px;font-family:var(--mono);font-size:12px;color:var(--accent);">Target Q in PA design: 5–10 for class-A/B, 2–4 for wideband.</p>
+      </div>
+    </div>
+
+    <div class="formula-box">
+      <div class="formula-label">Quarter-wave transmission line transformer</div>
+      <div class="formula-main">Z<sub>0,TL</sub> = √(Z<sub>S</sub> × Z<sub>L</sub>)</div>
+      <div class="formula-where">
+        A λ/4 section of a PCB transmission line with characteristic impedance Z<sub>0,TL</sub> transforms Z<sub>L</sub> → Z<sub>S</sub>.<br/>
+        Narrowband (BW ≈ 20% around centre frequency) but very low-loss on RF substrates. No components needed — only PCB geometry.<br/>
+        Example: Transform 25 Ω PA output to 50 Ω system → Z<sub>0,TL</sub> = √(25 × 50) = 35.4 Ω
+      </div>
+    </div>
+
+    <div class="callout tip" style="margin-top:20px;">
+      <span class="callout-icon">🔧</span>
+      <p><strong>Smith Chart workflow:</strong> Always plot the unmatched impedance on a Smith Chart (ADS, Keysight, or the free SimSmith tool) before designing the matching network. Move toward the centre (50 Ω) using LC arcs. A single rotation clockwise on the constant-G circle is a shunt capacitor; counterclockwise is a shunt inductor. Real discrete components add parasitics — derate Q by 30–50% for SMD inductors below 0402 size at GHz frequencies.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 9. COMMON MISTAKES ─────────────────────────────────────── -->
+<section id="common">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon red">⚠️</div>
+      <div>
+        <div class="section-title">Common RF PCB Mistakes</div>
+        <div class="section-subtitle">Errors that cause board spins — from experienced digital engineers entering RF</div>
+      </div>
+    </div>
+
+    <div class="tip-row">
+      <span class="tip-num">01</span>
+      <div class="tip-body">
+        <strong>Designing RF in FR-4 above 2.4 GHz</strong>
+        FR-4 loss tangent (~0.02) causes 2–4 dB/10 cm insertion loss at 5 GHz. A filter designed in FR-4 at S-band will fail spectral mask requirements. Always prototype RF subsystems on the target substrate.
+      </div>
+    </div>
+
+    <div class="tip-row">
+      <span class="tip-num">02</span>
+      <div class="tip-body">
+        <strong>Assuming all ground vias are equal</strong>
+        A via has inductance: L<sub>via</sub> ≈ (h/5) × [ln(4h/d) + 1] nH, where h is via length and d is drill diameter. At 10 GHz, a 1.6 mm via adds ≈ 0.3 nH — enough to shift a matching network by several hundred MHz. Use back-drilled or laser-drilled microvias in RF signal paths.
+      </div>
+    </div>
+
+    <div class="tip-row">
+      <span class="tip-num">03</span>
+      <div class="tip-body">
+        <strong>Routing digital traces across the RF ground plane</strong>
+        Every slot or cutout in the reference plane raises the effective impedance and creates radiation from the current detour. Even a 0.3 mm DRC-passing via-clearance gap under a 5 GHz microstrip trace will cause a 15–25% impedance bump and radiate.
+      </div>
+    </div>
+
+    <div class="tip-row">
+      <span class="tip-num">04</span>
+      <div class="tip-body">
+        <strong>Ignoring solder mask over RF traces</strong>
+        Standard LPI solder mask (ε<sub>r</sub> ≈ 3.5) over a 50 Ω microstrip trace shifts Z₀ to ~44–46 Ω — a −0.3 dB return loss error. Specify SM openings over all RF traces in your Gerber layers. Always validate final impedance with the mask in the stackup model.
+      </div>
+    </div>
+
+    <div class="tip-row">
+      <span class="tip-num">05</span>
+      <div class="tip-body">
+        <strong>Poor SMA / edge connector launch design</strong>
+        The connector launch is the single biggest impedance discontinuity in most RF boards. The SMA pin pad must be matched to 50 Ω — this often requires a tapered pad or a launch section. Remove the ground plane under the SMA center pin. Model the connector footprint in 3D EM.
+      </div>
+    </div>
+
+    <div class="tip-row">
+      <span class="tip-num">06</span>
+      <div class="tip-body">
+        <strong>Placing oscillators and PLLs too close to LNAs</strong>
+        VCO phase noise and harmonic injection is the leading cause of receiver desensitization in wireless designs. Minimum spacing: 20 mm + shielded section between LO/synthesizer and LNA input. Budget at least −80 dBm coupling limit between LO and LNA input.
+      </div>
+    </div>
+
+    <div class="tip-row">
+      <span class="tip-num">07</span>
+      <div class="tip-body">
+        <strong>Unmatched PCB antenna feed</strong>
+        A PCB trace antenna (monopole, patch, IFA) has a feed-point impedance of 20–200 Ω — not 50 Ω. Connecting it directly to an IC RF port without a matching network typically causes 6–10 dB gain loss and poor frequency accuracy. Always measure with a VNA and tune with a π-match or short transmission-line stub.
+      </div>
+    </div>
+
+    <div class="tip-row">
+      <span class="tip-num">08</span>
+      <div class="tip-body">
+        <strong>No RF pre-layout simulation</strong>
+        Routing RF by eye and hoping for 50 Ω is guesswork. Use at minimum a 2D cross-section impedance calculator; for production use a 2.5D planar EM solver (Sonnet Lite is free). EM simulation takes hours and saves board spins that cost weeks.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────────────────────── -->
+<div style="border-top:1px solid var(--border);padding:48px 24px;text-align:center;">
+  <p style="color:var(--muted);font-size:13px;margin-bottom:8px;">PCBRules · RF Design Reference</p>
+  <p style="color:var(--muted);font-size:12px;">Technical formulas are closed-form approximations. For production RF PCB design, always validate with a 3D EM solver and VNA measurements on a test coupon.</p>
+</div>
+
+<!-- ── SCRIPTS ─────────────────────────────────────────────────── -->
+<script>
+  /* NAV SCROLL */
+  function scrollTo(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  /* CUSTOM ER TOGGLE */
+  document.getElementById('cEr').addEventListener('change', function() {
+    document.getElementById('customErWrap').style.display =
+      this.value === 'custom' ? 'block' : 'none';
+  });
+
+  /* MICROSTRIP CALCULATOR */
+  function calcMicrostrip() {
+    const W  = parseFloat(document.getElementById('cW').value);
+    const h  = parseFloat(document.getElementById('cH').value);
+    const t  = parseFloat(document.getElementById('cT').value);
+    const er_sel = document.getElementById('cEr').value;
+    const er = er_sel === 'custom'
+      ? parseFloat(document.getElementById('cErCustom').value)
+      : parseFloat(er_sel);
+    const f  = parseFloat(document.getElementById('cFreq').value) * 1e9; // Hz
+
+    if ([W, h, t, er, f].some(isNaN) || W <= 0 || h <= 0 || t <= 0 || er <= 0 || f <= 0) {
+      alert('Please enter valid positive numbers for all fields.');
+      return;
+    }
+
+    // Effective permittivity (Schneider)
+    const eeff = ((er + 1) / 2) + ((er - 1) / 2) * Math.pow(1 + 12 * h / W, -0.5);
+
+    // Z0 (Hammerstad & Jensen closed-form)
+    let Z0;
+    const u = W / h;
+    if (u <= 1) {
+      Z0 = (60 / Math.sqrt(eeff)) * Math.log(8 * h / W + W / (4 * h));
+    } else {
+      Z0 = (120 * Math.PI) / (Math.sqrt(eeff) * (u + 1.393 + 0.667 * Math.log(u + 1.444)));
+    }
+
+    const c = 3e8;
+    const vp = c / Math.sqrt(eeff);
+    const lambda_m = vp / f;
+    const lambda_mm = lambda_m * 1000;
+    const quarterWave = lambda_mm / 4;
+    const twentieth = lambda_mm / 20;
+
+    document.getElementById('rZ0').textContent        = Z0.toFixed(1) + ' Ω';
+    document.getElementById('rEeff').textContent      = eeff.toFixed(3);
+    document.getElementById('rVp').textContent        = (vp / 1e8).toFixed(3) + ' × 10⁸ m/s';
+    document.getElementById('rLambda').textContent    = lambda_mm.toFixed(2) + ' mm';
+    document.getElementById('rQuarterWave').textContent = quarterWave.toFixed(2) + ' mm';
+    document.getElementById('rTwentieth').textContent = twentieth.toFixed(2) + ' mm';
+
+    document.getElementById('calcResult').classList.add('visible');
+  }
+
+  /* SCROLL REVEAL */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('revealed');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  /* ACTIVE NAV ON SCROLL */
+  const sections = ['freq','substrates','transmission','calculator','stackup','layout','shielding','matching','common'];
+  const pills = document.querySelectorAll('.nav-pill');
+
+  window.addEventListener('scroll', () => {
+    let current = sections[0];
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && window.scrollY >= el.offsetTop - 120) current = id;
+    });
+    pills.forEach((p, i) => {
+      p.classList.toggle('active', sections[i] === current);
+    });
+  });
+</script>
+
+</body>
+</html>
