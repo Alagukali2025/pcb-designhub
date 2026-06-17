@@ -11,6 +11,9 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  /* subtle PCB-trace background pattern */
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='5' cy='5' r='1.5' fill='rgba(26,107,58,0.07)'/%3E%3Ccircle cx='55' cy='55' r='1.5' fill='rgba(200,117,51,0.05)'/%3E%3Cpath d='M5 5 L25 5 L35 15 L35 45 L55 45' stroke='rgba(26,107,58,0.06)' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+  background-size: 60px 60px;
 }
 
 .roadmap-title {
@@ -96,7 +99,8 @@
 }
 
 .roadmap-step:hover {
-  background: var(--primary-bg, rgba(59, 130, 246, 0.05));
+  background: rgba(26, 107, 58, 0.06);
+  border-radius: var(--radius-md);
 }
 
 .roadmap-icon-wrapper {
@@ -117,6 +121,14 @@
   background: var(--accent-primary, #1a6b3a); /* Solder Mask Green */
   color: var(--accent-secondary, #c87533); /* Copper Gold */
   border-color: var(--accent-secondary, #c87533); /* Copper Gold */
+  animation: pcb-pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(26, 107, 58, 0.6);
+}
+
+@keyframes pcb-pulse {
+  0%   { box-shadow: 0 0 0 0   rgba(26, 107, 58, 0.55); }
+  50%  { box-shadow: 0 0 0 8px rgba(26, 107, 58, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(26, 107, 58, 0); }
 }
 
 .roadmap-tooltip {
@@ -182,6 +194,10 @@
 
 .roadmap-step.active .roadmap-info h4 {
   color: var(--accent-primary, #1a6b3a);
+  background: linear-gradient(90deg, #1a6b3a, #c87533);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .roadmap-subtitle {
