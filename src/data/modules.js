@@ -171,10 +171,15 @@ export const modulesData = [
     desc: "Mastering high-frequency PCB design, transmission lines, and EMI shielding.",
     prerequisites: ['si_pi', 'high_speed'],
     sections: [
+      "RF Frequency Bands & The Transmission Line Threshold",
       "Stackup Design & Material Selection",
       "Transmission Lines & Impedance Control",
       "RF Routing & Vias",
-      "EMI/EMC Shielding & Antenna Design"
+      "RF PCB Stackup & Partitioning",
+      "Via Fencing, Stitching & Shielding",
+      "Impedance Matching Networks",
+      "EMI/EMC Shielding & Antenna Design",
+      "Common RF PCB Mistakes"
     ],
     loadContent: () => import('./modules/rf_design.js')
   },

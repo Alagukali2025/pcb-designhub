@@ -672,8 +672,8 @@
         <span class="lbl">Min feature rule</span>
       </div>
       <div class="hero-stat">
-        <span class="val">0.001</span>
-        <span class="lbl">Tan δ Rogers RO4003C</span>
+        <span class="val">0.0027</span>
+        <span class="lbl">Tan δ RO4003C @ 10 GHz</span>
       </div>
     </div>
   </div>
@@ -682,15 +682,18 @@
 <!-- ── STICKY NAV ─────────────────────────────────────────────── -->
 <nav class="nav-bar">
   <div class="nav-pills">
-    <button class="nav-pill active" onclick="scrollTo('freq')">Frequency Bands</button>
-    <button class="nav-pill" onclick="scrollTo('substrates')">Substrates</button>
-    <button class="nav-pill" onclick="scrollTo('transmission')">Transmission Lines</button>
-    <button class="nav-pill" onclick="scrollTo('calculator')">Impedance Calc</button>
-    <button class="nav-pill" onclick="scrollTo('stackup')">RF Stackup</button>
-    <button class="nav-pill" onclick="scrollTo('layout')">Layout Rules</button>
-    <button class="nav-pill" onclick="scrollTo('shielding')">Shielding & Vias</button>
-    <button class="nav-pill" onclick="scrollTo('matching')">Impedance Matching</button>
-    <button class="nav-pill" onclick="scrollTo('common')">Common Mistakes</button>
+    <button class="nav-pill active" onclick="scrollToSection('freq')">Frequency Bands</button>
+    <button class="nav-pill" onclick="scrollToSection('substrates')">Substrates</button>
+    <button class="nav-pill" onclick="scrollToSection('transmission')">Transmission Lines</button>
+    <button class="nav-pill" onclick="scrollToSection('calculator')">Impedance Calc</button>
+    <button class="nav-pill" onclick="scrollToSection('stackup')">RF Stackup</button>
+    <button class="nav-pill" onclick="scrollToSection('layout')">Layout Rules</button>
+    <button class="nav-pill" onclick="scrollToSection('shielding')">Shielding & Vias</button>
+    <button class="nav-pill" onclick="scrollToSection('matching')">Impedance Matching</button>
+    <button class="nav-pill" onclick="scrollToSection('common')">Common Mistakes</button>
+    <button class="nav-pill" onclick="scrollToSection('connector')">Connector Launch</button>
+    <button class="nav-pill" onclick="scrollToSection('surface')">Surface Finish</button>
+    <button class="nav-pill" onclick="scrollToSection('partition')">RF-Digital Partition</button>
   </div>
 </nav>
 
@@ -859,13 +862,15 @@
         <h3>Microstrip</h3>
         <p>Signal trace on the top copper layer with a ground plane directly below, separated by dielectric. The most common RF structure — easy to probe and connect to SMA connectors.</p>
         <div class="formula-box" style="margin-top:12px;">
-          <div class="formula-label">Characteristic Impedance (Hammerstad simplified)</div>
-          <div class="formula-main">Z₀ ≈ (87 / √(ε<sub>r</sub> + 1.41)) × ln(5.98·h / (0.8·W + t))</div>
+          <div class="formula-label">Characteristic Impedance — Hammerstad &amp; Jensen (dual-branch, ±2% accuracy)</div>
+          <div class="formula-main">For W/h ≤ 1 &nbsp;→&nbsp; Z₀ = (60 / √ε<sub>eff</sub>) × ln(8h/W + W/4h)<br/>For W/h &gt; 1 &nbsp;→&nbsp; Z₀ = 120π / [√ε<sub>eff</sub> × (W/h + 1.393 + 0.667·ln(W/h + 1.444))]</div>
           <div class="formula-where">
-            W = trace width, h = dielectric height, t = copper thickness, ε<sub>r</sub> = substrate permittivity
+            ε<sub>eff</sub> = (ε<sub>r</sub>+1)/2 + (ε<sub>r</sub>−1)/2 × (1 + 12h/W)<sup>−0.5</sup><br/>
+            W = trace width, h = dielectric height, t = copper thickness (affects effective W via W<sub>eff</sub> = W + ΔW)<br/>
+            ⚠️ Wheeler's single-formula approximation (often quoted) has up to 5% error for W/h &gt; 3. The dual-branch model above is used in the calculator below.
           </div>
         </div>
-        <p style="margin-top:10px;">⚠️ Open top surface makes microstrip susceptible to radiation losses above 10 GHz and sensitive to solder mask (Δε ≈ 0.5–0.7 increase).</p>
+        <p style="margin-top:10px;">⚠️ Open top surface makes microstrip susceptible to radiation losses above 10 GHz and sensitive to solder mask (Δε<sub>eff</sub> ≈ +0.5–0.7), shifting Z₀ by 3–8 Ω if uncorrected.</p>
       </div>
       <div class="card">
         <div class="card-head">
@@ -874,13 +879,14 @@
         <h3>Stripline</h3>
         <p>Signal trace buried between two ground planes. Fully shielded — no radiation, no coupling to other layers. Used for sensitive IF signals and filters where isolation is critical.</p>
         <div class="formula-box" style="margin-top:12px;">
-          <div class="formula-label">Characteristic Impedance (centered stripline)</div>
+          <div class="formula-label">Characteristic Impedance — Cohn formula (symmetric / centered stripline only)</div>
           <div class="formula-main">Z₀ ≈ (60 / √ε<sub>r</sub>) × ln(4b / (0.67π·(0.8W + t)))</div>
           <div class="formula-where">
-            b = total dielectric thickness between ground planes, W = trace width, t = copper thickness
+            b = total dielectric thickness between ground planes, W = trace width, t = copper thickness<br/>
+            ⚠️ Valid ONLY when the trace is centered (b₁ = b₂). Asymmetric stripline (trace off-center, common in 6-layer boards) requires the Wadell asymmetric formula: Z₀ = (60/√ε<sub>r</sub>) × ln(4(b₁+b₂) / (0.67π·(0.8W+t))) — deviations up to 20% if center assumption is applied incorrectly.
           </div>
         </div>
-        <p style="margin-top:10px;">✅ Best isolation. Slower wave propagation (lower ε<sub>eff</sub>) means narrower trace width than microstrip for the same impedance.</p>
+        <p style="margin-top:10px;">✅ Best isolation of all planar structures. Slower wave propagation (full ε<sub>r</sub>, not ε<sub>eff</sub>) means narrower trace width than microstrip for the same impedance.</p>
       </div>
       <div class="card">
         <div class="card-head">
@@ -889,13 +895,15 @@
         <h3>Grounded Coplanar Waveguide (GCPW)</h3>
         <p>Signal trace flanked by coplanar ground conductors on the same layer, plus a back ground plane. Offers wide bandwidth, easy transition to IC pads, and lower dispersion than microstrip at mmWave.</p>
         <div class="formula-box" style="margin-top:12px;">
-          <div class="formula-label">Effective permittivity (GCPW)</div>
-          <div class="formula-main">ε<sub>eff</sub> = (ε<sub>r</sub> + 1) / 2</div>
+          <div class="formula-label">GCPW εeff — substrate-dominated (unlike ungrounded CPW)</div>
+          <div class="formula-main">ε<sub>eff,GCPW</sub> → ε<sub>r</sub> as h/W → 0 &nbsp;(thinner substrate = more field in dielectric)</div>
           <div class="formula-where">
-            Z₀ computed via conformal mapping — use a 2.5D EM solver (Sonnet, HFSS, AWR Microwave Office) for production accuracy. Gap width G typically equals trace width W.
+            ⚠️ The formula ε<sub>eff</sub> = (ε<sub>r</sub>+1)/2 applies to <em>ungrounded</em> CPW only. For GCPW (with back ground plane), ε<sub>eff</sub> is significantly higher and depends on h (substrate thickness), W (trace width), and G (gap width) via elliptic integral conformal mapping.<br/>
+            Closed-form: ε<sub>eff,GCPW</sub> ≈ 1 + (ε<sub>r</sub>−1)·K(k₁)/K(k₁') / [K(k₁)/K(k₁') + K(k)/K(k')]<br/>
+            For production accuracy, always use a 2.5D EM solver (Sonnet Lite, ADS Momentum, HFSS). Gap width G ≈ W is a common starting point.
           </div>
         </div>
-        <p style="margin-top:10px;">🔑 Via stitching between coplanar grounds and back ground every λ/20 is mandatory to prevent parasitic slotline modes.</p>
+        <p style="margin-top:10px;">🔑 Via stitching between coplanar grounds and back ground plane every λ/20 is <strong>mandatory</strong> to prevent parasitic slotline modes — this is the most common GCPW layout mistake.</p>
       </div>
       <div class="card">
         <div class="card-head">
@@ -962,6 +970,9 @@
           <label>Frequency (GHz)</label>
           <input type="number" id="cFreq" value="2.4" step="0.1" min="0.001" />
         </div>
+      </div>
+      <div id="whWarning" style="display:none;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:0.8rem;color:#fcd34d;">
+        ⚠️ W/h ratio is outside the valid range (0.1–10) for the Hammerstad-Jensen model. Results may have &gt;5% error. Consider using a 2.5D EM solver for this geometry.
       </div>
       <button class="calc-btn" onclick="calcMicrostrip()">Calculate</button>
 
@@ -1302,6 +1313,176 @@
   </div>
 </section>
 
+<!-- ── 10. CONNECTOR LAUNCH DESIGN ──────────────────────────── -->
+<section id="connector">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon cyan">🔌</div>
+      <div>
+        <div class="section-title">Connector Launch Design</div>
+        <div class="section-subtitle">SMA, edge launch, and via-launch transitions — the single biggest impedance discontinuity on most RF boards</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>The connector launch is the #1 impedance discontinuity</strong> on most RF PCB designs. A poorly designed SMA footprint can produce 10–20 dB of return loss degradation at the operating frequency — completely negating careful trace impedance control.</p>
+    </div>
+
+    <div class="cards col2" style="margin-top:24px;">
+      <div class="card">
+        <div class="card-head"><span class="card-badge badge-cyan">SMA EDGE LAUNCH</span></div>
+        <h3>SMA Edge Launch Design Rules</h3>
+        <p>The SMA center pin pad must be geometrically matched to 50 Ω at the connector interface.</p>
+        <div class="formula-box" style="margin-top:12px;">
+          <div class="formula-label">Launch pad rules</div>
+          <div class="formula-main">Remove GND plane antipad under SMA center pin</div>
+          <div class="formula-where">
+            • Pad width: tuned to 50 Ω with the local dielectric<br/>
+            • Taper: use a short tapered pad section (narrow → wide) to reduce capacitive discontinuity<br/>
+            • Ground: 4× ground pads surrounding center pin, as close as mechanically possible<br/>
+            • Above 3 GHz: model the full connector footprint in 3D EM (HFSS, CST, or Ansys)
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-badge badge-violet">VIA LAUNCH</span></div>
+        <h3>Via-Based Layer Transition Launch</h3>
+        <p>When transitioning RF signals between layers using vias, parasitic inductance and capacitance create impedance bumps that worsen with frequency.</p>
+        <div class="formula-box" style="margin-top:12px;">
+          <div class="formula-label">Via launch best practices</div>
+          <div class="formula-main">L_via ≈ (h/5) × [ln(4h/d) + 1] nH</div>
+          <div class="formula-where">
+            h = via barrel length, d = drill diameter<br/>
+            • Use back-drilled vias above 10 GHz to eliminate stub resonance<br/>
+            • Laser-drilled microvias (50–100 µm) for mmWave transitions<br/>
+            • Place 4 ground vias symmetrically around every signal via
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <table class="rule-table" style="margin-top:24px;">
+      <thead>
+        <tr><th>Connector Type</th><th>Max Usable Freq</th><th>Key Layout Rule</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>SMA (3.5 mm)</td><td>18 GHz</td><td>Tapered launch pad; remove GND antipad under pin</td></tr>
+        <tr><td>SMP / SMPM</td><td>40 GHz</td><td>Tight ground via ring; minimize launch pad length</td></tr>
+        <tr><td>2.92 mm (K)</td><td>40 GHz</td><td>3D EM model mandatory; VLP copper on launch layer</td></tr>
+        <tr><td>2.4 mm</td><td>50 GHz</td><td>Full 3D EM optimization required</td></tr>
+        <tr><td>1.85 mm (V)</td><td>67 GHz</td><td>Sub-mil pad tolerance; ENEPIG finish only</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── 11. SURFACE FINISH & RF LOSS ─────────────────────────── -->
+<section id="surface">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon amber">🪙</div>
+      <div>
+        <div class="section-title">Surface Finish Impact on RF Loss</div>
+        <div class="section-subtitle">Skin effect depth at 10 GHz is ~0.7 µm — surface finish choice directly determines conductor loss</div>
+      </div>
+    </div>
+
+    <p style="color:var(--muted);margin-bottom:20px;font-size:0.9rem;">At RF frequencies, current flows only in the skin depth δ = √(ρ / πfµ). At 10 GHz, δ ≈ 0.7 µm in copper. This means the surface condition of your conductor — its finish material, roughness, and magnetic permeability — directly determines how much signal power is converted to heat.</p>
+
+    <div class="substrate-cards">
+      <div class="substrate-card">
+        <div class="sub-name">ENIG (Ni/Au)</div>
+        <div class="sub-prop"><span class="pk">Nickel µr</span><span class="pv">≈ 1–600 (varies)</span></div>
+        <div class="sub-prop"><span class="pk">RF Conductor Loss</span><span class="pv">+10–15% vs bare Cu @ 10 GHz</span></div>
+        <div class="sub-prop"><span class="pk">Shelf Life</span><span class="pv">12+ months</span></div>
+        <div class="sub-prop"><span class="pk">Verdict</span><span class="pv">Acceptable up to ~30 GHz</span></div>
+      </div>
+      <div class="substrate-card">
+        <div class="sub-name">ENEPIG (Ni/Pd/Au)</div>
+        <div class="sub-prop"><span class="pk">RF Conductor Loss</span><span class="pv">Similar to ENIG; Pd thin layer adds minimal loss</span></div>
+        <div class="sub-prop"><span class="pk">Shelf Life</span><span class="pv">12+ months</span></div>
+        <div class="sub-prop"><span class="pk">Verdict</span><span class="pv">Preferred for mmWave — best reliability + loss trade-off</span></div>
+      </div>
+      <div class="substrate-card">
+        <div class="sub-name">OSP (Organic)</div>
+        <div class="sub-prop"><span class="pk">RF Conductor Loss</span><span class="pv">Lowest — bare copper conductivity</span></div>
+        <div class="sub-prop"><span class="pk">Shelf Life</span><span class="pv">3–6 months only</span></div>
+        <div class="sub-prop"><span class="pk">Verdict</span><span class="pv">Best RF performance; impractical for production</span></div>
+      </div>
+      <div class="substrate-card">
+        <div class="sub-name">HASL (Tin-Lead)</div>
+        <div class="sub-prop"><span class="pk">Surface Roughness</span><span class="pv">High (uneven meniscus)</span></div>
+        <div class="sub-prop"><span class="pk">RF Conductor Loss</span><span class="pv">Highest — rough surface + lower conductivity</span></div>
+        <div class="sub-prop"><span class="pk">Verdict</span><span class="pv">Avoid for any design above 1 GHz</span></div>
+      </div>
+    </div>
+
+    <div class="callout tip" style="margin-top:24px;">
+      <span class="callout-icon">💡</span>
+      <p><strong>Copper roughness matters more than finish at mmWave:</strong> Standard electrodeposited (ED) copper has Rz = 8–12 µm. At 30 GHz, this adds 15–30% conductor loss compared to smooth copper. Specify <strong>Reverse-Treated Foil (RTF)</strong> or <strong>Very Low Profile (VLP)</strong> copper for all Ka-band and V-band designs. Some Rogers laminates already specify HF/VLP foil — verify with the laminate datasheet.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 12. RF-DIGITAL PARTITIONING ──────────────────────────── -->
+<section id="partition">
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="section-icon green">⚡</div>
+      <div>
+        <div class="section-title">RF-Digital Partitioning Rules</div>
+        <div class="section-subtitle">How to physically separate analog RF from switching digital on the same board — the most important mixed-signal layout decision</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>The most dangerous coupling path is the shared ground plane.</strong> Digital switching currents (dI/dt) flowing through the shared ground create voltage gradients (V = L × dI/dt) that appear as noise at the LNA input. Even a 1 mV ground noise floor at the LNA equates to −60 dBm — enough to desensitize a sensitive receiver.</p>
+    </div>
+
+    <div class="cards col2" style="margin-top:24px;">
+      <div class="card">
+        <div class="card-head"><span class="card-badge badge-cyan">MOAT TECHNIQUE</span></div>
+        <h3>Ground Plane Moat / Island</h3>
+        <p>A physical slot (moat) is cut in the shared ground plane between the RF and digital domains. This forces return currents to flow through a single, controlled bridge point.</p>
+        <p style="margin-top:8px;"><strong>Rules:</strong></p>
+        <ul style="color:var(--muted);font-size:0.875rem;padding-left:20px;margin-top:4px;line-height:2;">
+          <li>One copper bridge only — at the power supply entry point</li>
+          <li>No signal traces should cross the moat except at the bridge</li>
+          <li>RF section ground and digital ground meet at exactly one point</li>
+          <li>The moat does not need to be a complete slot — a thinned copper area ("necked down") also works</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-badge badge-violet">PLACEMENT RULES</span></div>
+        <h3>Physical Component Placement Partitioning</h3>
+        <p>The RF domain must be physically isolated on the PCB — not just in schematic.</p>
+        <ul style="color:var(--muted);font-size:0.875rem;padding-left:20px;margin-top:8px;line-height:2;">
+          <li>Place all RF components in one corner/quadrant of the board</li>
+          <li>Signal flow: Antenna → LNA → Mixer → IF → DSP (left to right or top to bottom)</li>
+          <li>No digital component within 10 mm of LNA input trace</li>
+          <li>Crystal oscillator and switching regulators: opposite corner from LNA</li>
+          <li>RF PCB edge: minimum 5 mm keep-out from board edge for all RF traces</li>
+        </ul>
+      </div>
+    </div>
+
+    <table class="rule-table" style="margin-top:24px;">
+      <thead>
+        <tr><th>Violation</th><th>Typical Effect</th><th>Fix</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Digital trace crosses RF GND plane</td><td>15–25% Z₀ bump + radiation</td><td>Reroute; never cross the RF reference plane</td></tr>
+        <tr><td>Switching regulator near LNA</td><td>−20 to −40 dB SNR degradation</td><td>Move regulator to opposite board corner; add π-filter on supply</td></tr>
+        <tr><td>Multiple GND bridge connections</td><td>Ground loop → EMI antenna</td><td>Cut to single-point connection; verify with spectrum analyzer</td></tr>
+        <tr><td>Crystal oscillator near RF trace</td><td>Harmonic injection into RF band</td><td>20 mm minimum separation + shield can over oscillator</td></tr>
+        <tr><td>Power plane under RF trace</td><td>Impedance discontinuity; coupling</td><td>Replace with dedicated RF GND plane on that layer section</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
 <!-- ── FOOTER ──────────────────────────────────────────────────── -->
 <div style="border-top:1px solid var(--border);padding:48px 24px;text-align:center;">
   <p style="color:var(--muted);font-size:13px;margin-bottom:8px;">PCBRules · RF Design Reference</p>
@@ -1311,7 +1492,7 @@
 <!-- ── SCRIPTS ─────────────────────────────────────────────────── -->
 <script>
   /* NAV SCROLL */
-  function scrollTo(id) {
+  function scrollToSection(id) {
     document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
     document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
     event.target.classList.add('active');
@@ -1337,6 +1518,15 @@
     if ([W, h, t, er, f].some(isNaN) || W <= 0 || h <= 0 || t <= 0 || er <= 0 || f <= 0) {
       alert('Please enter valid positive numbers for all fields.');
       return;
+    }
+
+    // W/h ratio validity check
+    const wh = W / h;
+    const whWarning = document.getElementById('whWarning');
+    if (wh < 0.1 || wh > 10) {
+      if (whWarning) whWarning.style.display = 'block';
+    } else {
+      if (whWarning) whWarning.style.display = 'none';
     }
 
     // Effective permittivity (Schneider)
@@ -1381,7 +1571,7 @@
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
   /* ACTIVE NAV ON SCROLL */
-  const sections = ['freq','substrates','transmission','calculator','stackup','layout','shielding','matching','common'];
+  const sections = ['freq','substrates','transmission','calculator','stackup','layout','shielding','matching','common','connector','surface','partition'];
   const pills = document.querySelectorAll('.nav-pill');
 
   window.addEventListener('scroll', () => {
