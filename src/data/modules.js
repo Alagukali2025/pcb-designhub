@@ -7,14 +7,15 @@ import {
   ShieldAlert, 
   Factory, 
   Thermometer,
-  Layers
+  Layers,
+  Radio
 } from 'lucide-react';
 
 export const modulesData = [
   { 
     id: "footprint", 
     icon: Search, 
-    title: "Footprint Mastery", 
+    title: "Component Footprint Engineering", 
     desc: "Master IPC-7351B standards for land pattern generation.",
     prerequisites: [],
     sections: [
@@ -31,7 +32,7 @@ export const modulesData = [
   { 
     id: "stackup",    
     icon: Layout,      
-    title: "Stackup Design",      
+    title: "Layer Stackup & Materials",      
     desc: "Layer stack-up planning for impedance and signal integrity.",
     prerequisites: ['footprint'],
     sections: [
@@ -67,7 +68,7 @@ export const modulesData = [
   {
     id: "thermal",
     icon: Thermometer,
-    title: "Thermal Management",
+    title: "Thermal Analysis & Management",
     desc: "Calculate trace current capacity and design internal thermal paths.",
     prerequisites: [],
     sections: [
@@ -85,7 +86,7 @@ export const modulesData = [
   { 
     id: "high_speed", 
     icon: Activity,    
-    title: "High-Speed Routing",   
+    title: "High-Speed Digital Interconnects",   
     desc: "Transmission line theory and reflection management.",
     prerequisites: ['stackup'],
     sections: [
@@ -103,7 +104,7 @@ export const modulesData = [
   { 
     id: "diff_pair",  
     icon: Zap,         
-    title: "Differential Pair Routing", 
+    title: "Differential Signaling Protocol", 
     desc: "Achieve the 8 golden rules of differential signaling.",
     prerequisites: ['high_speed'],
     sections: [
@@ -121,7 +122,7 @@ export const modulesData = [
   { 
     id: "ddr",        
     icon: Cpu,         
-    title: "DDR Routing",          
+    title: "DDR Memory Layout",          
     desc: "Master DDR4/DDR5 layout topologies and timing matching.",
     prerequisites: ['high_speed'],
     sections: [
@@ -139,7 +140,7 @@ export const modulesData = [
   { 
     id: "si_pi",      
     icon: Activity,     
-    title: "Advanced Signal & Power Integrity (SI/PI)",         
+    title: "SI / PI Validation",         
     desc: "Industrial-grade engineering for high-speed channel compliance and PDN stability.",
     prerequisites: ['high_speed', 'ddr', 'diff_pair'],
     sections: [
@@ -163,10 +164,24 @@ export const modulesData = [
     ],
     loadContent: () => import('./modules/si_pi.js')
   },
+  {
+    id: "rf_design",
+    icon: Radio,
+    title: "High-Frequency RF Layout",
+    desc: "Mastering high-frequency PCB design, transmission lines, and EMI shielding.",
+    prerequisites: ['si_pi', 'high_speed'],
+    sections: [
+      "Stackup Design & Material Selection",
+      "Transmission Lines & Impedance Control",
+      "RF Routing & Vias",
+      "EMI/EMC Shielding & Antenna Design"
+    ],
+    loadContent: () => import('./modules/rf_design.js')
+  },
   { 
     id: "flex_hdi_routing", 
     icon: Layers,    
-    title: "Advanced Flex & HDI Routing",   
+    title: "HDI & Flex Design Rules",   
     desc: "Master fine-pitch BGA escape strategies and dynamic flex layout rules.",
     prerequisites: ['stackup', 'high_speed'],
     sections: [
@@ -210,7 +225,7 @@ export const modulesData = [
   { 
     id: "dfm_dft",    
     icon: Factory,        
-    title: "DFM / DFT Mastery",                 
+    title: "Design for Manufacturing (DFM/DFT)",                 
     desc: "Achieve industrial-grade yields and 100% test coverage.",
     prerequisites: ['high_speed'],
     sections: [
@@ -229,7 +244,7 @@ export const modulesData = [
   {
     id: "pcb_output_system",
     icon: Factory,
-    title: "Manufacturing Release System",
+    title: "Fabrication & Output Systems",
     desc: "The definitive engineering guide for Fabrication, Assembly, and Test release packages.",
     prerequisites: ['dfm_dft'],
     sections: [

@@ -17,6 +17,7 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const CreatePassword = lazy(() => import('./components/CreatePassword'));
 const Profile = lazy(() => import('./components/Profile'));
 
+
 // Simple fallback for route suspension
 const RouteFallback = () => (
   <div style={{ 
