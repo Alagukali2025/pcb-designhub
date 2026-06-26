@@ -65,21 +65,12 @@ const TabsViewer = ({ tabs }) => {
 
   return (
     <div className="tabs-container slide-up">
-      <div className="tabs-header-row" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-light)', paddingBottom: '8px', marginBottom: '16px' }}>
+      <div className="tabs-header-row">
         {tabs.map((tab, i) => (
           <button
             key={i}
             onClick={() => setActiveTab(i)}
-            style={{
-              padding: '8px 16px',
-              background: activeTab === i ? 'var(--accent-primary)' : 'var(--bg-secondary)',
-              color: activeTab === i ? '#fff' : 'var(--text-secondary)',
-              border: activeTab === i ? '1px solid var(--accent-primary)' : '1px solid var(--border-light)',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 600,
-              transition: 'all 0.2s ease'
-            }}
+            className={`tab-btn${activeTab === i ? ' tab-btn--active' : ''}`}
           >
             {tab.title}
           </button>
@@ -361,6 +352,9 @@ export default function ContentViewer() {
           <header className="content-hero">
             <HeroIcon className="hero-icon-layer" />
 
+            {moduleData.phase && (
+              <span className="content-hero-badge">{moduleData.phase}</span>
+            )}
             <h1 className="content-title">{moduleData.title}</h1>
             <p className="content-intro">{content.intro}</p>
           </header>
@@ -686,6 +680,9 @@ export default function ContentViewer() {
                 return (
                   <div key={ci} className="checklist-category">
                     <h3 className="category-title">{cat.category}</h3>
+                    {cat.description && (
+                      <p className="category-description">{cat.description}</p>
+                    )}
                     <div className="task-items">
                       {cat.items.map((item, i) => {
                         const itemKey = `${ci}-${i}`;

@@ -129,6 +129,108 @@ export const content = {
       refLabel: "EMI / EMC Compliance Module",
       refDesc: "RF shielding and EMI/EMC compliance are deeply interrelated. Study the EMI/EMC module for regulatory frameworks (FCC Part 15, CE RED, CISPR 32), aperture theory, conducted emissions filter design, and pre-compliance measurement strategy.",
       refTargetHeading: "Aperture Theory & Enclosure Shielding"
+    },
+    {
+      heading: "Trace Antenna Design: Physics, Types & Why",
+      content: "A PCB trace antenna is a resonant conductor etched directly into the board — zero extra cost, zero extra assembly. Understanding the physics behind resonance and the εeff correction is the difference between a working design and an 8–12 dB loss that silently kills your link budget.",
+      alerts: [
+        { type: "warning", text: "εeff Correction is Mandatory: A 2.4 GHz monopole in free space = 31.2 mm. On FR-4 (εr = 4.4), microstrip εeff ≈ 3.0–3.4. Physical length ≈ 18 mm. Skipping this correction detunes the antenna by 30–40% and costs 8–12 dB of radiated performance — an invisible failure that looks like a routing problem but is a physics error." }
+      ],
+      cards: [
+        { title: "Why Use a PCB Trace Antenna?", text: "Eliminates the cost and assembly risk of a discrete antenna component. Fully integrated into PCB manufacturing — no extra BOM line, no connector, no coax. Suitable for: BLE, Wi-Fi 2.4/5 GHz, Zigbee, LoRa (sub-GHz), NFC. Best choice for cost-sensitive, high-volume IoT products where board space permits a keep-out zone." },
+        { title: "Resonance Physics — How It Works", text: "A trace antenna is a resonant conductor. When its electrical length matches λ/4 (or λ/2), impedance becomes predominantly real (resistive) — this is resonance. Maximum power transfers from the RF IC into the antenna. The PCB substrate shortens the effective electrical length because εr > 1. Physical length formula: L = λ₀ / (4 × √εeff), where εeff is the effective dielectric constant of the microstrip geometry — not simply εr of the substrate." },
+        { title: "Monopole Antenna", text: "Quarter-wave (λ/4) straight trace. Free space at 2.4 GHz: 31.2 mm. On FR-4 (εeff ≈ 3.2): ~17 mm. Gain: 2.15 dBi. Pattern: omnidirectional in the plane perpendicular to the element. Best for: basic IoT sensors, industrial nodes. Simple to design but requires the largest keep-out zone of all PCB antenna types." },
+        { title: "IFA (Inverted-F Antenna)", text: "A folded monopole with a short-circuit pin that tunes input impedance. Feed position along the horizontal arm controls impedance match — moveable post-fab for trimming. Compact: fits in ~15×5 mm at 2.4 GHz. Gain: 1.5–2 dBi. The industry standard for BLE/Wi-Fi SoC modules (ESP32, nRF52, CC2640). Preferred over monopole when board space is constrained." },
+        { title: "Meander Line Antenna", text: "A physically compressed monopole — the trace zigzags to achieve electrical length in a smaller footprint. Gain: −1 to −3 dBi (worse than monopole due to mutual inductance cancellation between adjacent segments). Substrate loading shifts resonance significantly — always verify with EM simulation. Use only when board space is the dominant constraint and link margin is > 10 dB." },
+        { title: "Patch Antenna", text: "Half-wave (λ/2) resonant patch over a solid ground plane. Physical size at 2.4 GHz on FR-4: ~29×29 mm. Gain: 6–8 dBi directional. Used for: GPS (1.575 GHz), LTE, directional point-to-point links. Requires two continuous ground plane layers. Bandwidth is narrow (~1–5% without tuning stubs). Not suitable for omnidirectional IoT applications." },
+        { title: "Chip Antenna vs. Trace Antenna", text: "Chip antenna: pre-characterized, compact (as small as 2×1 mm), costs $0.20–$2.00. Trace antenna: zero cost, requires larger keep-out zone, must be simulated for each board revision. Choose chip antenna when board space is the primary constraint. Choose trace antenna when cost and BOM simplicity dominate. Never mix both on the same RF port without a switching circuit." }
+      ]
+    },
+    {
+      heading: "PCB Antenna Placement Rules",
+      content: "Where the antenna sits on the board determines everything: gain, pattern, regulatory compliance, and certification validity. These rules are non-negotiable — antenna placement mistakes cannot be fixed in software.",
+      alerts: [
+        { type: "warning", text: "Antenna Placement is Frozen at Certification: Once an antenna position is submitted for FCC/CE certification testing, it is legally locked. Moving the antenna by even 2 mm post-certification invalidates the approval and requires a full re-test at $10,000–$50,000 cost. Freeze the antenna position before ordering first prototypes." }
+      ],
+      ruleCards: [
+        {
+          number: "ANT-01",
+          severity: "warning",
+          title: "Board-Edge Placement",
+          body: "The radiating element of any PCB antenna must extend to or beyond the PCB edge. Never bury the antenna in the center of the board — surrounding copper pours, power planes, and component metal masses detune and absorb radiation. Corner or long-edge placement is preferred for omnidirectional patterns."
+        },
+        {
+          number: "ANT-02",
+          severity: "warning",
+          title: "Keep-Out Zone Enforcement",
+          body: "Enforce a keep-out zone of ≥ λ/4 radius around the radiating element in your EDA tool. Assign a 'RF_KEEPOUT' area that triggers DRC violations for copper, vias, components, and solder mask fills. At 2.4 GHz: λ/4 ≈ 31 mm. At 868 MHz: λ/4 ≈ 86 mm. This zone is not a suggestion — every element inside it shifts resonant frequency and distorts the radiation pattern."
+        },
+        {
+          number: "ANT-03",
+          severity: "warning",
+          title: "Ground Plane Geometry",
+          body: "Ground plane must be present below the feed transmission line, but completely absent below the radiating element for monopole and IFA antennas. The ground plane edge acts as a counterpoise — its size and shape affect radiation pattern and resonant frequency. Patch antennas are the exception: they require a solid, continuous ground plane under the patch with no cutouts."
+        },
+        {
+          number: "ANT-04",
+          severity: "warning",
+          title: "Clearance from Metal Structures",
+          body: "Maintain a minimum 5 mm clearance (ideally λ/4) between the radiating element and any metal structure: battery, shield can, USB/SMA connector body, mounting screws, or heatsinks. Metal objects within λ/4 act as parasitic reflectors or absorbers that detune the antenna by 5–15% and tilt the radiation pattern — measurable as 3–8 dB RSSI degradation in the affected direction."
+        },
+        {
+          number: "ANT-05",
+          severity: "info",
+          title: "Metal Enclosure Derating",
+          body: "A PCB trace antenna inside a sealed metal enclosure will fail to meet regulatory minimum EIRP requirements. Add 3–6 dB to the link-budget margin if enclosure is partially metal. For fully sealed metal enclosures, redesign as an aperture antenna or use an external antenna via a bulkhead SMA. Plastic enclosures attenuate 0.5–2 dB depending on material fill (ABS, PC, glass-filled nylon)."
+        },
+        {
+          number: "ANT-06",
+          severity: "info",
+          title: "Antenna Orientation",
+          body: "For omnidirectional coverage (typical IoT requirement), orient the antenna element perpendicular to the dominant board plane. A monopole or IFA has a radiation null pointing along its own axis — plan your product's real-world orientation accordingly. For wall-mounted devices, a horizontal antenna element pointed up/down creates full-azimuth coverage. For handheld devices, the antenna should point away from the user's hand grip."
+        },
+        {
+          number: "ANT-07",
+          severity: "warning",
+          title: "FCC / CE Certification Lock",
+          body: "The antenna position, orientation, ground plane size, and keep-out zone used during FCC/CE/TELEC certification testing define a legally binding design. Any change — including moving the antenna 2 mm, adding a nearby component, or changing the board shape — requires re-certification. Document the exact antenna geometry in the design history file and treat it as a controlled parameter from the first prototype."
+        },
+        {
+          number: "ANT-08",
+          severity: "warning",
+          title: "Pi-Network Footprint is Mandatory",
+          body: "Always include a Pi-network footprint (shunt cap → series element → shunt cap) between the RF IC output and the antenna feed point. PCB antenna feed impedance is 20–200 Ω — never 50 Ω at first spin. Without a Pi-network, 6–10 dB of transmit power is reflected back into the PA. Populate with DNP or 0Ω/open placeholders on first spin. Tune with a VNA after board bring-up. The footprint MUST exist on the PCB — it cannot be retrofitted."
+        }
+      ]
+    },
+    {
+      heading: "Via Stitching & Shielding Nets — Advanced Practice",
+      content: "Via stitching basics are covered across multiple modules. This section adds what is missing: the EDA shielding net concept, the distinction between via fence and via stitching, and the per-frequency λ/20 spacing table that engineers must calculate for their specific design.",
+      alerts: [
+        { type: "warning", text: "A Floating Copper Pour is an Antenna: Any copper island on an RF board with no stitching via connecting it to the ground reference re-radiates as a parasitic antenna. Orphaned copper islands are the #1 cause of unexpected spurious emissions during FCC pre-compliance tests. Every isolated copper region must be either removed or stitched. No exceptions." }
+      ],
+      cards: [
+        { title: "Via Fence vs. Via Stitching — The Difference", text: "Via fence: a row of ground vias placed alongside a specific RF trace, spaced ≤ λ/20, creating a waveguide wall that confines the EM field and suppresses crosstalk to adjacent circuits. Via stitching: a distributed grid of ground vias across the entire copper pour on a layer, preventing any copper island from floating. Both are required on RF boards — they serve different purposes and are not interchangeable." },
+        { title: "λ/20 Spacing — By Target Frequency", text: "2.4 GHz → max via pitch 6.25 mm. 5 GHz → 3.0 mm. 10 GHz → 1.5 mm. 24 GHz → 0.63 mm. 77 GHz → 0.19 mm. Always calculate for your highest frequency of concern — not your fundamental operating frequency. A board transmitting at 2.4 GHz still radiates harmonics at 4.8 GHz and 7.2 GHz. Stitch to the 3rd harmonic minimum." },
+        { title: "Floating Pour Prevention", text: "A top-layer ground pour not connected via stitching to the inner ground plane acts as a parasitic patch antenna. Minimum stitching density: 1 via per 100 mm² of copper pour in the RF zone. In high-frequency designs (> 10 GHz), increase to 1 via per 25 mm². Use your EDA copper pour manager to auto-generate stitching vias — manually placing them is error-prone at high density." },
+        { title: "Shielding Nets in EDA Tools", text: "Define a dedicated net named SHIELD_GND (or RF_GND) in your EDA netlist. Assign all shield can land pads, via fence vias, and guard ring vias to this net. This keeps the netlist auditable, enables DRC net-continuity checks on the shield structure, and prevents accidental short circuits between the shield and signal nets. In KiCad: assign via net in footprint properties. In Altium: use Net Inspector to verify all shield vias are connected." },
+        { title: "Shield Can Seam Rule", text: "The via row beneath the shield can wall perimeter must maintain ≤ λ/20 pitch — gaps in the via row create apertures that radiate. All perimeter vias must share the same net (SHIELD_GND or GND). The can lid seam, hinge points, and any cable entry apertures must have their longest dimension ≤ λ/20 to maintain shielding effectiveness > 20 dB. A 10 mm aperture reduces SE to ~20 dB at 3 GHz." },
+        { title: "Stitching Via Size Guidelines", text: "Use standard drill 0.3 mm / pad 0.6 mm for stitching vias. Annular ring ≥ 0.1 mm (check fab DFM). Avoid microvias (laser-drilled blind vias) for stitching unless the HDI stackup strictly requires it — microvias have higher via inductance per unit than through-hole vias and reduce stitching effectiveness at > 10 GHz. Through-hole stitching vias that span all layers are always preferred for ground stitching." }
+      ]
+    },
+    {
+      heading: "RF Board Design by Product Domain",
+      content: "The product application domain defines every fundamental RF design decision: substrate, stackup, shielding aggressiveness, and which regulatory certifications drive the layout constraints. IoT, Medical, and Industrial RF boards require fundamentally different engineering approaches — not just different component choices.",
+      alerts: [
+        { type: "info", text: "Medical and Automotive RF boards are NOT simply 'better FR-4 designs'. They require a fundamentally different design philosophy: substrate material qualification, accelerated life testing (thermal cycling, vibration, humidity), regulatory pre-certification layout reviews by accredited labs, and documented Design History Files (DHF) that trace every layout decision to a requirement. Treat them as separate engineering disciplines from day one of the project." }
+      ],
+      cards: [
+        { title: "General / Hobby RF", text: "Frequency: Sub-1 GHz to 2.4 GHz. Substrate: FR-4 acceptable. Surface finish: HASL or ENIG. Shielding: minimal or none. Regulatory: FCC Part 15 basic unintentional radiator. Focus: lowest cost, fastest time to market. PCB trace antenna viable. Via stitching at board edge is good practice but not mandatory. Suitable for: makers, prototypes, internal-only products, educational hardware." },
+        { title: "IoT (BLE / Wi-Fi / Zigbee / LoRa)", text: "Frequency: 433 MHz, 868/915 MHz (LoRa/Sigfox), 2.4 GHz (BLE/Zigbee/Wi-Fi), 5 GHz (Wi-Fi). Substrate: FR-4 for 2.4 GHz; Rogers RO4003C for 5 GHz precision. Key concerns: OTA coexistence (BLE and Wi-Fi share 2.4 GHz — implement frequency hopping and guard bands), power-on RF transient current (can reset poorly decoupled VDD rails), OTA firmware update antenna continuity. Regulatory: FCC Part 15B (USA), CE RED (EU), TELEC (Japan), SRRC (China), IC (Canada). Pi-network footprint mandatory on every antenna feed." },
+        { title: "Medical RF (MICS / BLE / UWB)", text: "Frequency: 403 MHz (MICS implant band), 2.4 GHz (BLE), 3.1–10.6 GHz (UWB positioning). Zero-failure tolerance — a dropped RF packet in a cardiac monitor is a patient safety event. SAR (Specific Absorption Rate) must comply with FCC limits (1.6 W/kg over 1g, USA) and ICNIRP (2.0 W/kg over 10g, EU) for body-worn devices. Must pass IEC 60601-1-2 (EMC for medical electrical equipment) and IEC 62133 (battery safety). Substrate: Rogers or equivalent low-loss. Full metal shield can enclosure mandatory around RF section. Redundant ground stitching grid. Fault-tree analysis (FTA) required for every RF power rail failure mode." },
+        { title: "Industrial / Automotive RF", text: "Frequency: 900 MHz ISM, 2.4 GHz, 5.9 GHz DSRC/V2X, 24 GHz / 77 GHz radar. Operating temperature: −40°C to +125°C with thermal cycling per AEC-Q100. Substrate: Rogers / PTFE for > 10 GHz. Component qualification: AEC-Q grade required for automotive. Regulatory: CISPR 25 (automotive conducted/radiated emissions), ISO 11452 (automotive RF immunity), IEC 61000 (industrial EMC). Solder joint reliability on RF pads is safety-critical — use robust annular rings ≥ 0.15 mm, no via-in-pad without filled and capped vias, conformal coat over all RF traces for moisture protection." },
+        { title: "Layout Rule Deltas by Domain", text: "General: FR-4, HASL, minimal stitching, no Pi-network required. IoT: FR-4/Rogers, ENIG, edge stitching, Pi-network mandatory, coexistence guard bands. Medical: Rogers, ENIG, full stitching grid, Pi-network, full shield can, ferrite bead on every RF power rail, no thermal relief on any GND pad. Automotive: Rogers/PTFE, ENIG, full stitching, thermal via arrays, vibration-rated solder alloy (SAC305 minimum), conformal coat, AEC-Q BOM. Each step up the ladder adds cost but removes a specific failure mode." }
+      ]
     }
   ],
   checklists: [
@@ -174,6 +276,36 @@ export const content = {
         "Verified all shield can apertures are ≤ λ/20 to maintain SE > 20 dB.",
         "Added castellated ground vias around shield can perimeter at ≤ λ/20 pitch.",
         "Cross-checked RF layout against EMI/EMC module requirements for regulatory compliance."
+      ]
+    },
+    {
+      category: "5. RF Trace Antenna Design Review",
+      description: "A 10-point pre-tape-out review for every PCB antenna design. Each item maps to a documented field failure or board respin caused by antenna detuning, impedance mismatch, or keep-out violations. Use this checklist alongside a VNA measurement to confirm S11 < −10 dB at your target band before approving Gerbers for fabrication.",
+      items: [
+        "Verified physical antenna length is corrected for substrate εeff — NOT free-space λ/4.",
+        "Confirmed antenna type (monopole / IFA / meander / patch) matches product size, gain, and domain constraints.",
+        "Keep-out zone (≥ λ/4 radius) enforced in EDA tool — zero copper, vias, or components inside the boundary.",
+        "Ground plane geometry confirmed: absent below radiating element for monopole/IFA; continuous below patch.",
+        "Pi-network or L-network footprint present at antenna feed — even if populated as DNP or 0Ω / open placeholders.",
+        "S11 return loss < −10 dB at target band verified by EM simulation (Sonnet Lite / HFSS / CST / ADS Momentum).",
+        "No metal structures (battery, shield can, USB connector, mounting screws) within λ/4 of the radiating element.",
+        "Antenna position is identical to the FCC/CE certification test sample layout — any move requires full re-certification.",
+        "Solder mask opening specified over the full antenna trace — LPI solder mask (εr ≈ 3.5) shifts resonant frequency.",
+        "Feed trace from RF IC to antenna confirmed at 50Ω — no width necking, no abrupt geometry changes at the launch point."
+      ]
+    },
+    {
+      category: "6. RF Manual Testing Protocol",
+      description: "Step-by-step bring-up and validation sequence for RF boards. Assumes a VNA (Vector Network Analyzer) with a SOLT calibration kit, a spectrum analyzer, and a calibrated receive antenna. For field-only tests without a VNA, items 5 and 6 provide a minimum viable RF sanity check. Always complete the first power-on checks (item 8) before connecting any antenna to the board.",
+      items: [
+        { label: "VNA Calibration", text: "Perform SOLT (Short-Open-Load-Thru) calibration at the cable end / SMA reference plane before every measurement session. Do not skip — an uncalibrated VNA gives false S11 readings that can pass a detuned antenna." },
+        { label: "Return Loss S11", text: "Sweep VNA from 100 MHz to 6 GHz. Confirm S11 < −10 dB at the target band. Smith chart must show impedance in the 25–100 Ω real range at resonance. A deep S11 notch offset from target frequency indicates εeff correction was not applied to the antenna length." },
+        { label: "Insertion Loss S21", text: "For RF trace verification: confirm S21 < 1 dB per 10 cm at the target frequency. Probe at dedicated RF coupon pads or SMA launch pairs fabricated on the panel edge. S21 > 2 dB indicates excessive substrate loss — verify material Df and surface finish." },
+        { label: "Conducted Spectrum", text: "Connect spectrum analyzer directly to RF IC TX output (before antenna). Confirm: no spurious emission > −30 dBc relative to fundamental, harmonics within FCC Part 15 / CE RED limits, no unexpected mixing products from crystal harmonics coupling into the PA." },
+        { label: "RSSI Field Test", text: "At 1 m distance from a calibrated reference receiver, measure RSSI in dBm. Must be within ±3 dB of the link budget prediction. Rotate the board through 360° in two planes — any RSSI drop > 10 dB at a specific angle indicates a radiation pattern null from a mismatched antenna or keep-out violation." },
+        { label: "Temperature Drift", text: "Sweep S11 at −20°C (cold soak), +25°C (ambient), and +85°C (hot). Resonant frequency shift must be < 5% of the target frequency across the full range. FR-4 εr increases with temperature — a 2.4 GHz design can drift to 2.32 GHz at +85°C if no thermal margin was designed in." },
+        { label: "Impedance Test Coupon", text: "Fabricate a dedicated 50 Ω microstrip coupon trace on the same PCB panel as the production board. Measure with TDR or VNA and confirm impedance within ±10% of target. The coupon validates the fabricator's dielectric thickness and trace geometry — if the coupon fails, all boards on that panel are suspect." },
+        { label: "First Power-On RF Checks", text: "Before connecting the antenna: (1) verify correct supply voltage on RF IC VDD pin, (2) confirm reference crystal oscillator is running by probing crystal pins for ~1 Vpp oscillation, (3) enable TX in firmware and measure output power at the RF IC's RF_OUT pin with a spectrum analyzer. Only connect the antenna after confirming the IC is transmitting at expected power." }
       ]
     }
   ]

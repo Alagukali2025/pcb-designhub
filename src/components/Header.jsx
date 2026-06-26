@@ -64,6 +64,7 @@ export default function Header({ theme, toggleTheme, toggleSidebar, isSidebarOpe
           </div>
         ) : (
           <div className="header-page-title">
+            <span className="header-page-prefix">Module&nbsp;›&nbsp;</span>
             <span>{pageTitle}</span>
           </div>
         )}

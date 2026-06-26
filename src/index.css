@@ -296,11 +296,31 @@ a:hover {
 /* Footer Styling */
 .app-footer {
   width: 100%;
-  background: var(--bg-primary);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
   border-top: 1px solid var(--border-light);
   padding: var(--space-4) var(--space-8);
-  margin-top: auto; /* Push to bottom */
+  margin-top: auto;
   z-index: 10;
+  position: relative;
+  overflow: hidden;
+}
+
+/* PCB trace watermark in footer */
+.app-footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='120' height='80' viewBox='0 0 120 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 40 L30 40 L45 25 L45 10 L75 10 L90 25 L115 25' stroke='rgba(26,107,58,0.08)' stroke-width='1.5' fill='none'/%3E%3Cpath d='M5 60 L20 60 L35 45 L65 45 L80 60 L115 60' stroke='rgba(200,117,51,0.06)' stroke-width='1' fill='none'/%3E%3Ccircle cx='5' cy='40' r='2.5' fill='rgba(26,107,58,0.12)'/%3E%3Ccircle cx='115' cy='25' r='2.5' fill='rgba(26,107,58,0.12)'/%3E%3C/svg%3E");
+  background-size: 240px 160px;
+  background-repeat: repeat;
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+.app-footer > * {
+  position: relative;
+  z-index: 1;
 }
 
 .footer-container {
@@ -781,6 +801,14 @@ a:hover {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+}
+
+.header-page-prefix {
+  color: var(--text-muted, var(--text-tertiary));
+  font-weight: 400;
+  font-size: 1rem;
 }
 
 @media (max-width: 1024px) {
@@ -1247,7 +1275,7 @@ a:hover {
   box-shadow: var(--shadow-sm);
 }
 
-/* The glowing line at the top of the card */
+/* The glowing line at the top of the card — uses per-card phase color */
 .module-card::before {
   content: '';
   position: absolute;
@@ -1255,7 +1283,7 @@ a:hover {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  background: linear-gradient(90deg, var(--card-phase-color, var(--accent-primary)), var(--accent-secondary));
   opacity: 0;
   transition: opacity var(--transition-normal);
 }
@@ -1408,6 +1436,47 @@ a:hover {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), var(--shadow-sm);
 }
 
+/* SVG PCB trace watermark — matches dash-welcome-hero */
+.content-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='120' height='80' viewBox='0 0 120 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 40 L30 40 L45 25 L45 10 L75 10 L90 25 L115 25' stroke='rgba(26,107,58,0.08)' stroke-width='1.5' fill='none'/%3E%3Cpath d='M5 60 L20 60 L35 45 L65 45 L80 60 L115 60' stroke='rgba(200,117,51,0.06)' stroke-width='1' fill='none'/%3E%3Ccircle cx='5'  cy='40' r='2.5' fill='rgba(26,107,58,0.12)'/%3E%3Ccircle cx='115' cy='25' r='2.5' fill='rgba(26,107,58,0.12)'/%3E%3Ccircle cx='45' cy='10' r='2'   fill='rgba(200,117,51,0.1)'/%3E%3Ccircle cx='5'  cy='60' r='2'   fill='rgba(200,117,51,0.08)'/%3E%3C/svg%3E");
+  background-size: 240px 160px;
+  background-repeat: repeat;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 0;
+}
+
+/* Copper glow orb — top-right, matches dash-welcome-hero */
+.content-hero::after {
+  content: '';
+  position: absolute;
+  right: -60px;
+  top: -40px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200, 117, 51, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure text/icon layers sit above the pseudo-elements */
+.content-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Light theme — soften the trace opacity */
+:root.light-theme .content-hero::before {
+  opacity: 0.4;
+}
+:root.light-theme .content-hero::after {
+  background: radial-gradient(circle, rgba(200, 117, 51, 0.07) 0%, transparent 70%);
+}
+
 @media (max-width: 480px) {
   .content-hero {
     padding: var(--space-4) var(--space-4);
@@ -1446,10 +1515,21 @@ a:hover {
   font-weight: 700;
   letter-spacing: -0.03em;
   margin-bottom: var(--space-4);
-  color: var(--text-primary);
+  background: linear-gradient(135deg, var(--text-primary) 55%, var(--accent-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   line-height: 1.15;
   overflow-wrap: break-word;
   word-break: break-word;
+}
+
+/* Light theme: keep title readable with gentler gradient */
+:root.light-theme .content-title {
+  background: linear-gradient(135deg, var(--text-primary) 70%, var(--accent-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .content-intro {
@@ -1576,6 +1656,15 @@ a:hover {
   border: 1px solid var(--border-light);
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
   flex-shrink: 0;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Hover glow on section number when parent section is hovered */
+.content-section:hover .section-number {
+  background: var(--accent-light);
+  border-color: var(--accent-border);
+  box-shadow: 0 0 14px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.1);
+  transform: scale(1.08);
 }
 
 .section-text {
@@ -2253,6 +2342,41 @@ a:hover {
   margin: var(--space-8) 0;
 }
 
+.tabs-header-row {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.tab-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--accent-border);
+}
+
+.tab-btn--active {
+  background: var(--accent-primary);
+  color: #fff;
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
 .tabs-content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -2312,9 +2436,21 @@ a:hover {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--text-tertiary);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   padding-left: var(--space-2);
   border-left: 3px solid var(--accent-primary);
+}
+
+.category-description {
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0 0 var(--space-4) var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-left: 2px solid var(--border-subtle, rgba(255,255,255,0.08));
+  background: var(--surface-glass, rgba(255,255,255,0.03));
+  border-radius: 0 var(--radius-sm, 4px) var(--radius-sm, 4px) 0;
 }
 
 /* Flow Component */
@@ -5882,9 +6018,14 @@ a:hover {
   box-shadow: var(--shadow-md);
 }
 
-.rule-card--danger { border-left-color: var(--danger); }
+/* Severity-aware hover tints */
+.rule-card--danger  { border-left-color: var(--danger); }
 .rule-card--warning { border-left-color: var(--warning); }
-.rule-card--info { border-left-color: var(--accent-primary); }
+.rule-card--info    { border-left-color: var(--accent-primary); }
+
+.rule-card--danger:hover  { background: rgba(239, 68, 68, 0.05); }
+.rule-card--warning:hover { background: rgba(245, 158, 11, 0.05); }
+.rule-card--info:hover    { background: rgba( 14, 165, 233, 0.05); }
 
 .rule-card-header {
   display: flex;
